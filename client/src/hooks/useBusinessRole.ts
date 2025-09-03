@@ -99,7 +99,7 @@ export function useBusinessRole() {
 
   // 检查角色是否已选择
   const hasSelectedRole = (): boolean => {
-    return selectedRoleCode !== null;
+    return selectedRoleCode !== null && selectedRoleCode !== undefined;
   };
 
   // 获取角色状态摘要
@@ -127,7 +127,7 @@ export function useBusinessRole() {
     // 状态
     selectedRoleCode,
     taskContext,
-    hasSelectedRole: hasSelectedRole(),
+    hasSelectedRole: selectedRoleCode !== null && selectedRoleCode !== undefined,
     
     // 操作
     selectBusinessRole,
