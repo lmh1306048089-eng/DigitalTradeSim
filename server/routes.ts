@@ -132,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "无效的刷新令牌" });
       }
       
-      const user = await storage.getUser(decoded.userId);
+      const user = await storage.getUser(decoded.id);
       if (!user) {
         return res.status(401).json({ message: "用户不存在" });
       }
