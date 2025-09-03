@@ -9,6 +9,7 @@ import { toast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building, RefreshCw } from 'lucide-react';
 import { getAuthTokens, clearAuthTokens } from '@/lib/auth';
+import WorkflowOperationInterface from './workflow-operation-interface';
 
 interface WorkflowInstance {
   id: string;
@@ -199,6 +200,13 @@ export default function WorkflowManager({
   // 添加token检查
   const tokens = getAuthTokens();
   const hasValidToken = !!tokens.accessToken;
+  
+  // 操作界面状态
+  const [activeOperation, setActiveOperation] = useState<{
+    workflowId: string;
+    workflowCode: string;
+    stepNumber: number;
+  } | null>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string>('preparation');
 
   // 获取当前活跃的工作流程
