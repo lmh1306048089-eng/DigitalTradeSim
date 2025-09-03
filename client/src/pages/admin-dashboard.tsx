@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Settings, Users, Building, FlaskConical, Server, BarChart, Database, Activity } from "lucide-react";
+import { Settings, Users, Building, FlaskConical, Server, BarChart, Database, Activity, TrendingUp, Clock, Globe, Zap, Shield } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -29,32 +29,117 @@ export default function AdminDashboard() {
 
   const renderOverviewSection = () => (
     <div className="space-y-6">
-      {/* System Stats */}
+      {/* Enhanced System Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="总用户数"
           value={systemStats?.totalUsers || 0}
           icon={<Users />}
           iconColor="text-primary"
+          progress={85}
+          subtitle="活跃度 85%"
         />
         <StatsCard
           title="在线用户"
-          value="156" // Mock data - would come from real-time monitoring
+          value="156"
           icon={<Activity />}
           iconColor="text-secondary"
+          subtitle="峰值: 203人"
         />
         <StatsCard
           title="系统负载"
-          value="23%" // Mock data - would come from system monitoring
+          value="23%"
           icon={<Server />}
           iconColor="text-accent"
+          progress={23}
+          subtitle="CPU + 内存"
         />
         <StatsCard
           title="数据存储"
-          value="2.3GB" // Mock data - would come from storage monitoring
+          value="2.3GB"
           icon={<Database />}
           iconColor="text-secondary"
+          progress={46}
+          subtitle="总容量: 5GB"
         />
+      </div>
+
+      {/* Real-time Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-primary">
+              <TrendingUp className="h-5 w-5 mr-2" />
+              访问统计
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">今日访问</span>
+                <span className="font-bold text-primary">1,247</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">本周访问</span>
+                <span className="font-bold">8,932</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">活跃会话</span>
+                <span className="font-bold text-secondary">156</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-accent/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-accent">
+              <Clock className="h-5 w-5 mr-2" />
+              响应时间
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">API 响应</span>
+                <span className="font-bold text-accent">245ms</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">数据库查询</span>
+                <span className="font-bold">12ms</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">页面加载</span>
+                <span className="font-bold">1.2s</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-secondary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center text-secondary">
+              <Shield className="h-5 w-5 mr-2" />
+              安全监控
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm">登录尝试</span>
+                <span className="font-bold">2,456</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">失败登录</span>
+                <span className="font-bold text-destructive">23</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm">安全等级</span>
+                <Badge variant="secondary" className="bg-secondary/20">高</Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* System Health */}

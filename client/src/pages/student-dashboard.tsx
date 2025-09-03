@@ -75,33 +75,133 @@ export default function StudentDashboard() {
         <p className="opacity-90">体验完整的跨境电商出口海外仓通关业务流程</p>
       </div>
 
-      {/* Quick Stats */}
+      {/* Enhanced Stats with Progress */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="已完成场景"
           value={stats ? `${stats.completedExperiments}/${stats.totalExperiments}` : "0/0"}
           icon={<Building />}
           iconColor="text-secondary"
+          progress={stats ? (stats.completedExperiments / stats.totalExperiments) * 100 : 0}
         />
         <StatsCard
           title="实验进度"
           value={stats ? `${Math.round(stats.completionRate)}%` : "0%"}
           icon={<FlaskConical />}
           iconColor="text-accent"
+          progress={stats ? stats.completionRate : 0}
         />
         <StatsCard
           title="总体评分"
           value={stats ? `${stats.averageScore}分` : "0分"}
           icon={<Star />}
           iconColor="text-accent"
+          progress={stats ? (stats.averageScore / 100) * 100 : 0}
         />
         <StatsCard
           title="学习时长"
           value={stats ? `${Math.round(stats.totalTimeSpent / 60)}h` : "0h"}
           icon={<Clock />}
           iconColor="text-primary"
+          subtitle={`目标: 40h`}
         />
       </div>
+      
+      {/* Achievement Section */}
+      <Card className="bg-gradient-to-r from-accent/10 to-secondary/10 border-accent/20">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2 flex items-center">
+                <Trophy className="h-5 w-5 text-accent mr-2" />
+                学习成就
+              </h3>
+              <p className="text-muted-foreground">继续学习，解锁更多成就徽章</p>
+            </div>
+            <div className="flex space-x-2">
+              <Badge variant="secondary" className="bg-accent/20 text-accent">
+                <Trophy className="h-3 w-3 mr-1" />
+                新手上路
+              </Badge>
+              {(stats?.completedExperiments || 0) >= 3 && (
+                <Badge variant="secondary" className="bg-secondary/20 text-secondary">
+                  <Star className="h-3 w-3 mr-1" />
+                  进步神速
+                </Badge>
+              )}
+              {(stats?.completionRate || 0) >= 80 && (
+                <Badge variant="secondary" className="bg-primary/20 text-primary">
+                  <BarChart className="h-3 w-3 mr-1" />
+                  学霸认证
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Learning Path */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+            学习路径
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {experiments.slice(0, 6).map((experiment, index) => {
+              const experimentProgress = getExperimentProgress(experiment.id);
+              const isUnlocked = isExperimentUnlocked(experiment);
+              const status = experimentProgress?.status || "not_started";
+              
+              return (
+                <div key={experiment.id} className="relative">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex-shrink-0">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        status === "completed" 
+                          ? "bg-secondary text-secondary-foreground" 
+                          : status === "in_progress" 
+                            ? "bg-primary text-primary-foreground"
+                            : isUnlocked 
+                              ? "bg-accent text-accent-foreground"
+                              : "bg-muted text-muted-foreground"
+                      }`}>
+                        {index + 1}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className={`font-medium ${!isUnlocked ? "text-muted-foreground" : ""}`}>
+                            {experiment.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">{experiment.category}</p>
+                          {experimentProgress && (
+                            <div className="mt-1">
+                              <Progress value={experimentProgress.progress} className="h-1" />
+                            </div>
+                          )}
+                        </div>
+                        <Badge 
+                          variant={status === "completed" ? "secondary" : status === "in_progress" ? "default" : "outline"}
+                          className="ml-2"
+                        >
+                          {status === "completed" ? "已完成" : status === "in_progress" ? "进行中" : isUnlocked ? "可开始" : "未解锁"}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  {index < experiments.length - 1 && (
+                    <div className="absolute left-4 top-8 w-px h-8 bg-border"></div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Current Tasks */}
       <Card>
@@ -118,9 +218,9 @@ export default function StudentDashboard() {
                 if (!experiment) return null;
                 
                 return (
-                  <div key={p.id} className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                  <div key={p.id} className="flex items-center justify-between p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
                     <div className="flex items-center space-x-3">
-                      <div className="w-2 h-2 bg-accent rounded-full"></div>
+                      <div className="w-2 h-2 bg-accent rounded-full animate-pulse"></div>
                       <div>
                         <p className="font-medium">{experiment.name}</p>
                         <p className="text-sm text-muted-foreground">{experiment.description}</p>

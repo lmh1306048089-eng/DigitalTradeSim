@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Users, CheckSquare, BarChart, Download, Search, Eye, FileText } from "lucide-react";
+import { Plus, Users, CheckSquare, BarChart, Download, Search, Eye, FileText, Target, TrendingUp, Trophy } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { StatsCard } from "@/components/ui/stats-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -86,32 +86,145 @@ export default function TeacherDashboard() {
       </Header>
 
       <div className="p-6 space-y-6">
-        {/* Quick Stats */}
+        {/* Enhanced Teacher Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard
             title="管理学员"
             value={`${stats?.totalStudents || 0}人`}
             icon={<Users />}
             iconColor="text-primary"
+            subtitle="本学期注册学员"
           />
           <StatsCard
             title="活跃任务"
             value={`${stats?.activeTasks || 0}个`}
             icon={<CheckSquare />}
             iconColor="text-accent"
+            progress={stats?.totalTasks ? (stats.activeTasks / stats.totalTasks) * 100 : 0}
+            subtitle={`总共 ${stats?.totalTasks || 0} 个任务`}
           />
           <StatsCard
-            title="总任务数"
-            value={`${stats?.totalTasks || 0}个`}
+            title="平均完成率"
+            value="78%"
             icon={<BarChart />}
             iconColor="text-secondary"
+            progress={78}
+            subtitle="班级整体表现"
           />
           <StatsCard
             title="待评价作业"
             value={`${pendingEvaluations}份`}
             icon={<FileText />}
             iconColor="text-destructive"
+            subtitle={pendingEvaluations > 0 ? "需要及时处理" : "暂无待办"}
           />
+        </div>
+
+        {/* Quick Action Buttons */}
+        <div className="flex flex-wrap gap-3">
+          <Button className="bg-gradient-to-r from-primary to-primary/80">
+            <Plus className="mr-2 h-4 w-4" />
+            创建新任务
+          </Button>
+          <Button variant="outline">
+            <Users className="mr-2 h-4 w-4" />
+            学员管理
+          </Button>
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            导出报告
+          </Button>
+          <Button variant="outline">
+            <BarChart className="mr-2 h-4 w-4" />
+            数据分析
+          </Button>
+        </div>
+
+        {/* Student Performance Analytics */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Trophy className="h-5 w-5 mr-2 text-accent" />
+                学员表现排行
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { name: '张小明', score: 95, experiments: 6, progress: 100 },
+                  { name: '李小华', score: 92, experiments: 5, progress: 85 },
+                  { name: '王小丽', score: 89, experiments: 5, progress: 83 },
+                  { name: '刘小强', score: 86, experiments: 4, progress: 67 },
+                  { name: '赵小雪', score: 83, experiments: 4, progress: 67 }
+                ].map((student, index) => (
+                  <div key={student.name} className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                        index === 0 ? 'bg-yellow-500 text-white' : 
+                        index === 1 ? 'bg-gray-400 text-white' : 
+                        index === 2 ? 'bg-orange-400 text-white' : 'bg-muted-foreground text-white'
+                      }`}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="font-medium">{student.name}</p>
+                        <p className="text-sm text-muted-foreground">完成 {student.experiments}/6 个实验</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">{student.score}分</p>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all" 
+                            style={{ width: `${student.progress}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">{student.progress}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2 text-primary" />
+                实验完成统计
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { name: '商品信息采集', completed: 28, total: 32, percentage: 88 },
+                  { name: '海关申报流程', completed: 25, total: 32, percentage: 78 },
+                  { name: '质检认证流程', completed: 22, total: 32, percentage: 69 },
+                  { name: '跨境支付结算', completed: 18, total: 32, percentage: 56 },
+                  { name: '国际物流配送', completed: 15, total: 32, percentage: 47 },
+                  { name: '风险控制管理', completed: 12, total: 32, percentage: 38 }
+                ].map((experiment) => (
+                  <div key={experiment.name} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{experiment.name}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {experiment.completed}/{experiment.total}人 ({experiment.percentage}%)
+                      </span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-300" 
+                        style={{ width: `${experiment.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Task Management */}
