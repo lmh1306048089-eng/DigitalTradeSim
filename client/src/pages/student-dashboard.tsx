@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star } from "lucide-react";
+import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -13,6 +13,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { BusinessRoleSelector } from "@/components/business-role-selector";
+import { useBusinessRole } from "@/hooks/useBusinessRole";
+import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import type { VirtualScene, Experiment, StudentProgress, StudentStats } from "@/types";
 
 type ActiveSection = "overview" | "scenes" | "experiments" | "progress" | "results";
@@ -22,6 +25,15 @@ export default function StudentDashboard() {
   const [selectedScene, setSelectedScene] = useState<VirtualScene | null>(null);
   const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
   const { user } = useAuth();
+  const {
+    hasSelectedRole,
+    selectedRoleCode,
+    selectBusinessRole,
+    getCurrentRole,
+    getAccessibleScenes,
+    clearBusinessRole,
+    getRoleStatus
+  } = useBusinessRole();
 
   // Fetch data using React Query
   const { data: scenes = [] } = useQuery<VirtualScene[]>({
@@ -67,12 +79,44 @@ export default function StudentDashboard() {
     return previousProgress?.status === "completed";
   };
 
+  // 如果还没有选择业务角色，显示角色选择界面
+  if (!hasSelectedRole && user?.role === "student") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+        <div className="max-w-6xl mx-auto">
+          <BusinessRoleSelector
+            userProductRole={user?.role || "student"}
+            onRoleSelect={selectBusinessRole}
+            selectedRoleCode={selectedRoleCode || undefined}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  const roleStatus = getRoleStatus();
+  const currentRole = getCurrentRole();
+
   const renderOverviewSection = () => (
     <div className="space-y-6">
-      {/* Welcome Banner */}
+      {/* Enhanced Welcome Banner with Role Info */}
       <div className="gradient-header text-white rounded-xl p-6">
-        <h2 className="text-2xl font-bold mb-2">欢迎来到数字贸易实训平台</h2>
-        <p className="opacity-90">体验完整的跨境电商出口海外仓通关业务流程</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold mb-2">数字贸易实训平台</h2>
+            <p className="opacity-90">体验完整的跨境电商出口海外仓通关业务流程</p>
+          </div>
+          {currentRole && (
+            <div className="text-right">
+              <Badge variant="secondary" className="bg-white/20 text-white mb-2">
+                当前角色: {currentRole.roleName}
+              </Badge>
+              <div className="text-sm opacity-80">
+                可访问 {roleStatus.stats.scenesCount} 个场景
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Enhanced Stats with Progress */}
@@ -577,6 +621,23 @@ export default function StudentDashboard() {
       
       <div className="flex h-screen">
         <Sidebar>
+          {/* Role Status */}
+          {currentRole && (
+            <div className="p-4 mb-4 bg-muted/50 rounded-lg">
+              <div className="text-sm font-medium text-muted-foreground mb-1">当前扮演角色</div>
+              <div className="text-sm font-semibold">{currentRole.roleName}</div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 text-xs h-6 px-2"
+                onClick={clearBusinessRole}
+                data-testid="button-change-role"
+              >
+                切换角色
+              </Button>
+            </div>
+          )}
+          
           <SidebarItem
             icon={<ChartLine className="h-5 w-5" />}
             active={activeSection === "overview"}
