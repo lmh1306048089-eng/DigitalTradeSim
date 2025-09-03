@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight } from "lucide-react";
+import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight, MapPin, Play } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
@@ -55,7 +55,7 @@ export default function StudentDashboard() {
   });
 
   // 获取基于业务角色的场景访问权限
-  const { data: roleBasedScenes, isLoading: scenesLoading } = useQuery({
+  const { data: roleBasedScenes, isLoading: scenesLoading } = useQuery<any>({
     queryKey: ["/api/scenes-with-operations", selectedRoleCode],
     enabled: !!selectedRoleCode,
   });
@@ -88,12 +88,12 @@ export default function StudentDashboard() {
   };
 
   // 如果是学生且还没有选择业务角色，显示角色选择界面
-  if (user && user.role === "student" && !hasSelectedRole) {
+  if (user && (user as any).role === "student" && !hasSelectedRole) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
         <div className="max-w-6xl mx-auto">
           <BusinessRoleSelector
-            userProductRole={user.role}
+            userProductRole={(user as any).role}
             onRoleSelect={selectBusinessRole}
             selectedRoleCode={selectedRoleCode || undefined}
           />
@@ -349,7 +349,7 @@ export default function StudentDashboard() {
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {roleBasedScenes.accessibleScenes.map((scene) => (
+          {roleBasedScenes.accessibleScenes.map((scene: any) => (
             <Card key={scene.sceneCode} className="hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
               <CardHeader>
                 <div className="flex items-start justify-between">
@@ -365,7 +365,7 @@ export default function StudentDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                {scene.roleOperations?.map((operation, index) => (
+                {scene.roleOperations?.map((operation: any, index: number) => (
                   <div key={index} className="border rounded-lg p-3 bg-muted/20 hover:bg-muted/40 transition-colors">
                     <div className="flex items-center justify-between mb-2">
                       <div>
@@ -378,7 +378,7 @@ export default function StudentDashboard() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-1">
-                      {operation.allowedOperations?.map((op, opIndex) => (
+                      {operation.allowedOperations?.map((op: string, opIndex: number) => (
                         <Badge key={opIndex} variant="outline" className="text-xs">
                           {op}
                         </Badge>
