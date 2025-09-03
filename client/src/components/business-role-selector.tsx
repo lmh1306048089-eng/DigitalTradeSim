@@ -46,6 +46,7 @@ export function BusinessRoleSelector({ userProductRole, onRoleSelect, selectedRo
   const [showDetails, setShowDetails] = useState<BusinessRoleConfig | null>(null);
   
   const availableRoles = getBusinessRolesByProductRole(userProductRole);
+  
 
   if (userProductRole !== "student") {
     return null; // 只有学生才能选择业务角色
@@ -95,8 +96,10 @@ export function BusinessRoleSelector({ userProductRole, onRoleSelect, selectedRo
                   className="flex-1"
                   onClick={() => onRoleSelect(role.roleCode)}
                   data-testid={`button-select-${role.roleCode}`}
+                  disabled={role.isSystemRole}
                 >
-                  {selectedRoleCode === role.roleCode ? "已选择" : "选择角色"}
+                  {role.isSystemRole ? "系统自动" : 
+                   selectedRoleCode === role.roleCode ? "已选择" : "选择角色"}
                 </Button>
                 <Button
                   variant="ghost"

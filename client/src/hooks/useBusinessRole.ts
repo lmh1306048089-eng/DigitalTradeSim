@@ -31,8 +31,12 @@ export function useBusinessRole() {
     const savedRole = localStorage.getItem(BUSINESS_ROLE_KEY);
     const savedContext = localStorage.getItem(TASK_CONTEXT_KEY);
     
+    
     if (savedRole && BUSINESS_ROLE_CONFIGS[savedRole]) {
       setSelectedRoleCode(savedRole);
+    } else {
+      // 如果没有保存的角色，确保状态为null
+      setSelectedRoleCode(null);
     }
     
     if (savedContext) {

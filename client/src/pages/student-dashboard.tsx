@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
@@ -35,6 +35,7 @@ export default function StudentDashboard() {
     clearBusinessRole,
     getRoleStatus
   } = useBusinessRole();
+
 
   // Fetch data using React Query
   const { data: scenes = [] } = useQuery<VirtualScene[]>({

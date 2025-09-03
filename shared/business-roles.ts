@@ -324,8 +324,9 @@ export function getBusinessRolesByProductRole(productRole: string): BusinessRole
     return [];
   }
   
-  // 返回非系统自动的业务角色
-  return Object.values(BUSINESS_ROLE_CONFIGS).filter(role => !role.isSystemRole);
+  // 如果用户希望看到所有5个角色（包括系统角色），返回全部
+  // 否则只返回非系统自动的业务角色（3个）
+  return Object.values(BUSINESS_ROLE_CONFIGS); // 显示所有5个角色
 }
 
 export function getAvailableScenes(businessRoleCode: string): SceneConfig[] {
