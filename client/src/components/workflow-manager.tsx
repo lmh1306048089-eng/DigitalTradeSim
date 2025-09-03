@@ -7,7 +7,8 @@ import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building } from 'lucide-react';
+import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building, RefreshCw } from 'lucide-react';
+import { getAuthTokens, clearAuthTokens } from '@/lib/auth';
 
 interface WorkflowInstance {
   id: string;
@@ -195,19 +196,16 @@ export default function WorkflowManager({
   businessRoleCode: string;
   availableScenes: string[];
 }) {
+  // 添加token检查
+  const tokens = getAuthTokens();
+  const hasValidToken = !!tokens.accessToken;
   const [selectedWorkflow, setSelectedWorkflow] = useState<string>('preparation');
 
   // 获取当前活跃的工作流程
   const { data: activeWorkflows, isLoading } = useQuery({
     queryKey: ['/api/workflows/current', businessRoleCode],
     queryFn: async () => {
-      const response = await fetch(`/api/workflows/current?businessRoleCode=${businessRoleCode}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      if (!response.ok) throw new Error('Failed to fetch workflows');
+      const response = await apiRequest('GET', `/api/workflows/current?businessRoleCode=${businessRoleCode}`);
       return response.json();
     },
   });
@@ -215,15 +213,10 @@ export default function WorkflowManager({
   // 启动新工作流程
   const startWorkflowMutation = useMutation({
     mutationFn: async (workflowCode: string) => {
-      const response = await fetch('/api/workflows/start', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ workflowCode, businessRoleCode })
+      const response = await apiRequest('POST', '/api/workflows/start', {
+        workflowCode,
+        businessRoleCode
       });
-      if (!response.ok) throw new Error('Failed to start workflow');
       return response.json();
     },
     onSuccess: () => {
@@ -249,15 +242,12 @@ export default function WorkflowManager({
       stepNumber: number;
       inputData: any;
     }) => {
-      const response = await fetch('/api/workflows/execute-step', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ instanceId, stepNumber, inputData, businessRoleCode })
+      const response = await apiRequest('POST', '/api/workflows/execute-step', {
+        instanceId,
+        stepNumber,
+        inputData,
+        businessRoleCode
       });
-      if (!response.ok) throw new Error('Failed to execute step');
       return response.json();
     },
     onSuccess: () => {
