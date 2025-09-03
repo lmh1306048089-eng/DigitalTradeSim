@@ -4,11 +4,29 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { clearAuthTokens } from "@/lib/auth";
 import LoginPage from "@/pages/login";
 import StudentDashboard from "@/pages/student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
+
+// Clear any existing tokens that might cause auth loops
+try {
+  const accessToken = localStorage.getItem('accessToken');
+  if (accessToken) {
+    // Try to decode the token to check if it's expired
+    const payload = JSON.parse(atob(accessToken.split('.')[1]));
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (payload.exp < currentTime) {
+      // Token is expired, clear it
+      clearAuthTokens();
+    }
+  }
+} catch (error) {
+  // If there's any error parsing the token, clear it
+  clearAuthTokens();
+}
 
 function Router() {
   const { user, isLoading, isAuthenticated } = useAuth();

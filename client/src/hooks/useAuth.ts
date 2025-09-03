@@ -8,12 +8,23 @@ export function useAuth() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading } = useQuery({
+  const tokens = getAuthTokens();
+  const hasValidToken = !!tokens.accessToken;
+
+  const { data: user, isLoading, error } = useQuery({
     queryKey: ["/api/auth/me"],
     retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!getAuthTokens().accessToken, // Only query if there's an access token
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchInterval: false,
+    enabled: hasValidToken,
   });
+
+  // Clear tokens immediately on 401 error
+  if (error && error.message.includes("401")) {
+    clearAuthTokens();
+    window.location.reload(); // Force a page reload to reset state
+  }
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { phone: string; password: string; role: string }) => {
