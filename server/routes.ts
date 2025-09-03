@@ -415,34 +415,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 根据业务角色获取可访问的场景和操作
   app.get("/api/scenes-with-operations", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { businessRole } = req.query;
+      const { businessRoleCode } = req.query;
       
-      // 获取所有场景并添加基于角色的操作入口信息
-      const scenes = await storage.getVirtualScenes();
-      const enhancedScenes = scenes.map(scene => {
-        const sceneConfig = SCENE_CONFIGS[scene.id];
-        if (!sceneConfig) return scene;
-        
-        // 如果指定了业务角色，只返回该角色可访问的操作入口
-        let operationPoints = sceneConfig.operationPoints;
-        if (businessRole) {
-          operationPoints = operationPoints.filter(point => 
-            point.businessRoleCode === businessRole
-          );
-        }
-        
+      if (!businessRoleCode) {
+        return res.status(400).json({ message: "业务角色代码必填" });
+      }
+
+      // 从内存配置获取角色信息
+      const roleConfig = BUSINESS_ROLE_CONFIGS[businessRoleCode as string];
+      if (!roleConfig) {
+        return res.status(404).json({ message: "业务角色不存在" });
+      }
+
+      // 直接从内存配置获取该角色可访问的场景
+      const accessibleScenes = Object.values(SCENE_CONFIGS).filter(scene => 
+        roleConfig.availableScenes.includes(scene.sceneCode)
+      );
+
+      // 为每个场景添加该角色的操作入口信息
+      const scenesWithOperations = accessibleScenes.map(scene => {
+        // 过滤出该角色可以使用的操作入口
+        const roleOperations = scene.operationPoints?.filter(op => 
+          op.businessRoleCode === businessRoleCode
+        ) || [];
+
         return {
-          ...scene,
-          operationPoints,
-          interactiveElements: sceneConfig.operationPoints.map(point => point.entryName)
+          sceneCode: scene.sceneCode,
+          sceneName: scene.sceneName,
+          description: scene.description,
+          imageUrl: scene.imageUrl,
+          roleOperations,
+          operationCount: roleOperations.length
         };
       });
-      
-      res.json(enhancedScenes);
+
+      res.json({
+        businessRole: {
+          roleCode: roleConfig.roleCode,
+          roleName: roleConfig.roleName,
+          description: roleConfig.description
+        },
+        accessibleScenes: scenesWithOperations,
+        totalScenes: accessibleScenes.length
+      });
     } catch (error: any) {
-      res.status(500).json({ message: error.message || "获取场景信息失败" });
+      res.status(500).json({ message: error.message || "获取场景操作信息失败" });
     }
   });
 

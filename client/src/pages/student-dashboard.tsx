@@ -54,6 +54,12 @@ export default function StudentDashboard() {
     queryKey: ["/api/progress/stats"],
   });
 
+  // 获取基于业务角色的场景访问权限
+  const { data: roleBasedScenes, isLoading: scenesLoading } = useQuery({
+    queryKey: ["/api/scenes-with-operations", selectedRoleCode],
+    enabled: !!selectedRoleCode,
+  });
+
   const { data: results = [] } = useQuery<any[]>({
     queryKey: ["/api/results"],
   });
@@ -301,25 +307,97 @@ export default function StudentDashboard() {
     </div>
   );
 
-  const renderScenesSection = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">虚拟场景体验</h2>
-        <div className="text-sm text-muted-foreground">5个真实业务场景完整还原</div>
-      </div>
+  const renderScenesSection = () => {
+    if (scenesLoading) {
+      return (
+        <div className="space-y-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">加载场景权限中...</p>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {scenes.map((scene) => (
-          <SceneCard
-            key={scene.id}
-            scene={scene}
-            status={getSceneStatus(scene.id)}
-            onClick={() => setSelectedScene(scene)}
-          />
-        ))}
+    if (!roleBasedScenes || !roleBasedScenes.accessibleScenes) {
+      return (
+        <div className="space-y-6">
+          <div className="text-center py-12">
+            <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-muted-foreground">请先选择业务角色以查看可访问的场景</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">虚拟场景体验 - {roleBasedScenes.businessRole?.roleName}</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {roleBasedScenes.businessRole?.description}
+            </p>
+          </div>
+          <div className="text-right">
+            <Badge variant="secondary">
+              可访问 {roleBasedScenes.totalScenes} 个专属场景
+            </Badge>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {roleBasedScenes.accessibleScenes.map((scene) => (
+            <Card key={scene.sceneCode} className="hover:shadow-lg transition-shadow border-2 hover:border-primary/20">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{scene.sceneName}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      {scene.description}
+                    </p>
+                  </div>
+                  <Badge variant="secondary">
+                    {scene.roleOperations?.length || 0}个操作入口
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {scene.roleOperations?.map((operation, index) => (
+                  <div key={index} className="border rounded-lg p-3 bg-muted/20 hover:bg-muted/40 transition-colors">
+                    <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <h4 className="font-medium text-sm">{operation.entryName}</h4>
+                        <p className="text-xs text-muted-foreground">{operation.entryDescription}</p>
+                      </div>
+                      <Button size="sm" variant="outline" className="ml-2">
+                        <Play className="h-3 w-3 mr-1" />
+                        进入
+                      </Button>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {operation.allowedOperations?.map((op, opIndex) => (
+                        <Badge key={opIndex} variant="outline" className="text-xs">
+                          {op}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                {(!scene.roleOperations || scene.roleOperations.length === 0) && (
+                  <div className="text-center py-4 text-muted-foreground text-sm">
+                    该角色在此场景暂无操作权限
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderExperimentsSection = () => (
     <div className="space-y-6">
