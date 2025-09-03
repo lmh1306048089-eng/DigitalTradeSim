@@ -106,16 +106,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(userData).returning();
+    await db.insert(users).values(userData);
+    const user = await this.getUserByPhone(userData.phone);
+    if (!user) throw new Error("Failed to create user");
     return user;
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
-    const [user] = await db
+    await db
       .update(users)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
+      .where(eq(users.id, id));
+    const user = await this.getUser(id);
+    if (!user) throw new Error("Failed to update user");
     return user;
   }
 
@@ -130,7 +133,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
-    const [role] = await db.insert(businessRoles).values(roleData).returning();
+    const result = await db.insert(businessRoles).values(roleData);
+    const insertId = result.insertId || roleData.id;
+    const role = await this.getBusinessRole(insertId.toString());
+    if (!role) throw new Error("Failed to create business role");
     return role;
   }
 
@@ -141,7 +147,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignUserBusinessRole(assignment: InsertUserBusinessRole): Promise<UserBusinessRole> {
-    const [role] = await db.insert(userBusinessRoles).values(assignment).returning();
+    const result = await db.insert(userBusinessRoles).values(assignment);
+    const insertId = result.insertId || assignment.id;
+    const [role] = await db.select().from(userBusinessRoles).where(eq(userBusinessRoles.id, insertId.toString()));
+    if (!role) throw new Error("Failed to assign user business role");
     return role;
   }
 
@@ -162,16 +171,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVirtualScene(sceneData: InsertVirtualScene): Promise<VirtualScene> {
-    const [scene] = await db.insert(virtualScenes).values(sceneData).returning();
+    const result = await db.insert(virtualScenes).values(sceneData);
+    const insertId = result.insertId || sceneData.id;
+    const scene = await this.getVirtualScene(insertId.toString());
+    if (!scene) throw new Error("Failed to create virtual scene");
     return scene;
   }
 
   async updateVirtualScene(id: string, updates: Partial<VirtualScene>): Promise<VirtualScene> {
-    const [scene] = await db
+    await db
       .update(virtualScenes)
       .set(updates)
-      .where(eq(virtualScenes.id, id))
-      .returning();
+      .where(eq(virtualScenes.id, id));
+    const scene = await this.getVirtualScene(id);
+    if (!scene) throw new Error("Failed to update virtual scene");
     return scene;
   }
 
@@ -192,16 +205,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperiment(experimentData: InsertExperiment): Promise<Experiment> {
-    const [experiment] = await db.insert(experiments).values(experimentData).returning();
+    const result = await db.insert(experiments).values(experimentData);
+    const insertId = result.insertId || experimentData.id;
+    const experiment = await this.getExperiment(insertId.toString());
+    if (!experiment) throw new Error("Failed to create experiment");
     return experiment;
   }
 
   async updateExperiment(id: string, updates: Partial<Experiment>): Promise<Experiment> {
-    const [experiment] = await db
+    await db
       .update(experiments)
       .set(updates)
-      .where(eq(experiments.id, id))
-      .returning();
+      .where(eq(experiments.id, id));
+    const experiment = await this.getExperiment(id);
+    if (!experiment) throw new Error("Failed to update experiment");
     return experiment;
   }
 
@@ -224,17 +241,21 @@ export class DatabaseStorage implements IStorage {
     if (existing) {
       return this.updateProgress(existing.id, progressData);
     } else {
-      const [progress] = await db.insert(studentProgress).values(progressData).returning();
+      const result = await db.insert(studentProgress).values(progressData);
+      const insertId = result.insertId || progressData.id;
+      const [progress] = await db.select().from(studentProgress).where(eq(studentProgress.id, insertId.toString()));
+      if (!progress) throw new Error("Failed to create progress");
       return progress;
     }
   }
 
   async updateProgress(id: string, updates: Partial<StudentProgress>): Promise<StudentProgress> {
-    const [progress] = await db
+    await db
       .update(studentProgress)
       .set({ ...updates, updatedAt: new Date() })
-      .where(eq(studentProgress.id, id))
-      .returning();
+      .where(eq(studentProgress.id, id));
+    const [progress] = await db.select().from(studentProgress).where(eq(studentProgress.id, id));
+    if (!progress) throw new Error("Failed to update progress");
     return progress;
   }
 
@@ -260,16 +281,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTrainingTask(taskData: InsertTrainingTask): Promise<TrainingTask> {
-    const [task] = await db.insert(trainingTasks).values(taskData).returning();
+    const result = await db.insert(trainingTasks).values(taskData);
+    const insertId = result.insertId || taskData.id;
+    const task = await this.getTrainingTask(insertId.toString());
+    if (!task) throw new Error("Failed to create training task");
     return task;
   }
 
   async updateTrainingTask(id: string, updates: Partial<TrainingTask>): Promise<TrainingTask> {
-    const [task] = await db
+    await db
       .update(trainingTasks)
       .set(updates)
-      .where(eq(trainingTasks.id, id))
-      .returning();
+      .where(eq(trainingTasks.id, id));
+    const task = await this.getTrainingTask(id);
+    if (!task) throw new Error("Failed to update training task");
     return task;
   }
 
@@ -295,16 +320,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperimentResult(resultData: InsertExperimentResult): Promise<ExperimentResult> {
-    const [result] = await db.insert(experimentResults).values(resultData).returning();
+    const insertResult = await db.insert(experimentResults).values(resultData);
+    const insertId = insertResult.insertId || resultData.id;
+    const result = await this.getExperimentResult(insertId.toString());
+    if (!result) throw new Error("Failed to create experiment result");
     return result;
   }
 
   async updateExperimentResult(id: string, updates: Partial<ExperimentResult>): Promise<ExperimentResult> {
-    const [result] = await db
+    await db
       .update(experimentResults)
       .set(updates)
-      .where(eq(experimentResults.id, id))
-      .returning();
+      .where(eq(experimentResults.id, id));
+    const result = await this.getExperimentResult(id);
+    if (!result) throw new Error("Failed to update experiment result");
     return result;
   }
 
@@ -325,7 +354,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUploadedFile(fileData: InsertUploadedFile): Promise<UploadedFile> {
-    const [file] = await db.insert(uploadedFiles).values(fileData).returning();
+    const result = await db.insert(uploadedFiles).values(fileData);
+    const insertId = result.insertId || fileData.id;
+    const [file] = await db.select().from(uploadedFiles).where(eq(uploadedFiles.id, insertId.toString()));
+    if (!file) throw new Error("Failed to create uploaded file");
     return file;
   }
 
