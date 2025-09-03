@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { clearAuthTokens } from "@/lib/auth";
+import type { User } from "@/types";
 import LoginPage from "@/pages/login";
 import StudentDashboard from "@/pages/student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";

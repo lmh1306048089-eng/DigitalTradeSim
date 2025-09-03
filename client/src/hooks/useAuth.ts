@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { setAuthTokens, getAuthTokens, clearAuthTokens, isUnauthorizedError } from "@/lib/auth";
-import type { UserState } from "@/types";
+import type { User, LoginCredentials, RegisterData } from "@/types";
 
 export function useAuth() {
   const { toast } = useToast();
@@ -11,7 +11,7 @@ export function useAuth() {
   const tokens = getAuthTokens();
   const hasValidToken = !!tokens.accessToken;
 
-  const { data: user, isLoading, error } = useQuery({
+  const { data: user, isLoading, error } = useQuery<User>({
     queryKey: ["/api/auth/me"],
     retry: false,
     refetchOnWindowFocus: false,
@@ -27,7 +27,7 @@ export function useAuth() {
   }
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: { phone: string; password: string; role: string }) => {
+    mutationFn: async (credentials: LoginCredentials) => {
       const res = await apiRequest("POST", "/api/auth/login", credentials);
       return res.json();
     },
@@ -49,7 +49,7 @@ export function useAuth() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (userData: { phone: string; password: string; username: string; role: string }) => {
+    mutationFn: async (userData: RegisterData) => {
       const res = await apiRequest("POST", "/api/auth/register", userData);
       return res.json();
     },
