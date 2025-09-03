@@ -7,8 +7,9 @@ import { Progress } from '@/components/ui/progress';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building, RefreshCw } from 'lucide-react';
+import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building, RefreshCw, Settings } from 'lucide-react';
 import { getAuthTokens, clearAuthTokens } from '@/lib/auth';
+import { WorkflowOperationModal } from './workflow-operation-modal';
 
 interface WorkflowInstance {
   id: string;
@@ -207,6 +208,23 @@ export default function WorkflowManager({
     stepNumber: number;
   } | null>(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState<string>('preparation');
+  const [operationModal, setOperationModal] = useState<{
+    isOpen: boolean;
+    workflowCode: string;
+    workflowName: string;
+    stepNumber: number;
+    stepTitle: string;
+    stepDescription: string;
+    inputFields: string[];
+  }>({
+    isOpen: false,
+    workflowCode: '',
+    workflowName: '',
+    stepNumber: 1,
+    stepTitle: '',
+    stepDescription: '',
+    inputFields: []
+  });
 
   // 获取当前活跃的工作流程
   const { data: activeWorkflows, isLoading } = useQuery({
@@ -409,12 +427,24 @@ export default function WorkflowManager({
                               {isActive && (
                                 <Button
                                   size="sm"
-                                  onClick={() => startWorkflowMutation.mutate(key)}
+                                  onClick={() => {
+                                    const workflow = WORKFLOW_DEFINITIONS[key];
+                                    const firstStep = workflow.steps[0];
+                                    setOperationModal({
+                                      isOpen: true,
+                                      workflowCode: key,
+                                      workflowName: workflow.name,
+                                      stepNumber: firstStep.stepNumber,
+                                      stepTitle: firstStep.title,
+                                      stepDescription: firstStep.description,
+                                      inputFields: firstStep.inputFields
+                                    });
+                                  }}
                                   disabled={startWorkflowMutation.isPending}
                                   data-testid={`start-workflow-${key}`}
                                 >
-                                  <Play className="w-4 h-4 mr-1" />
-                                  开始执行
+                                  <Settings className="w-4 h-4 mr-1" />
+                                  开始操作
                                 </Button>
                               )}
                             </div>
@@ -437,6 +467,24 @@ export default function WorkflowManager({
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* 操作模态框 */}
+      <WorkflowOperationModal
+        isOpen={operationModal.isOpen}
+        onClose={() => setOperationModal(prev => ({ ...prev, isOpen: false }))}
+        workflowCode={operationModal.workflowCode}
+        workflowName={operationModal.workflowName}
+        stepNumber={operationModal.stepNumber}
+        stepTitle={operationModal.stepTitle}
+        stepDescription={operationModal.stepDescription}
+        businessRole={businessRoleCode}
+        inputFields={operationModal.inputFields}
+        onSubmit={(data) => {
+          // 提交操作数据后，启动工作流
+          startWorkflowMutation.mutate(operationModal.workflowCode);
+          setOperationModal(prev => ({ ...prev, isOpen: false }));
+        }}
+      />
     </div>
   );
 }
