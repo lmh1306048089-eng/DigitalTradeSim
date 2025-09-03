@@ -20,7 +20,7 @@ const registerSchema = loginSchema.extend({
   username: z.string().min(2, "用户名至少2位"),
 });
 
-export default function LoginPage() {
+export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
   const [isRegister, setIsRegister] = useState(false);
   const { login, register, isLoginPending, isRegisterPending } = useAuth();
 
@@ -36,9 +36,17 @@ export default function LoginPage() {
 
   const onSubmit = (data: any) => {
     if (isRegister) {
-      register(data);
+      register(data, {
+        onSuccess: () => {
+          onLoginSuccess?.();
+        }
+      });
     } else {
-      login(data);
+      login(data, {
+        onSuccess: () => {
+          onLoginSuccess?.();
+        }
+      });
     }
   };
 

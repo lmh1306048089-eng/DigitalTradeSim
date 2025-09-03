@@ -1,10 +1,11 @@
+import { useState, useEffect } from "react";
 import { Switch, Route } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { queryClient } from "./lib/queryClient";
-import { useAuth } from "@/hooks/useAuth";
-import { clearAuthTokens } from "@/lib/auth";
+import { getAuthTokens, clearAuthTokens } from "@/lib/auth";
+import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@/types";
 import LoginPage from "@/pages/login";
 import StudentDashboard from "@/pages/student-dashboard";
@@ -12,47 +13,59 @@ import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
 
-// Clear any existing tokens that might cause auth loops
-try {
-  const accessToken = localStorage.getItem('accessToken');
-  if (accessToken) {
-    // Try to decode the token to check if it's expired
-    const payload = JSON.parse(atob(accessToken.split('.')[1]));
-    const currentTime = Math.floor(Date.now() / 1000);
-    if (payload.exp < currentTime) {
-      // Token is expired, clear it
-      clearAuthTokens();
-    }
-  }
-} catch (error) {
-  // If there's any error parsing the token, clear it
-  clearAuthTokens();
-}
-
 function Router() {
-  const { user, isLoading, isAuthenticated } = useAuth();
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      const tokens = getAuthTokens();
+      if (!tokens.accessToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Try to fetch user data
+      const response = await apiRequest("GET", "/api/auth/me");
+      const userData = await response.json();
+      setUser(userData);
+    } catch (error) {
+      // If auth fails, clear tokens and show login
+      clearAuthTokens();
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage />;
+  if (!user) {
+    return <LoginPage onLoginSuccess={checkAuth} />;
   }
 
   return (
     <Switch>
-      {user?.role === "student" && (
+      {user.role === "student" && (
         <Route path="/" component={StudentDashboard} />
       )}
-      {user?.role === "teacher" && (
+      {user.role === "teacher" && (
         <Route path="/" component={TeacherDashboard} />
       )}
-      {user?.role === "admin" && (
+      {user.role === "admin" && (
         <Route path="/" component={AdminDashboard} />
       )}
       <Route component={NotFound} />
