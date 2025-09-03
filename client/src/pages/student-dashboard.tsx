@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight, MapPin, Play } from "lucide-react";
+import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight, MapPin, Play, Workflow } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
@@ -10,6 +10,7 @@ import { SceneCard } from "@/components/virtual-scenes/scene-card";
 import { ExperimentCard } from "@/components/experiments/experiment-card";
 import { SceneModal } from "@/components/modals/scene-modal";
 import { ExperimentModal } from "@/components/modals/experiment-modal";
+import WorkflowManager from "@/components/workflow-manager";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,7 @@ import { useBusinessRole } from "@/hooks/useBusinessRole";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import type { VirtualScene, Experiment, StudentProgress, StudentStats } from "@/types";
 
-type ActiveSection = "overview" | "scenes" | "experiments" | "progress" | "results";
+type ActiveSection = "overview" | "scenes" | "experiments" | "workflows" | "progress" | "results";
 
 export default function StudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
@@ -693,11 +694,32 @@ export default function StudentDashboard() {
     </div>
   );
 
+  const renderWorkflowsSection = () => {
+    if (!selectedRoleCode || !roleBasedScenes?.accessibleScenes) {
+      return (
+        <div className="text-center py-12">
+          <Workflow className="h-12 w-12 mx-auto mb-4 opacity-50" />
+          <p className="text-muted-foreground">请先选择业务角色以访问协作工作流程</p>
+        </div>
+      );
+    }
+
+    const accessibleScenes = roleBasedScenes.accessibleScenes.map((scene: any) => scene.sceneCode);
+    
+    return (
+      <WorkflowManager 
+        businessRoleCode={selectedRoleCode}
+        availableScenes={accessibleScenes}
+      />
+    );
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case "overview": return renderOverviewSection();
       case "scenes": return renderScenesSection();
       case "experiments": return renderExperimentsSection();
+      case "workflows": return renderWorkflowsSection();
       case "progress": return renderProgressSection();
       case "results": return renderResultsSection();
       default: return renderOverviewSection();
@@ -747,6 +769,14 @@ export default function StudentDashboard() {
             onClick={() => setActiveSection("experiments")}
           >
             实验流程
+          </SidebarItem>
+          <SidebarItem
+            icon={<Workflow className="h-5 w-5" />}
+            active={activeSection === "workflows"}
+            onClick={() => setActiveSection("workflows")}
+            data-testid="sidebar-workflows"
+          >
+            协作流程
           </SidebarItem>
           <SidebarItem
             icon={<BarChart className="h-5 w-5" />}
