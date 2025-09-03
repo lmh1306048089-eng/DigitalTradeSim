@@ -9,7 +9,6 @@ import { toast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Play, CheckCircle, Clock, Users, FileText, Truck, Package, DollarSign, Building, RefreshCw } from 'lucide-react';
 import { getAuthTokens, clearAuthTokens } from '@/lib/auth';
-import WorkflowOperationInterface from './workflow-operation-interface';
 
 interface WorkflowInstance {
   id: string;
