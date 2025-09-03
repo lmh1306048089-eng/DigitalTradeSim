@@ -336,15 +336,43 @@ export default function WorkflowManager({
                   <div key={instance.id} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium">{def?.name}</h4>
-                      <Badge variant={instance.status === 'active' ? 'default' : 'secondary'}>
-                        {instance.status === 'active' ? '进行中' : '已完成'}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={instance.status === 'active' ? 'default' : 'secondary'}>
+                          {instance.status === 'active' ? '进行中' : '已完成'}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          ID: {instance.id.slice(-8)}
+                        </Badge>
+                      </div>
                     </div>
-                    <Progress value={progress} className="mb-2" />
-                    <p className="text-sm text-muted-foreground">
-                      步骤 {instance.currentStep} / {def?.steps.length} - 
-                      当前: {def?.steps[instance.currentStep - 1]?.title}
-                    </p>
+                    <Progress value={progress} className="mb-3" />
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        步骤 {instance.currentStep} / {def?.steps.length} - 
+                        当前: {def?.steps[instance.currentStep - 1]?.title}
+                      </p>
+                      {instance.status === 'active' && def?.steps[instance.currentStep - 1]?.requiredRole === businessRoleCode && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => {
+                            const currentStep = def.steps[instance.currentStep - 1];
+                            setOperationModal({
+                              isOpen: true,
+                              workflowCode: instance.workflowCode,
+                              workflowName: def.name,
+                              stepNumber: instance.currentStep,
+                              stepTitle: currentStep.title,
+                              stepDescription: currentStep.description,
+                              inputFields: currentStep.inputFields
+                            });
+                          }}
+                          data-testid={`execute-step-${instance.id}`}
+                        >
+                          <Settings className="w-4 h-4 mr-1" />
+                          执行操作
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 );
               })}
