@@ -144,10 +144,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
-    await db.insert(businessRoles).values([roleData]);
-    const role = await this.getBusinessRole(roleData.id || roleData.roleCode);
-    if (!role) throw new Error("Failed to create business role");
-    return role;
+    const [insertedRole] = await db.insert(businessRoles).values([{
+      roleCode: roleData.roleCode,
+      roleName: roleData.roleName,
+      description: roleData.description,
+      availableScenes: roleData.availableScenes ? JSON.parse(JSON.stringify(roleData.availableScenes)) : [],
+      availableOperations: roleData.availableOperations ? JSON.parse(JSON.stringify(roleData.availableOperations)) : [],
+      isActive: roleData.isActive ?? true
+    }]).returning();
+    if (!insertedRole) throw new Error("Failed to create business role");
+    return insertedRole;
   }
 
   // User business role assignments
@@ -186,10 +192,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVirtualScene(sceneData: InsertVirtualScene): Promise<VirtualScene> {
-    await db.insert(virtualScenes).values([sceneData]);
-    const scene = await this.getVirtualScene(sceneData.id || sceneData.name);
-    if (!scene) throw new Error("Failed to create virtual scene");
-    return scene;
+    const [insertedScene] = await db.insert(virtualScenes).values([{
+      name: sceneData.name,
+      description: sceneData.description,
+      imageUrl: sceneData.imageUrl,
+      status: sceneData.status ?? "active",
+      order: sceneData.order ?? 0,
+      operationPoints: sceneData.operationPoints ? JSON.parse(JSON.stringify(sceneData.operationPoints)) : [],
+      interactiveElements: sceneData.interactiveElements ? JSON.parse(JSON.stringify(sceneData.interactiveElements)) : []
+    }]).returning();
+    if (!insertedScene) throw new Error("Failed to create virtual scene");
+    return insertedScene;
   }
 
   async updateVirtualScene(id: string, updates: Partial<VirtualScene>): Promise<VirtualScene> {
@@ -219,10 +232,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperiment(experimentData: InsertExperiment): Promise<Experiment> {
-    await db.insert(experiments).values([experimentData]);
-    const experiment = await this.getExperiment(experimentData.id || experimentData.name);
-    if (!experiment) throw new Error("Failed to create experiment");
-    return experiment;
+    const [insertedExperiment] = await db.insert(experiments).values([{
+      name: experimentData.name,
+      category: experimentData.category,
+      description: experimentData.description,
+      order: experimentData.order ?? 0,
+      isActive: experimentData.isActive ?? true,
+      steps: experimentData.steps ? JSON.parse(JSON.stringify(experimentData.steps)) : [],
+      requirements: experimentData.requirements ? JSON.parse(JSON.stringify(experimentData.requirements)) : []
+    }]).returning();
+    if (!insertedExperiment) throw new Error("Failed to create experiment");
+    return insertedExperiment;
   }
 
   async updateExperiment(id: string, updates: Partial<Experiment>): Promise<Experiment> {
@@ -299,10 +319,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTrainingTask(taskData: InsertTrainingTask): Promise<TrainingTask> {
-    await db.insert(trainingTasks).values([taskData]);
-    const task = await this.getTrainingTask(taskData.id || taskData.title);
-    if (!task) throw new Error("Failed to create training task");
-    return task;
+    const [insertedTask] = await db.insert(trainingTasks).values([{
+      title: taskData.title,
+      teacherId: taskData.teacherId,
+      experimentId: taskData.experimentId,
+      description: taskData.description,
+      taskType: taskData.taskType ?? "individual",
+      isActive: taskData.isActive ?? true,
+      dueDate: taskData.dueDate,
+      requiredBusinessRoles: taskData.requiredBusinessRoles ? JSON.parse(JSON.stringify(taskData.requiredBusinessRoles)) : [],
+      roleAssignments: taskData.roleAssignments ? JSON.parse(JSON.stringify(taskData.roleAssignments)) : [],
+      assignedStudents: taskData.assignedStudents ? JSON.parse(JSON.stringify(taskData.assignedStudents)) : []
+    }]).returning();
+    if (!insertedTask) throw new Error("Failed to create training task");
+    return insertedTask;
   }
 
   async updateTrainingTask(id: string, updates: Partial<TrainingTask>): Promise<TrainingTask> {
