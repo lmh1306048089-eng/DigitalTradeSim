@@ -56,7 +56,16 @@ export default function StudentDashboard() {
 
   // 获取基于业务角色的场景访问权限
   const { data: roleBasedScenes, isLoading: scenesLoading } = useQuery<any>({
-    queryKey: ["/api/scenes-with-operations", selectedRoleCode],
+    queryKey: ["/api/scenes-with-operations", { businessRoleCode: selectedRoleCode }],
+    queryFn: async () => {
+      const response = await fetch(`/api/scenes-with-operations?businessRoleCode=${selectedRoleCode}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch');
+      return response.json();
+    },
     enabled: !!selectedRoleCode,
   });
 
