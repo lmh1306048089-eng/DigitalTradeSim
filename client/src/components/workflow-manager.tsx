@@ -200,16 +200,32 @@ export default function WorkflowManager({
   // 获取当前活跃的工作流程
   const { data: activeWorkflows, isLoading } = useQuery({
     queryKey: ['/api/workflows/current', businessRoleCode],
-    queryFn: () => apiRequest(`/api/workflows/current?businessRoleCode=${businessRoleCode}`),
+    queryFn: async () => {
+      const response = await fetch(`/api/workflows/current?businessRoleCode=${businessRoleCode}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch workflows');
+      return response.json();
+    },
   });
 
   // 启动新工作流程
   const startWorkflowMutation = useMutation({
-    mutationFn: (workflowCode: string) => 
-      apiRequest('/api/workflows/start', {
+    mutationFn: async (workflowCode: string) => {
+      const response = await fetch('/api/workflows/start', {
         method: 'POST',
-        body: { workflowCode, businessRoleCode }
-      }),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ workflowCode, businessRoleCode })
+      });
+      if (!response.ok) throw new Error('Failed to start workflow');
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "工作流程已启动",
@@ -228,15 +244,22 @@ export default function WorkflowManager({
 
   // 执行工作流程步骤
   const executeStepMutation = useMutation({
-    mutationFn: ({ instanceId, stepNumber, inputData }: {
+    mutationFn: async ({ instanceId, stepNumber, inputData }: {
       instanceId: string;
       stepNumber: number;
       inputData: any;
-    }) => 
-      apiRequest('/api/workflows/execute-step', {
+    }) => {
+      const response = await fetch('/api/workflows/execute-step', {
         method: 'POST',
-        body: { instanceId, stepNumber, inputData, businessRoleCode }
-      }),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ instanceId, stepNumber, inputData, businessRoleCode })
+      });
+      if (!response.ok) throw new Error('Failed to execute step');
+      return response.json();
+    },
     onSuccess: () => {
       toast({
         title: "步骤执行成功",
@@ -288,7 +311,7 @@ export default function WorkflowManager({
         </CardHeader>
         
         <CardContent>
-          {activeWorkflows?.activeWorkflows?.length > 0 ? (
+          {activeWorkflows?.activeWorkflows && activeWorkflows.activeWorkflows.length > 0 ? (
             <div className="space-y-4">
               {activeWorkflows.activeWorkflows.map((instance: WorkflowInstance) => {
                 const def = WORKFLOW_DEFINITIONS[instance.workflowCode as keyof typeof WORKFLOW_DEFINITIONS];
