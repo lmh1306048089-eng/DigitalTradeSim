@@ -20,8 +20,11 @@ import {
   insertExperimentSchema,
   insertStudentProgressSchema,
   insertTrainingTaskSchema,
-  insertExperimentResultSchema 
+  insertExperimentResultSchema,
+  insertBusinessRoleSchema,
+  insertUserBusinessRoleSchema
 } from "@shared/schema";
+import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "attached_assets", "uploads");
@@ -398,6 +401,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(stats);
     } catch (error: any) {
       res.status(500).json({ message: error.message || "获取教师统计失败" });
+    }
+  });
+
+  // Business role routes
+  app.get("/api/business-roles", authenticateToken, async (req, res) => {
+    try {
+      // 返回内存中的业务角色配置，而不是数据库中的
+      const roles = Object.values(BUSINESS_ROLE_CONFIGS).filter(role => !role.isSystemRole);
+      res.json(roles);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "获取业务角色失败" });
+    }
+  });
+
+  app.get("/api/scenes-with-operations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { businessRole } = req.query;
+      
+      // 获取所有场景并添加基于角色的操作入口信息
+      const scenes = await storage.getVirtualScenes();
+      const enhancedScenes = scenes.map(scene => {
+        const sceneConfig = SCENE_CONFIGS[scene.id];
+        if (!sceneConfig) return scene;
+        
+        // 如果指定了业务角色，只返回该角色可访问的操作入口
+        let operationPoints = sceneConfig.operationPoints;
+        if (businessRole) {
+          operationPoints = operationPoints.filter(point => 
+            point.businessRoleCode === businessRole
+          );
+        }
+        
+        return {
+          ...scene,
+          operationPoints,
+          interactiveElements: sceneConfig.operationPoints.map(point => point.entryName)
+        };
+      });
+      
+      res.json(enhancedScenes);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "获取场景信息失败" });
     }
   });
 

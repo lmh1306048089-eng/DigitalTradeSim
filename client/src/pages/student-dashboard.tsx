@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
 import { StatsCard } from "@/components/ui/stats-card";
@@ -52,7 +53,7 @@ export default function StudentDashboard() {
     queryKey: ["/api/progress/stats"],
   });
 
-  const { data: results = [] } = useQuery({
+  const { data: results = [] } = useQuery<any[]>({
     queryKey: ["/api/results"],
   });
 
@@ -80,12 +81,12 @@ export default function StudentDashboard() {
   };
 
   // 如果还没有选择业务角色，显示角色选择界面
-  if (!hasSelectedRole && user?.role === "student") {
+  if (!hasSelectedRole && user && user.role === "student") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
         <div className="max-w-6xl mx-auto">
           <BusinessRoleSelector
-            userProductRole={user?.role || "student"}
+            userProductRole={user.role}
             onRoleSelect={selectBusinessRole}
             selectedRoleCode={selectedRoleCode || undefined}
           />
@@ -560,10 +561,10 @@ export default function StudentDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((result: any) => {
+                  {results.map((result: any, index: number) => {
                     const experiment = experiments.find(e => e.id === result.experimentId);
                     return (
-                      <tr key={result.id} className="border-b border-border">
+                      <tr key={result.id || index} className="border-b border-border">
                         <td className="py-3 px-4">{experiment?.name || "未知实验"}</td>
                         <td className="py-3 px-4 text-muted-foreground">
                           {result.submittedAt ? new Date(result.submittedAt).toLocaleDateString() : "-"}

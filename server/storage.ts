@@ -6,6 +6,9 @@ import {
   trainingTasks,
   experimentResults,
   uploadedFiles,
+  businessRoles,
+  userBusinessRoles,
+  collaborationData,
   type User,
   type InsertUser,
   type VirtualScene,
@@ -20,6 +23,12 @@ import {
   type InsertExperimentResult,
   type UploadedFile,
   type InsertUploadedFile,
+  type BusinessRole,
+  type InsertBusinessRole,
+  type UserBusinessRole,
+  type InsertUserBusinessRole,
+  type CollaborationData,
+  type InsertCollaborationData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -30,6 +39,16 @@ export interface IStorage {
   getUserByPhone(phone: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: string, updates: Partial<User>): Promise<User>;
+  
+  // Business role operations
+  getBusinessRoles(): Promise<BusinessRole[]>;
+  getBusinessRole(id: string): Promise<BusinessRole | undefined>;
+  createBusinessRole(role: InsertBusinessRole): Promise<BusinessRole>;
+  
+  // User business role assignments
+  getUserBusinessRoles(userId: string): Promise<UserBusinessRole[]>;
+  assignUserBusinessRole(assignment: InsertUserBusinessRole): Promise<UserBusinessRole>;
+  removeUserBusinessRole(id: string): Promise<void>;
   
   // Virtual scenes
   getVirtualScenes(): Promise<VirtualScene[]>;
@@ -98,6 +117,38 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  // Business role operations
+  async getBusinessRoles(): Promise<BusinessRole[]> {
+    return db.select().from(businessRoles).where(eq(businessRoles.isActive, true));
+  }
+
+  async getBusinessRole(id: string): Promise<BusinessRole | undefined> {
+    const [role] = await db.select().from(businessRoles).where(eq(businessRoles.id, id));
+    return role;
+  }
+
+  async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
+    const [role] = await db.insert(businessRoles).values(roleData).returning();
+    return role;
+  }
+
+  // User business role assignments
+  async getUserBusinessRoles(userId: string): Promise<UserBusinessRole[]> {
+    return db.select().from(userBusinessRoles)
+      .where(and(eq(userBusinessRoles.userId, userId), eq(userBusinessRoles.isActive, true)));
+  }
+
+  async assignUserBusinessRole(assignment: InsertUserBusinessRole): Promise<UserBusinessRole> {
+    const [role] = await db.insert(userBusinessRoles).values(assignment).returning();
+    return role;
+  }
+
+  async removeUserBusinessRole(id: string): Promise<void> {
+    await db.update(userBusinessRoles)
+      .set({ isActive: false })
+      .where(eq(userBusinessRoles.id, id));
   }
 
   // Virtual scenes
