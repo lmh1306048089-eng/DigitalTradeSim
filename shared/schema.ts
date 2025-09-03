@@ -349,3 +349,49 @@ export const WORKFLOWS = {
   OVERSEAS_DELIVERY: "overseas_delivery",        // 境外配送
   TAX_REFUND: "tax_refund"                       // 退税申报
 } as const;
+
+// 工作流程实例表
+export const workflowInstances = mysqlTable("workflow_instances", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  workflowCode: varchar("workflow_code", { length: 50 }).notNull(),
+  businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
+  initiatorUserId: varchar("initiator_user_id", { length: 36 }).notNull(),
+  currentStep: int("current_step").notNull().default(1),
+  status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, paused, failed
+  stepData: json("step_data"), // 存储各步骤的数据
+  collaborators: json("collaborators"), // 参与的其他角色用户
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 工作流程步骤执行记录表
+export const workflowStepExecutions = mysqlTable("workflow_step_executions", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  workflowInstanceId: varchar("workflow_instance_id", { length: 36 }).notNull(),
+  stepNumber: int("step_number").notNull(),
+  executorUserId: varchar("executor_user_id", { length: 36 }).notNull(),
+  businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  inputData: json("input_data"),
+  outputData: json("output_data"),
+  status: varchar("status", { length: 20 }).notNull().default("completed"), // completed, failed
+  executedAt: timestamp("executed_at").defaultNow(),
+});
+
+// 工作流程相关schema
+export const insertWorkflowInstanceSchema = createInsertSchema(workflowInstances).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWorkflowStepExecutionSchema = createInsertSchema(workflowStepExecutions).omit({
+  id: true,
+  executedAt: true,
+});
+
+// 工作流程类型定义
+export type WorkflowInstance = typeof workflowInstances.$inferSelect;
+export type InsertWorkflowInstance = z.infer<typeof insertWorkflowInstanceSchema>;
+export type WorkflowStepExecution = typeof workflowStepExecutions.$inferSelect;
+export type InsertWorkflowStepExecution = z.infer<typeof insertWorkflowStepExecutionSchema>;

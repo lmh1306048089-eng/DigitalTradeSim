@@ -9,6 +9,8 @@ import {
   businessRoles,
   userBusinessRoles,
   collaborationData,
+  workflowInstances,
+  workflowStepExecutions,
   type User,
   type InsertUser,
   type VirtualScene,
@@ -29,6 +31,10 @@ import {
   type InsertUserBusinessRole,
   type CollaborationData,
   type InsertCollaborationData,
+  type WorkflowInstance,
+  type InsertWorkflowInstance,
+  type WorkflowStepExecution,
+  type InsertWorkflowStepExecution,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -91,6 +97,11 @@ export interface IStorage {
   getStudentStats(userId: string): Promise<any>;
   getTeacherStats(teacherId: string): Promise<any>;
   getSystemStats(): Promise<any>;
+  
+  // Workflow operations
+  getUserWorkflows(userId: string, businessRoleCode: string): Promise<WorkflowInstance[]>;
+  createWorkflowInstance(instance: InsertWorkflowInstance): Promise<WorkflowInstance>;
+  executeWorkflowStep(workflowId: string, userId: string, stepExecution: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -133,9 +144,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
-    const result = await db.insert(businessRoles).values(roleData);
-    const insertId = result.insertId || roleData.id;
-    const role = await this.getBusinessRole(insertId.toString());
+    await db.insert(businessRoles).values(roleData);
+    const role = await this.getBusinessRole(roleData.roleCode);
     if (!role) throw new Error("Failed to create business role");
     return role;
   }
@@ -408,6 +418,73 @@ export class DatabaseStorage implements IStorage {
       students: students.length,
       teachers: teachers.length,
       admins: admins.length,
+    };
+  }
+
+  // Workflow operations
+  async getUserWorkflows(userId: string, businessRoleCode: string): Promise<WorkflowInstance[]> {
+    return db.select()
+      .from(workflowInstances)
+      .where(
+        and(
+          eq(workflowInstances.initiatorUserId, userId),
+          eq(workflowInstances.businessRoleCode, businessRoleCode)
+        )
+      )
+      .orderBy(desc(workflowInstances.createdAt));
+  }
+
+  async createWorkflowInstance(instanceData: InsertWorkflowInstance): Promise<WorkflowInstance> {
+    await db.insert(workflowInstances).values(instanceData);
+    // 获取最新创建的工作流实例
+    const [workflow] = await db.select()
+      .from(workflowInstances)
+      .where(eq(workflowInstances.initiatorUserId, instanceData.initiatorUserId))
+      .orderBy(desc(workflowInstances.createdAt))
+      .limit(1);
+    if (!workflow) throw new Error("Failed to create workflow instance");
+    return workflow;
+  }
+
+  async executeWorkflowStep(workflowId: string, userId: string, stepExecution: any): Promise<any> {
+    // 获取工作流实例
+    const [workflow] = await db.select()
+      .from(workflowInstances)
+      .where(eq(workflowInstances.id, workflowId));
+      
+    if (!workflow) {
+      throw new Error("工作流程不存在");
+    }
+
+    // 记录步骤执行
+    await db.insert(workflowStepExecutions).values({
+      workflowInstanceId: workflowId,
+      stepNumber: workflow.currentStep,
+      executorUserId: userId,
+      businessRoleCode: workflow.businessRoleCode,
+      action: stepExecution.action,
+      inputData: stepExecution.data,
+      outputData: stepExecution.data,
+      status: "completed"
+    });
+
+    // 更新工作流实例状态
+    const nextStep = workflow.currentStep + 1;
+    const newStatus = nextStep > 6 ? "completed" : "active"; // 假设最多6步
+    
+    await db.update(workflowInstances)
+      .set({
+        currentStep: nextStep,
+        status: newStatus,
+        updatedAt: new Date()
+      })
+      .where(eq(workflowInstances.id, workflowId));
+
+    return {
+      success: true,
+      currentStep: nextStep,
+      status: newStatus,
+      message: stepExecution.action + " 执行成功"
     };
   }
 }

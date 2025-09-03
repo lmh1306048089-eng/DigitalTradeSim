@@ -415,6 +415,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 工作流程管理API
+  
+  // 获取用户当前的工作流程状态
+  app.get("/api/workflows/current", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { businessRoleCode } = req.query;
+      
+      if (!businessRoleCode) {
+        return res.status(400).json({ message: "业务角色代码必填" });
+      }
+
+      // 获取该角色的当前工作流程状态
+      const workflows = await storage.getUserWorkflows(userId, businessRoleCode as string);
+      
+      res.json({
+        businessRoleCode,
+        activeWorkflows: workflows,
+        totalCount: workflows.length
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "获取工作流程失败" });
+    }
+  });
+
+  // 创建新的工作流程实例
+  app.post("/api/workflows/start", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { workflowCode, businessRoleCode } = req.body;
+      
+      if (!workflowCode || !businessRoleCode) {
+        return res.status(400).json({ message: "工作流程代码和业务角色代码必填" });
+      }
+
+      const workflow = await storage.createWorkflowInstance({
+        workflowCode,
+        businessRoleCode,
+        initiatorUserId: userId,
+        currentStep: 1,
+        status: 'active',
+        stepData: {}
+      });
+      
+      res.json({ 
+        success: true, 
+        workflowId: workflow.id,
+        message: "工作流程已启动" 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "启动工作流程失败" });
+    }
+  });
+
+  // 执行工作流程步骤
+  app.post("/api/workflows/:workflowId/execute-step", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { workflowId } = req.params;
+      const { stepData, action } = req.body;
+      
+      const result = await storage.executeWorkflowStep(workflowId, userId, {
+        action,
+        data: stepData,
+        executedAt: new Date()
+      });
+      
+      res.json(result);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message || "执行步骤失败" });
+    }
+  });
+
   // 根据业务角色获取可访问的场景和操作
   app.get("/api/scenes-with-operations", authenticateToken, async (req: AuthRequest, res) => {
     try {
