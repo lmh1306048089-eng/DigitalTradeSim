@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/experiments/file-upload";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { SimpleTestForm } from "./simple-test-form";
 
 // 表单验证模式
 const customsFormSchema = z.object({
@@ -245,6 +246,9 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
       case 2:
         return (
           <div className="space-y-6">
+            {/* 临时测试表单 */}
+            <SimpleTestForm />
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
