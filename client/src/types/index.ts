@@ -1,3 +1,13 @@
+export interface User {
+  id: string;
+  phone: string;
+  username: string;
+  role: 'student' | 'teacher' | 'admin';
+  avatar?: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
 export interface UserState {
   id: string;
   phone: string;

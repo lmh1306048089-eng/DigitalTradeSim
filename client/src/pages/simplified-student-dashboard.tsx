@@ -225,32 +225,36 @@ export default function SimplifiedStudentDashboard() {
           
           <SidebarItem
             icon={<CheckSquare />}
-            label="实训任务"
             active={activeSection === "tasks"}
             onClick={() => setActiveSection("tasks")}
             data-testid="sidebar-tasks"
-          />
+          >
+            实训任务
+          </SidebarItem>
           <SidebarItem
             icon={<TrendingUp />}
-            label="学习路径"
             active={activeSection === "learning_path"}
             onClick={() => setActiveSection("learning_path")}
             data-testid="sidebar-learning-path"
-          />
+          >
+            学习路径
+          </SidebarItem>
           <SidebarItem
             icon={<ChartLine />}
-            label="学习进度"
             active={activeSection === "progress"}
             onClick={() => setActiveSection("progress")}
             data-testid="sidebar-progress"
-          />
+          >
+            学习进度
+          </SidebarItem>
           <SidebarItem
             icon={<Building />}
-            label="学习资源"
             active={activeSection === "resources"}
             onClick={() => setActiveSection("resources")}
             data-testid="sidebar-resources"
-          />
+          >
+            学习资源
+          </SidebarItem>
         </Sidebar>
 
         <main className="flex-1 p-8 overflow-y-auto">
