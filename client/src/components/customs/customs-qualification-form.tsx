@@ -176,7 +176,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>企业名称 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="请输入企业全称" data-testid="input-company-name" />
+                      <Input {...field} value={field.value || ""} placeholder="请输入企业全称" data-testid="input-company-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -190,7 +190,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>统一社会信用代码 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="18位统一社会信用代码" maxLength={18} data-testid="input-credit-code" />
+                      <Input {...field} value={field.value || ""} placeholder="18位统一社会信用代码" maxLength={18} data-testid="input-credit-code" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -204,7 +204,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>法定代表人 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="请输入法定代表人姓名" data-testid="input-legal-rep" />
+                      <Input {...field} value={field.value || ""} placeholder="请输入法定代表人姓名" data-testid="input-legal-rep" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -218,7 +218,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>营业执照注册号 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="请输入营业执照注册号" data-testid="input-business-license" />
+                      <Input {...field} value={field.value || ""} placeholder="请输入营业执照注册号" data-testid="input-business-license" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -233,7 +233,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                 <FormItem>
                   <FormLabel>注册地址 <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="请输入详细的企业注册地址" className="min-h-[80px]" data-testid="textarea-address" />
+                    <Textarea {...field} value={field.value || ""} placeholder="请输入详细的企业注册地址" className="min-h-[80px]" data-testid="textarea-address" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -253,7 +253,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>联系人 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="联系人姓名" data-testid="input-contact-person" />
+                      <Input 
+                        {...field} 
+                        value={field.value || ""}
+                        placeholder="联系人姓名" 
+                        data-testid="input-contact-person" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -267,7 +272,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>联系电话 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="手机号码" data-testid="input-contact-phone" />
+                      <Input 
+                        {...field} 
+                        value={field.value || ""}
+                        placeholder="手机号码" 
+                        data-testid="input-contact-phone" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -281,7 +291,13 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   <FormItem>
                     <FormLabel>联系邮箱 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="邮箱地址" type="email" data-testid="input-contact-email" />
+                      <Input 
+                        {...field} 
+                        value={field.value || ""}
+                        placeholder="邮箱地址" 
+                        type="email" 
+                        data-testid="input-contact-email" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -329,7 +345,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                 <FormItem>
                   <FormLabel>进出口许可证号（如有）</FormLabel>
                   <FormControl>
-                    <Input {...field} placeholder="请输入进出口许可证号" data-testid="input-import-export-license" />
+                    <Input 
+                      {...field} 
+                      value={field.value || ""}
+                      placeholder="请输入进出口许可证号" 
+                      data-testid="input-import-export-license" 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
