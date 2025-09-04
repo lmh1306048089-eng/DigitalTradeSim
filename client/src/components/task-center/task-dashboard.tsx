@@ -222,45 +222,21 @@ export function TaskDashboard() {
 
   const handleStartTask = (task: BusinessTask) => {
     console.log("启动任务:", task.title);
-    // 根据任务类型，启动相应的实验流程
+    // 根据任务类型，跳转到相应的实验页面
     if (task.id === "customs-qualification") {
-      // 构建对应的实验对象，集成到现有实验系统
-      const customsExperiment = {
-        id: "customs-qualification-exp",
-        title: "海关企业资质备案实验",
-        description: "在电商企业办公场景中完成企业资质备案申请",
-        category: "customs" as const,
-        difficulty: "beginner" as const,
-        estimatedTime: 30,
-        businessRoleCode: "enterprise_operator",
-        sceneCode: "e_commerce_office",
-        steps: [
-          {
-            id: "step1",
-            title: "企业信息填报",
-            description: "在系统中填写企业基本信息",
-            required: true,
-            operationPointCode: "qualification_filing"
-          },
-          {
-            id: "step2", 
-            title: "经营范围选择",
-            description: "选择企业进出口经营范围",
-            required: true,
-            operationPointCode: "business_scope"
-          },
-          {
-            id: "step3",
-            title: "材料上传提交",
-            description: "上传并提交备案材料",
-            required: true,
-            operationPointCode: "document_upload"
-          }
-        ]
-      };
-
-      // 使用wouter路由跳转到海关资质备案页面
-      setLocation("/customs-qualification");
+      // 直接跳转到实验页面，让用户启动海关企业资质备案实验
+      setLocation("/experiments");
+      // 可以通过URL参数传递自动启动的实验ID
+      setTimeout(() => {
+        // 模拟用户点击海关企业资质备案实验
+        const event = new CustomEvent('autoStartExperiment', { 
+          detail: { experimentName: '海关企业资质备案' } 
+        });
+        window.dispatchEvent(event);
+      }, 500);
+    } else {
+      // 其他任务的处理逻辑
+      console.log("其他任务处理逻辑待实现:", task.title);
     }
   };
 

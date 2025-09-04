@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, FlaskConical, CheckCircle, Clock, Circle, ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
@@ -14,6 +14,25 @@ import type { Experiment, StudentProgress } from "@/types";
 export default function ExperimentsPage() {
   const [, setLocation] = useLocation();
   const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
+
+  // 监听从任务中心自动启动实验的事件
+  useEffect(() => {
+    const handleAutoStartExperiment = (event: CustomEvent) => {
+      const { experimentName } = event.detail;
+      if (experimentName && experiments.length > 0) {
+        const targetExperiment = experiments.find(exp => exp.name === experimentName);
+        if (targetExperiment) {
+          setSelectedExperiment(targetExperiment);
+        }
+      }
+    };
+
+    window.addEventListener('autoStartExperiment', handleAutoStartExperiment as EventListener);
+    
+    return () => {
+      window.removeEventListener('autoStartExperiment', handleAutoStartExperiment as EventListener);
+    };
+  }, [experiments]);
 
   // Fetch data
   const { data: experiments = [] } = useQuery<Experiment[]>({
