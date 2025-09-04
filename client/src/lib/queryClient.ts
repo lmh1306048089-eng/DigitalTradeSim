@@ -27,7 +27,10 @@ export async function apiRequest(
   const accessToken = localStorage.getItem('accessToken');
   const headers: Record<string, string> = {};
   
-  if (data) {
+  // Don't set Content-Type for FormData - let the browser set it automatically
+  const isFormData = data instanceof FormData;
+  
+  if (data && !isFormData) {
     headers["Content-Type"] = "application/json";
   }
   
@@ -38,7 +41,7 @@ export async function apiRequest(
   const res = await fetch(url, {
     method,
     headers,
-    body: data ? JSON.stringify(data) : undefined,
+    body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     credentials: "include",
   });
 
