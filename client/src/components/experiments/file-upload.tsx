@@ -137,7 +137,7 @@ export function FileUpload({
               <div className="flex items-center space-x-3">
                 <File className="h-4 w-4" />
                 <div>
-                  <p className="text-sm font-medium">{file.originalName}</p>
+                  <p className="text-sm font-medium">{file.originalName || file.name}</p>
                   <p className="text-xs text-muted-foreground">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>

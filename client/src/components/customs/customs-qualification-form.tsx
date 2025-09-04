@@ -86,7 +86,8 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     { id: 1, title: "企业基本信息", description: "填写企业注册信息" },
     { id: 2, title: "经营范围确认", description: "选择进出口经营范围" },
     { id: 3, title: "上传备案材料", description: "提交相关证明文件" },
-    { id: 4, title: "确认提交", description: "核对信息并提交审核" }
+    { id: 4, title: "确认提交", description: "核对信息并提交审核" },
+    { id: 5, title: "提交成功", description: "备案申请已提交" }
   ];
 
   const getStepProgress = () => ((currentStep - 1) / (steps.length - 1)) * 100;
@@ -136,7 +137,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     setUploadedFiles(prev => [...prev, file]);
     toast({
       title: "文件上传成功",
-      description: `${file.name} 已成功上传`
+      description: `${file.originalName || file.name} 已成功上传`
     });
   };
 
@@ -151,14 +152,19 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
         description: "您的海关企业资质备案申请已提交，请等待审核结果"
       });
 
-      onComplete?.({ ...data, uploadedFiles });
+      // 切换到成功页面
+      setCurrentStep(5); // 添加第5步作为成功状态
+      
+      // 3秒后执行回调
+      setTimeout(() => {
+        onComplete?.({ ...data, uploadedFiles });
+      }, 3000);
     } catch (error) {
       toast({
         title: "提交失败",
         description: "请检查网络连接后重试",
         variant: "destructive"
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -488,6 +494,52 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
           </div>
         );
 
+      case 5:
+        return (
+          <div className="space-y-6 text-center">
+            <div className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-2xl font-bold text-green-700 dark:text-green-300">
+                备案申请提交成功！
+              </h3>
+              <p className="text-lg text-muted-foreground">
+                您的海关企业资质备案申请已成功提交
+              </p>
+            </div>
+
+            <div className="bg-green-50 dark:bg-green-950 p-6 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="space-y-3 text-left">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="font-medium">申请编号：CB-{Date.now()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span>提交时间：{new Date().toLocaleString('zh-CN')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span>预计审核时间：3-5个工作日</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-muted-foreground">
+              <p>📧 我们将通过邮件和短信通知您审核结果</p>
+              <p>📞 如有疑问，请拨打客服电话：400-123-4567</p>
+            </div>
+
+            <div className="pt-4">
+              <p className="text-sm text-muted-foreground">
+                正在返回任务中心...
+              </p>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -541,7 +593,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               {/* 操作按钮 */}
               <div className="flex items-center justify-between pt-6 border-t">
                 <div>
-                  {currentStep > 1 && (
+                  {currentStep > 1 && currentStep < 5 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -555,16 +607,18 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                 </div>
 
                 <div className="flex gap-3">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={onCancel}
-                    data-testid="button-cancel"
-                  >
-                    取消
-                  </Button>
+                  {currentStep < 5 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={onCancel}
+                      data-testid="button-cancel"
+                    >
+                      取消
+                    </Button>
+                  )}
                   
-                  {currentStep < steps.length ? (
+                  {currentStep < 4 ? (
                     <Button
                       type="button"
                       onClick={handleNext}
@@ -573,7 +627,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                       下一步
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
-                  ) : (
+                  ) : currentStep === 4 ? (
                     <Button
                       type="submit"
                       disabled={isSubmitting}
@@ -581,7 +635,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                     >
                       {isSubmitting ? "提交中..." : "提交备案申请"}
                     </Button>
-                  )}
+                  ) : null}
                 </div>
               </div>
             </form>

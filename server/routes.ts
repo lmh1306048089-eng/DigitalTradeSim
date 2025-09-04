@@ -373,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const fileData = {
         filename: req.file.filename,
-        originalName: req.file.originalname,
+        originalName: Buffer.from(req.file.originalname, 'latin1').toString('utf8'),
         mimeType: req.file.mimetype,
         size: req.file.size,
         path: req.file.path,
