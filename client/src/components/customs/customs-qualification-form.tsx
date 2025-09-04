@@ -16,7 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/experiments/file-upload";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { SimpleTestForm } from "./simple-test-form";
 
 // 表单验证模式
 const customsFormSchema = z.object({
@@ -246,8 +245,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
       case 2:
         return (
           <div className="space-y-6">
-            {/* 临时测试表单 */}
-            <SimpleTestForm />
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mb-6">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">联系信息确认</h3>
+              <p className="text-blue-700 dark:text-blue-300 text-sm">
+                请填写企业联系信息，此信息将用于海关备案联系。
+              </p>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
@@ -259,8 +262,11 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                     <FormControl>
                       <Input 
                         {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
                         placeholder="联系人姓名" 
-                        data-testid="input-contact-person" 
+                        data-testid="input-contact-person"
+                        autoComplete="off"
                       />
                     </FormControl>
                     <FormMessage />
@@ -277,8 +283,11 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                     <FormControl>
                       <Input 
                         {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
                         placeholder="手机号码" 
-                        data-testid="input-contact-phone" 
+                        data-testid="input-contact-phone"
+                        autoComplete="off"
                       />
                     </FormControl>
                     <FormMessage />
@@ -295,9 +304,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                     <FormControl>
                       <Input 
                         {...field}
+                        value={field.value || ""}
+                        onChange={field.onChange}
                         placeholder="邮箱地址" 
                         type="email" 
-                        data-testid="input-contact-email" 
+                        data-testid="input-contact-email"
+                        autoComplete="off"
                       />
                     </FormControl>
                     <FormMessage />
