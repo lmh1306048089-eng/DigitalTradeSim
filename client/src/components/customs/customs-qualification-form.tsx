@@ -302,10 +302,11 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                           id={scope}
                           checked={field.value?.includes(scope) || false}
                           onCheckedChange={(checked) => {
+                            const currentValue = field.value || [];
                             if (checked) {
-                              field.onChange([...field.value, scope]);
+                              field.onChange([...currentValue, scope]);
                             } else {
-                              field.onChange(field.value?.filter((item) => item !== scope));
+                              field.onChange(currentValue.filter((item) => item !== scope));
                             }
                           }}
                           data-testid={`checkbox-${scope}`}
