@@ -9,11 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import type { Experiment, StudentProgress } from "@/types";
+import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentsPage() {
   const [, setLocation] = useLocation();
   const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
+
+  // Fetch data
+  const { data: experiments = [] } = useQuery<Experiment[]>({
+    queryKey: ["/api/experiments"],
+  });
 
   // 监听从任务中心自动启动实验的事件
   useEffect(() => {
@@ -34,11 +39,6 @@ export default function ExperimentsPage() {
     };
   }, [experiments]);
 
-  // Fetch data
-  const { data: experiments = [] } = useQuery<Experiment[]>({
-    queryKey: ["/api/experiments"],
-  });
-
   const { data: progress = [] } = useQuery<StudentProgress[]>({
     queryKey: ["/api/progress"],
   });
@@ -49,6 +49,8 @@ export default function ExperimentsPage() {
   };
 
   const isExperimentUnlocked = (experiment: Experiment) => {
+    if (!experiments || experiments.length === 0) return false;
+    
     const experimentIndex = experiments.findIndex(e => e.id === experiment.id);
     if (experimentIndex === 0) return true;
     
