@@ -12,6 +12,7 @@ import SimplifiedStudentDashboard from "@/pages/simplified-student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
+import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -60,7 +61,12 @@ function Router() {
   return (
     <Switch>
       {user.role === "student" && (
-        <Route path="/" component={SimplifiedStudentDashboard} />
+        <>
+          <Route path="/" component={SimplifiedStudentDashboard} />
+          <Route path="/customs-qualification">
+            <CustomsQualificationForm />
+          </Route>
+        </>
       )}
       {user.role === "teacher" && (
         <Route path="/" component={TeacherDashboard} />

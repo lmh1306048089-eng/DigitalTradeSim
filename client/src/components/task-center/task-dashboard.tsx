@@ -21,6 +21,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useBusinessRole } from "@/hooks/useBusinessRole";
+import { useLocation } from "wouter";
 
 // 任务状态类型
 type TaskStatus = "available" | "in_progress" | "waiting_collaboration" | "completed" | "blocked";
@@ -53,6 +54,7 @@ export function TaskDashboard() {
   const { user } = useAuth();
   const { selectedRoleCode, getCurrentRole } = useBusinessRole();
   const [selectedTask, setSelectedTask] = useState<BusinessTask | null>(null);
+  const [, setLocation] = useLocation();
 
   const currentRole = getCurrentRole();
 
@@ -219,12 +221,46 @@ export function TaskDashboard() {
   };
 
   const handleStartTask = (task: BusinessTask) => {
-    // 这里集成现有的实验系统
     console.log("启动任务:", task.title);
-    // 根据任务类型，自动跳转到相应的实验流程
+    // 根据任务类型，启动相应的实验流程
     if (task.id === "customs-qualification") {
-      // 启动海关企业资质备案流程
-      setSelectedTask(task);
+      // 构建对应的实验对象，集成到现有实验系统
+      const customsExperiment = {
+        id: "customs-qualification-exp",
+        title: "海关企业资质备案实验",
+        description: "在电商企业办公场景中完成企业资质备案申请",
+        category: "customs" as const,
+        difficulty: "beginner" as const,
+        estimatedTime: 30,
+        businessRoleCode: "enterprise_operator",
+        sceneCode: "e_commerce_office",
+        steps: [
+          {
+            id: "step1",
+            title: "企业信息填报",
+            description: "在系统中填写企业基本信息",
+            required: true,
+            operationPointCode: "qualification_filing"
+          },
+          {
+            id: "step2", 
+            title: "经营范围选择",
+            description: "选择企业进出口经营范围",
+            required: true,
+            operationPointCode: "business_scope"
+          },
+          {
+            id: "step3",
+            title: "材料上传提交",
+            description: "上传并提交备案材料",
+            required: true,
+            operationPointCode: "document_upload"
+          }
+        ]
+      };
+
+      // 使用wouter路由跳转到海关资质备案页面
+      setLocation("/customs-qualification");
     }
   };
 
