@@ -24,7 +24,30 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const accessToken = localStorage.getItem('accessToken');
+  let accessToken = localStorage.getItem('accessToken');
+  const refreshToken = localStorage.getItem('refreshToken');
+  
+  // Try to refresh token if it's missing or expired
+  if (!accessToken && refreshToken) {
+    try {
+      const refreshRes = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+      
+      if (refreshRes.ok) {
+        const tokenData = await refreshRes.json();
+        localStorage.setItem('accessToken', tokenData.accessToken);
+        localStorage.setItem('refreshToken', tokenData.refreshToken);
+        accessToken = tokenData.accessToken;
+      }
+    } catch (error) {
+      console.warn('Token refresh failed:', error);
+    }
+  }
+  
   const headers: Record<string, string> = {};
   
   // Don't set Content-Type for FormData - let the browser set it automatically
@@ -44,6 +67,40 @@ export async function apiRequest(
     body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     credentials: "include",
   });
+
+  // If we get 401, try to refresh token once
+  if (res.status === 401 && refreshToken && !url.includes('/auth/refresh')) {
+    try {
+      const refreshRes = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+        credentials: 'include',
+      });
+      
+      if (refreshRes.ok) {
+        const tokenData = await refreshRes.json();
+        localStorage.setItem('accessToken', tokenData.accessToken);
+        localStorage.setItem('refreshToken', tokenData.refreshToken);
+        
+        // Retry the original request with new token
+        const retryHeaders = { ...headers };
+        retryHeaders["Authorization"] = `Bearer ${tokenData.accessToken}`;
+        
+        const retryRes = await fetch(url, {
+          method,
+          headers: retryHeaders,
+          body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
+          credentials: "include",
+        });
+        
+        await throwIfResNotOk(retryRes);
+        return retryRes;
+      }
+    } catch (error) {
+      console.warn('Auto token refresh failed:', error);
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;
