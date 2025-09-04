@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight, MapPin, Play, Workflow } from "lucide-react";
+import { BarChart, Building, FlaskConical, TrendingUp, Trophy, ChartLine, Users, Clock, Star, ArrowRight, MapPin, Play, Workflow, CheckSquare } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
@@ -11,6 +11,7 @@ import { ExperimentCard } from "@/components/experiments/experiment-card";
 import { SceneModal } from "@/components/modals/scene-modal";
 import { ExperimentModal } from "@/components/modals/experiment-modal";
 import WorkflowManager from "@/components/workflow-manager";
+import { TaskDashboard } from "@/components/task-center/task-dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,12 +19,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { BusinessRoleSelector } from "@/components/business-role-selector";
 import { useBusinessRole } from "@/hooks/useBusinessRole";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
-import type { VirtualScene, Experiment, StudentProgress, StudentStats } from "@/types";
+import type { VirtualScene, Experiment, StudentProgress, StudentStats } from "@/types/index";
 
-type ActiveSection = "overview" | "scenes" | "experiments" | "workflows" | "progress" | "results";
+type ActiveSection = "tasks" | "learning_path" | "progress" | "resources";
 
 export default function StudentDashboard() {
-  const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
+  const [activeSection, setActiveSection] = useState<ActiveSection>("tasks");
   const [selectedScene, setSelectedScene] = useState<VirtualScene | null>(null);
   const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
   const { user } = useAuth();
@@ -115,7 +116,11 @@ export default function StudentDashboard() {
   const roleStatus = getRoleStatus();
   const currentRole = getCurrentRole();
 
-  const renderOverviewSection = () => (
+  const renderTasksSection = () => (
+    <TaskDashboard />
+  );
+
+  const renderLearningPathSection = () => (
     <div className="space-y-6">
       {/* Enhanced Welcome Banner with Role Info */}
       <div className="gradient-header text-white rounded-xl p-6">
@@ -408,6 +413,57 @@ export default function StudentDashboard() {
       </div>
     );
   };
+
+  const renderResourcesSection = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">学习资源</h2>
+        <div className="text-sm text-muted-foreground">参考资料和帮助文档</div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* 虚拟场景 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <MapPin className="h-5 w-5 mr-2 text-primary" />
+              虚拟场景体验
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              在这里可以自由探索各种业务场景，熟悉操作环境
+            </p>
+            <Button 
+              onClick={() => setActiveSection("tasks")}
+              variant="outline"
+              className="w-full"
+            >
+              返回任务中心
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* 操作指南 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FlaskConical className="h-5 w-5 mr-2 text-primary" />
+              操作指南
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">
+              查看详细的操作步骤和常见问题解答
+            </p>
+            <Button variant="outline" className="w-full">
+              查看指南
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 
   const renderExperimentsSection = () => (
     <div className="space-y-6">

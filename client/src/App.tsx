@@ -8,7 +8,7 @@ import { getAuthTokens, clearAuthTokens } from "@/lib/auth";
 import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@/types";
 import LoginPage from "@/pages/login";
-import StudentDashboard from "@/pages/student-dashboard";
+import SimplifiedStudentDashboard from "@/pages/simplified-student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
@@ -60,7 +60,7 @@ function Router() {
   return (
     <Switch>
       {user.role === "student" && (
-        <Route path="/" component={StudentDashboard} />
+        <Route path="/" component={SimplifiedStudentDashboard} />
       )}
       {user.role === "teacher" && (
         <Route path="/" component={TeacherDashboard} />
