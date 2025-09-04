@@ -397,7 +397,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               }}
               maxSize={10 * 1024 * 1024} // 10MB
               onUploadComplete={handleFileUpload}
-              experimentId="customs-qualification"
+              experimentId="873e1fe1-0430-4f47-9db2-c4f00e2b048f"
             />
 
             {uploadedFiles.length > 0 && (

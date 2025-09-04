@@ -356,6 +356,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const { experimentId, resultId } = req.body;
       
+      // 验证外键引用
+      if (experimentId) {
+        const experiment = await storage.getExperiment(experimentId);
+        if (!experiment) {
+          return res.status(400).json({ message: "指定的实验不存在" });
+        }
+      }
+      
+      if (resultId) {
+        const result = await storage.getExperimentResult(resultId);
+        if (!result) {
+          return res.status(400).json({ message: "指定的实验结果不存在" });
+        }
+      }
+      
       const fileData = {
         filename: req.file.filename,
         originalName: req.file.originalname,
@@ -367,9 +382,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         resultId: resultId || null,
       };
       
+      console.log('文件上传数据:', fileData);
       const uploadedFile = await storage.createUploadedFile(fileData);
       res.json(uploadedFile);
     } catch (error: any) {
+      console.error('文件上传错误:', error);
       res.status(400).json({ message: error.message || "文件上传失败" });
     }
   });
