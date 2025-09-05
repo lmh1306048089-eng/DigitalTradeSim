@@ -235,7 +235,7 @@ export default function ExperimentDetailPage() {
                 🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程。通过模拟真实场景，让您掌握企业资质备案的核心技能。
               </p>
             </div>
-            <div className="space-y-6">
+            <div className="space-y-8">
               {experiment.steps && experiment.steps.length > 0 ? (
                 experiment.steps.map((step, index) => (
                   <div key={step.id || index} className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
@@ -323,43 +323,44 @@ export default function ExperimentDetailPage() {
                   </div>
                 </div>
               )}
+              
+              {/* 开始实验按钮 - 紧接着实验流程 */}
+              <div className="flex justify-center pt-6">
+                <div className="text-center">
+                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+                    <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-2">准备开始实验？</h3>
+                    <p className="text-blue-700 dark:text-blue-300 mb-4 text-sm">点击下方按钮进入实训环境，体验真实的海关企业资质备案流程</p>
+                    <Button 
+                      size="lg" 
+                      onClick={handleStartExperiment}
+                      disabled={experimentProgress?.status === "completed"}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                      data-testid="button-start-experiment"
+                    >
+                      {experimentProgress?.status === "completed" ? (
+                        <>
+                          <CheckCircle className="mr-2 h-5 w-5" />
+                          实验已完成
+                        </>
+                      ) : experimentProgress?.status === "in_progress" ? (
+                        <>
+                          <Play className="mr-2 h-5 w-5" />
+                          继续实验
+                        </>
+                      ) : (
+                        <>
+                          <FlaskConical className="mr-2 h-5 w-5" />
+                          开始实验
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* 开始实验按钮 */}
-        <div className="flex justify-center py-8">
-          <div className="text-center space-y-4">
-            <div className="p-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
-              <h3 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-2">准备开始实验？</h3>
-              <p className="text-blue-700 dark:text-blue-300 mb-6">点击下方按钮进入实训环境，体验真实的海关企业资质备案流程</p>
-              <Button 
-                size="lg" 
-                onClick={handleStartExperiment}
-                disabled={experimentProgress?.status === "completed"}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                data-testid="button-start-experiment"
-              >
-                {experimentProgress?.status === "completed" ? (
-                  <>
-                    <CheckCircle className="mr-2 h-5 w-5" />
-                    实验已完成
-                  </>
-                ) : experimentProgress?.status === "in_progress" ? (
-                  <>
-                    <Play className="mr-2 h-5 w-5" />
-                    继续实验
-                  </>
-                ) : (
-                  <>
-                    <FlaskConical className="mr-2 h-5 w-5" />
-                    开始实验
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
         </div>
       </div>
     </div>
