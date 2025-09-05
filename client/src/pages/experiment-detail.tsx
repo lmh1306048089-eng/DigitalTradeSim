@@ -324,45 +324,35 @@ export default function ExperimentDetailPage() {
                 </div>
               )}
               
-              {/* 开始实验按钮 - 融入整体设计 */}
-              <div className="mt-8 p-1 bg-gradient-to-r from-emerald-500 via-blue-500 via-purple-500 to-orange-500 rounded-2xl">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center">
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                      <FlaskConical className="h-6 w-6" />
-                    </div>
-                    <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                      开始您的实验之旅
-                    </h3>
-                  </div>
-                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
-                    点击下方按钮进入实训环境，体验完整的海关企业资质备案流程
-                  </p>
-                  <Button 
-                    size="lg" 
-                    onClick={handleStartExperiment}
-                    disabled={experimentProgress?.status === "completed"}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
-                    data-testid="button-start-experiment"
-                  >
-                    {experimentProgress?.status === "completed" ? (
-                      <>
-                        <CheckCircle className="mr-3 h-6 w-6" />
-                        实验已完成
-                      </>
-                    ) : experimentProgress?.status === "in_progress" ? (
-                      <>
-                        <Play className="mr-3 h-6 w-6" />
-                        继续实验
-                      </>
-                    ) : (
-                      <>
-                        <FlaskConical className="mr-3 h-6 w-6" />
-                        开始实验
-                      </>
-                    )}
-                  </Button>
-                </div>
+              {/* 开始实验按钮 - 自然融入设计 */}
+              <div className="mt-8 text-center">
+                <Button 
+                  size="lg" 
+                  onClick={handleStartExperiment}
+                  disabled={experimentProgress?.status === "completed"}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  data-testid="button-start-experiment"
+                >
+                  {experimentProgress?.status === "completed" ? (
+                    <>
+                      <CheckCircle className="mr-3 h-5 w-5" />
+                      实验已完成
+                    </>
+                  ) : experimentProgress?.status === "in_progress" ? (
+                    <>
+                      <Play className="mr-3 h-5 w-5" />
+                      继续实验
+                    </>
+                  ) : (
+                    <>
+                      <FlaskConical className="mr-3 h-5 w-5" />
+                      开始实验
+                    </>
+                  )}
+                </Button>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                  预计完成时间：30-45分钟
+                </p>
               </div>
             </div>
           </CardContent>
