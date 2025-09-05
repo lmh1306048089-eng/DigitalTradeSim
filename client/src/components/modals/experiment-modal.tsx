@@ -124,7 +124,7 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
 
         <div className="space-y-6">
           {/* 海关企业资质备案实验的开始按钮 */}
-          {experiment.name === "海关企业资质备案" && !showEnterpriseForm && (
+          {experiment.name === "海关企业资质备案" && !showCustomsForm && (
             <div className="bg-blue-50 dark:bg-blue-950 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-center space-y-4">
                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
@@ -152,7 +152,7 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
                   </div>
                 </div>
                 <Button
-                  onClick={() => setShowEnterpriseForm(true)}
+                  onClick={() => setShowCustomsForm(true)}
                   className="mt-4"
                   data-testid="button-start-customs-filing"
                 >
