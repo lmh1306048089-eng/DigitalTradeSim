@@ -122,7 +122,7 @@ export default function SimplifiedStudentDashboard() {
               {/* 电商企业 */}
               <div className="relative group text-center">
                 <div 
-                  className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
                 >
                   <Building2 className="h-8 w-8 mx-auto mb-2" />
@@ -136,14 +136,14 @@ export default function SimplifiedStudentDashboard() {
               
               {/* 箭头1 */}
               <div className="flex flex-col items-center">
-                <div className="text-blue-600 text-2xl">→</div>
-                <div className="text-xs text-blue-600 mt-1">申报</div>
+                <div className="text-blue-500 text-2xl">→</div>
+                <div className="text-xs text-blue-500 mt-1">申报</div>
               </div>
               
               {/* 海关办事处 */}
               <div className="relative group text-center">
                 <div 
-                  className="bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => setActiveSection(SCENES.CUSTOMS as ActiveSection)}
                 >
                   <Shield className="h-8 w-8 mx-auto mb-2" />
@@ -157,14 +157,14 @@ export default function SimplifiedStudentDashboard() {
               
               {/* 箭头2 */}
               <div className="flex flex-col items-center">
-                <div className="text-emerald-600 text-2xl">→</div>
-                <div className="text-xs text-emerald-600 mt-1">放行</div>
+                <div className="text-blue-600 text-2xl">→</div>
+                <div className="text-xs text-blue-600 mt-1">放行</div>
               </div>
               
               {/* 监管作业场所 */}
               <div className="relative group text-center">
                 <div 
-                  className="bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => setActiveSection(SCENES.CUSTOMS_SUPERVISION as ActiveSection)}
                 >
                   <Warehouse className="h-8 w-8 mx-auto mb-2" />
@@ -180,11 +180,11 @@ export default function SimplifiedStudentDashboard() {
             {/* 跨境运输分隔 */}
             <div className="relative my-6">
               <div className="flex items-center">
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
-                <div className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-500 text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg mx-4">
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
+                <div className="bg-gradient-to-r from-blue-700 to-indigo-600 text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg mx-4">
                   🚢 跨境物流运输
                 </div>
-                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
+                <div className="flex-1 h-px bg-gradient-to-r from-transparent via-indigo-400 to-transparent"></div>
               </div>
             </div>
             
@@ -194,7 +194,7 @@ export default function SimplifiedStudentDashboard() {
               {/* 海外仓库 */}
               <div className="relative group text-center">
                 <div 
-                  className="bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => setActiveSection(SCENES.OVERSEAS_WAREHOUSE as ActiveSection)}
                 >
                   <Plane className="h-8 w-8 mx-auto mb-2" />
@@ -208,14 +208,14 @@ export default function SimplifiedStudentDashboard() {
               
               {/* 箭头3 */}
               <div className="flex flex-col items-center">
-                <div className="text-purple-600 text-2xl">→</div>
-                <div className="text-xs text-purple-600 mt-1">配送</div>
+                <div className="text-indigo-600 text-2xl">→</div>
+                <div className="text-xs text-indigo-600 mt-1">配送</div>
               </div>
               
               {/* 买家居家 */}
               <div className="relative group text-center">
                 <div 
-                  className="bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
+                  className="bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => setActiveSection(SCENES.BUYER_HOME as ActiveSection)}
                 >
                   <Home className="h-8 w-8 mx-auto mb-2" />
