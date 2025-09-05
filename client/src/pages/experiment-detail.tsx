@@ -24,10 +24,34 @@ export default function ExperimentDetailPage() {
     queryKey: ["/api/progress"],
   });
 
-  const experiment = experiments.find(exp => exp.id === id);
-  const experimentProgress = progress.find(p => p.experimentId === id);
+  const experiment = experiments?.find(exp => exp.id === id);
+  const experimentProgress = progress?.find(p => p.experimentId === id);
 
   // 移除自动显示表单的逻辑，让用户先看到实验详情页
+
+  // 如果数据还在加载中，显示加载状态
+  if (!experiments || experiments.length === 0) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation("/experiments")}
+            data-testid="button-back-to-experiments"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验列表
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">加载实验信息中...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!experiment) {
     return (
