@@ -27,14 +27,7 @@ export default function ExperimentDetailPage() {
   const experiment = experiments.find(exp => exp.id === id);
   const experimentProgress = progress.find(p => p.experimentId === id);
 
-  useEffect(() => {
-    if (!experiment) return;
-    
-    // 如果是海关企业资质备案实验，自动显示表单
-    if (experiment.name === "海关企业资质备案") {
-      setShowCustomsForm(true);
-    }
-  }, [experiment]);
+  // 移除自动显示表单的逻辑，让用户先看到实验详情页
 
   if (!experiment) {
     return (

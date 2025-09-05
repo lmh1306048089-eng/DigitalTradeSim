@@ -20,25 +20,7 @@ export default function ExperimentsPage() {
     queryKey: ["/api/experiments"],
   });
 
-  // 监听从任务中心自动启动实验的事件
-  useEffect(() => {
-    const handleAutoStartExperiment = (event: CustomEvent) => {
-      const { experimentName } = event.detail;
-      if (experimentName && experiments.length > 0) {
-        const targetExperiment = experiments.find(exp => exp.name === experimentName);
-        if (targetExperiment) {
-          // 直接跳转到实验详情页面而不是打开模态框
-          setLocation(`/experiments/${targetExperiment.id}`);
-        }
-      }
-    };
-
-    window.addEventListener('autoStartExperiment', handleAutoStartExperiment as EventListener);
-    
-    return () => {
-      window.removeEventListener('autoStartExperiment', handleAutoStartExperiment as EventListener);
-    };
-  }, [experiments, setLocation]);
+  // 不再需要自动启动实验的事件监听，改为直接页面跳转
 
   const { data: progress = [] } = useQuery<StudentProgress[]>({
     queryKey: ["/api/progress"],

@@ -222,18 +222,10 @@ export function TaskDashboard() {
 
   const handleStartTask = (task: BusinessTask) => {
     console.log("启动任务:", task.title);
-    // 根据任务类型，跳转到相应的实验页面
+    // 根据任务类型，跳转到相应的实验详情页面
     if (task.id === "customs-qualification") {
-      // 直接跳转到实验页面，让用户启动海关企业资质备案实验
-      setLocation("/experiments");
-      // 可以通过URL参数传递自动启动的实验ID
-      setTimeout(() => {
-        // 模拟用户点击海关企业资质备案实验
-        const event = new CustomEvent('autoStartExperiment', { 
-          detail: { experimentName: '海关企业资质备案' } 
-        });
-        window.dispatchEvent(event);
-      }, 500);
+      // 直接跳转到海关企业资质备案实验详情页
+      setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);
