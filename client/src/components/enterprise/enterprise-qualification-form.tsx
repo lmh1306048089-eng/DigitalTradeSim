@@ -325,19 +325,11 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                 {/* 文件上传区域 */}
                 <div className="space-y-4">
                   <Separator />
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100">上传企业证明文件</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100">上传营业执照</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">请上传营业执照扫描件、企业地址证明等相关文件</p>
                   
                   <FileUpload
-                    onUploadComplete={(file) => handleFileUpload([file], "营业执照")}
-                    accept={{
-                      'application/pdf': ['.pdf'],
-                      'image/*': ['.jpg', '.jpeg', '.png']
-                    }}
-                    maxSize={10 * 1024 * 1024}
-                  />
-                  
-                  <FileUpload
-                    onUploadComplete={(file) => handleFileUpload([file], "企业地址证明")}
+                    onUploadComplete={(file) => handleFileUpload([file], "营业执照等企业证明文件")}
                     accept={{
                       'application/pdf': ['.pdf'],
                       'image/*': ['.jpg', '.jpeg', '.png']
@@ -524,6 +516,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                 <div className="space-y-4">
                   <Separator />
                   <h4 className="font-medium text-gray-900 dark:text-gray-100">上传贸易备案文件</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">请上传对外贸易经营者备案登记表等相关文件</p>
                   
                   <FileUpload
                     onUploadComplete={(file) => handleFileUpload([file], "对外贸易经营者备案登记表")}
@@ -720,18 +713,10 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                 <div className="space-y-4">
                   <Separator />
                   <h4 className="font-medium text-gray-900 dark:text-gray-100">上传相关证明文件</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">请上传生产能力证明、产品认证文件等相关材料</p>
                   
                   <FileUpload
-                    onUploadComplete={(file) => handleFileUpload([file], "生产能力证明")}
-                    accept={{
-                      'application/pdf': ['.pdf'],
-                      'image/*': ['.jpg', '.jpeg', '.png']
-                    }}
-                    maxSize={10 * 1024 * 1024}
-                  />
-                  
-                  <FileUpload
-                    onUploadComplete={(file) => handleFileUpload([file], "产品认证文件")}
+                    onUploadComplete={(file) => handleFileUpload([file], "生产能力证明及产品认证文件")}
                     accept={{
                       'application/pdf': ['.pdf'],
                       'image/*': ['.jpg', '.jpeg', '.png']
