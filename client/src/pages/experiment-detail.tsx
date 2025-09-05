@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
+import { EportIcCardForm } from "@/components/eport/eport-ic-card-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
   const [showCustomsForm, setShowCustomsForm] = useState(false);
+  const [showEportForm, setShowEportForm] = useState(false);
 
   // Fetch experiment data
   const { data: experiments = [] } = useQuery<Experiment[]>({
@@ -104,8 +106,10 @@ export default function ExperimentDetailPage() {
   };
 
   const handleStartExperiment = () => {
-    if (experiment.name === "海关企业资质备案") {
+    if (experiment?.name === "海关企业资质备案") {
       setShowCustomsForm(true);
+    } else if (experiment?.name === "电子口岸IC卡申请") {
+      setShowEportForm(true);
     }
   };
 
@@ -113,6 +117,7 @@ export default function ExperimentDetailPage() {
     console.log("实验完成:", data);
     // 可以在这里处理实验完成逻辑，比如更新进度
     setShowCustomsForm(false);
+    setShowEportForm(false);
     // 返回实验列表
     setTimeout(() => {
       setLocation("/experiments");
@@ -120,7 +125,7 @@ export default function ExperimentDetailPage() {
   };
 
   // 如果正在显示海关备案表单，直接渲染表单
-  if (showCustomsForm && experiment.name === "海关企业资质备案") {
+  if (showCustomsForm && experiment?.name === "海关企业资质备案") {
     return (
       <div className="min-h-screen bg-muted">
         <Header title="海关企业资质备案实验">
@@ -137,6 +142,30 @@ export default function ExperimentDetailPage() {
           <CustomsQualificationForm
             onComplete={handleExperimentComplete}
             onCancel={() => setShowCustomsForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示电子口岸IC卡申请表单，直接渲染表单
+  if (showEportForm && experiment?.name === "电子口岸IC卡申请") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="电子口岸IC卡申请实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEportForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <EportIcCardForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowEportForm(false)}
           />
         </div>
       </div>

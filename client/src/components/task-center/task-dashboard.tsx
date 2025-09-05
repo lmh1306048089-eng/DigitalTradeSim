@@ -104,6 +104,63 @@ export function TaskDashboard() {
       ]
     },
     {
+      id: "eport-ic-card",
+      title: "电子口岸IC卡申请",
+      description: "在中国电子口岸数据中心平台申请办理IC卡，完成企业入网准备工作",
+      category: "preparation",
+      status: "available",
+      progress: 0,
+      estimatedTime: "45分钟",
+      requiredRole: "enterprise_operator",
+      priority: "high",
+      nextAction: "填写企业入网申请",
+      steps: [
+        {
+          id: "step1",
+          title: "企业入网申请",
+          description: "在电子口岸入网模块中填写新企业申请入网信息",
+          status: "current",
+          scene: "电商企业办公场景",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step2",
+          title: "营业执照上传",
+          description: "上传企业营业执照电子版文件",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step3",
+          title: "操作员身份证明",
+          description: "上传操作员身份证正反面清晰图片",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step4",
+          title: "海关备案证明",
+          description: "上传海关签发的报关人员备案证明",
+          status: "pending",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step5",
+          title: "对外贸易经营者备案",
+          description: "上传对外贸易经营者备案登记表原件",
+          status: "pending",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step6",
+          title: "确认提交申请",
+          description: "核对信息并提交IC卡申请",
+          status: "pending",
+          estimatedTime: "5分钟"
+        }
+      ]
+    },
+    {
       id: "customs-declaration",
       title: "海关申报单填报",
       description: "根据订单信息填写海关申报单据，确保货物顺利通关",
@@ -226,6 +283,9 @@ export function TaskDashboard() {
     if (task.id === "customs-qualification") {
       // 直接跳转到海关企业资质备案实验详情页
       setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
+    } else if (task.id === "eport-ic-card") {
+      // 直接跳转到电子口岸IC卡申请实验详情页
+      setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);

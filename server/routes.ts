@@ -401,6 +401,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // E-port IC card application form submission
+  app.post("/api/experiments/eport-ic-card/submit", authenticateToken, upload.fields([
+    { name: "businessLicense_0", maxCount: 1 },
+    { name: "operatorIdCard_0", maxCount: 1 },
+    { name: "operatorIdCard_1", maxCount: 1 },
+    { name: "customsDeclarationCert_0", maxCount: 1 },
+    { name: "foreignTradeRegistration_0", maxCount: 1 },
+    { name: "customsBackupReceipt_0", maxCount: 1 }
+  ]), async (req: AuthRequest, res) => {
+    try {
+      console.log("收到电子口岸IC卡申请提交:", req.body);
+      console.log("文件信息:", req.files);
+
+      // 查找电子口岸IC卡申请实验的ID
+      const experiments = await storage.getExperiments();
+      const eportExperiment = experiments.find(exp => exp.name === "电子口岸IC卡申请");
+      
+      if (!eportExperiment) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "找不到对应的实验配置" 
+        });
+      }
+
+      // 创建实验结果记录
+      const resultData = {
+        userId: req.user!.id,
+        experimentId: eportExperiment.id,
+        formData: JSON.stringify(req.body),
+        submittedAt: new Date(),
+        score: "100",
+        status: "completed",
+        feedback: "电子口岸IC卡申请提交成功"
+      };
+
+      const result = await storage.createExperimentResult(resultData);
+
+      // 处理文件上传
+      if (req.files) {
+        const filePromises = Object.entries(req.files as { [fieldname: string]: Express.Multer.File[] }).map(async ([fieldName, files]) => {
+          const file = Array.isArray(files) ? files[0] : files;
+          if (file) {
+            const fileData = {
+              filename: file.filename,
+              originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+              mimeType: file.mimetype,
+              size: file.size,
+              path: file.path,
+              uploadedBy: req.user!.id,
+              experimentId: eportExperiment.id,
+              resultId: result.id
+            };
+            return storage.createUploadedFile(fileData);
+          }
+        });
+
+        await Promise.all(filePromises.filter(Boolean));
+      }
+
+      // 更新学生进度
+      await storage.createOrUpdateProgress({
+        userId: req.user!.id,
+        experimentId: eportExperiment.id,
+        status: "completed",
+        progress: 100,
+        currentStep: 7,
+        completedAt: new Date()
+      });
+
+      res.json({ 
+        success: true, 
+        message: "电子口岸IC卡申请提交成功！",
+        result: result
+      });
+    } catch (error: any) {
+      console.error("电子口岸IC卡申请提交失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "申请提交失败，请重试" 
+      });
+    }
+  });
+
   // User management routes (admin only)
   app.get("/api/admin/users", authenticateToken, requireRole(["admin"]), async (req, res) => {
     try {
