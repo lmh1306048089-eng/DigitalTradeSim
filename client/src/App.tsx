@@ -11,7 +11,6 @@ import LoginPage from "@/pages/login";
 import SimplifiedStudentDashboard from "@/pages/simplified-student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
-import ExperimentsPage from "@/pages/experiments";
 import ExperimentDetailPage from "@/pages/experiment-detail";
 import NotFound from "@/pages/not-found";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
@@ -65,7 +64,6 @@ function Router() {
       {user.role === "student" && (
         <>
           <Route path="/" component={SimplifiedStudentDashboard} />
-          <Route path="/experiments" component={ExperimentsPage} />
           <Route path="/experiments/:id" component={ExperimentDetailPage} />
           <Route path="/customs-qualification">
             <CustomsQualificationForm />

@@ -38,11 +38,11 @@ export default function ExperimentDetailPage() {
         <Header title="实验详情">
           <Button 
             variant="outline" 
-            onClick={() => setLocation("/experiments")}
-            data-testid="button-back-to-experiments"
+            onClick={() => setLocation("/")}
+            data-testid="button-back-to-home"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回实验列表
+            返回首页
           </Button>
         </Header>
         <div className="container mx-auto py-8">
@@ -61,19 +61,19 @@ export default function ExperimentDetailPage() {
         <Header title="实验详情">
           <Button 
             variant="outline" 
-            onClick={() => setLocation("/experiments")}
-            data-testid="button-back-to-experiments"
+            onClick={() => setLocation("/")}
+            data-testid="button-back-to-home"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回实验列表
+            返回首页
           </Button>
         </Header>
         <div className="container mx-auto py-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">实验未找到</h2>
             <p className="text-muted-foreground mb-6">请检查实验ID是否正确</p>
-            <Button onClick={() => setLocation("/experiments")}>
-              返回实验列表
+            <Button onClick={() => setLocation("/")}>
+              返回首页
             </Button>
           </div>
         </div>
@@ -118,9 +118,9 @@ export default function ExperimentDetailPage() {
     // 可以在这里处理实验完成逻辑，比如更新进度
     setShowCustomsForm(false);
     setShowEportForm(false);
-    // 返回实验列表
+    // 返回首页
     setTimeout(() => {
-      setLocation("/experiments");
+      setLocation("/");
     }, 2000);
   };
 
@@ -177,12 +177,12 @@ export default function ExperimentDetailPage() {
       <Header title="实验详情">
         <Button 
           variant="outline" 
-          onClick={() => setLocation("/experiments")}
+          onClick={() => setLocation("/")}
           className="hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
-          data-testid="button-back-to-experiments"
+          data-testid="button-back-to-home"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          返回实验列表
+          返回首页
         </Button>
       </Header>
 
