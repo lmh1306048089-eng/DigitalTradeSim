@@ -94,10 +94,10 @@ export function EportIcCardForm({ onComplete, onCancel }: EportIcCardFormProps) 
         });
       });
       
-      return fetch("/api/experiments/eport-ic-card/submit", {
+      return apiRequest("/api/experiments/eport-ic-card/submit", {
         method: "POST",
         body: formData,
-      }).then(res => res.json());
+      });
     },
     onSuccess: (data) => {
       toast({
@@ -174,32 +174,37 @@ export function EportIcCardForm({ onComplete, onCancel }: EportIcCardFormProps) 
       </div>
 
       {/* 步骤指示器 */}
-      <div className="flex items-center justify-between mb-8">
-        {steps.map((step, index) => (
-          <div key={step.number} className="flex flex-col items-center">
-            <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 
-              ${step.number === currentStep ? 'bg-blue-600 border-blue-600 text-white' : 
-                step.number < currentStep ? 'bg-green-600 border-green-600 text-white' : 
-                'bg-gray-100 border-gray-300 text-gray-400'}`}>
-              {step.number < currentStep ? <CheckCircle className="h-6 w-6" /> : step.icon}
-            </div>
-            <div className="mt-2 text-center">
-              <div className={`text-sm font-medium 
-                ${step.number <= currentStep ? 'text-blue-600' : 'text-gray-400'}`}>
-                第{step.number}步
+      <div className="relative mb-8">
+        <div className="flex items-center justify-between">
+          {steps.map((step, index) => (
+            <div key={step.number} className="flex flex-col items-center relative z-10">
+              <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 
+                ${step.number === currentStep ? 'bg-blue-600 border-blue-600 text-white' : 
+                  step.number < currentStep ? 'bg-green-600 border-green-600 text-white' : 
+                  'bg-gray-100 border-gray-300 text-gray-400'}`}>
+                {step.number < currentStep ? <CheckCircle className="h-6 w-6" /> : step.icon}
               </div>
-              <div className={`text-xs 
-                ${step.number <= currentStep ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400'}`}>
-                {step.title}
+              <div className="mt-2 text-center">
+                <div className={`text-sm font-medium 
+                  ${step.number <= currentStep ? 'text-blue-600' : 'text-gray-400'}`}>
+                  第{step.number}步
+                </div>
+                <div className={`text-xs 
+                  ${step.number <= currentStep ? 'text-gray-700 dark:text-gray-300' : 'text-gray-400'}`}>
+                  {step.title}
+                </div>
               </div>
             </div>
-            {index < steps.length - 1 && (
-              <div className={`hidden md:block absolute mt-6 h-0.5 w-24 transform translate-x-12 
-                ${step.number < currentStep ? 'bg-green-600' : 'bg-gray-300'}`} 
-                style={{ left: `${((index + 1) * 100) / steps.length}%` }} />
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        
+        {/* 连接线 */}
+        <div className="absolute top-6 left-0 right-0 h-0.5 bg-gray-300" style={{ zIndex: 1 }}>
+          <div 
+            className="h-full bg-green-600 transition-all duration-300" 
+            style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+          />
+        </div>
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
