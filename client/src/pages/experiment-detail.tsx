@@ -17,6 +17,23 @@ export default function ExperimentDetailPage() {
   const [showCustomsForm, setShowCustomsForm] = useState(false);
   const [showEportForm, setShowEportForm] = useState(false);
 
+  // 根据实验ID映射到对应的场景
+  const getSceneFromExperimentId = (experimentId: string): string => {
+    const experimentSceneMap: Record<string, string> = {
+      '873e1fe1-0430-4f47-9db2-c4f00e2b048f': 'enterprise_scene', // 海关企业资质备案
+      'b6566249-2b05-497a-9517-b09f2b7eaa97': 'enterprise_scene', // 电子口岸IC卡申请
+    };
+    return experimentSceneMap[experimentId] || 'overview';
+  };
+
+  // 构建返回场景的URL
+  const getBackToSceneUrl = () => {
+    if (!id) return '/';
+    const sceneCode = getSceneFromExperimentId(id);
+    if (sceneCode === 'overview') return '/';
+    return `/?section=${sceneCode}`;
+  };
+
   // Fetch experiment data
   const { data: experiments = [] } = useQuery<Experiment[]>({
     queryKey: ["/api/experiments"],
@@ -38,11 +55,11 @@ export default function ExperimentDetailPage() {
         <Header title="实验详情">
           <Button 
             variant="outline" 
-            onClick={() => setLocation("/")}
-            data-testid="button-back-to-home"
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回首页
+            返回场景
           </Button>
         </Header>
         <div className="container mx-auto py-8">
@@ -61,19 +78,19 @@ export default function ExperimentDetailPage() {
         <Header title="实验详情">
           <Button 
             variant="outline" 
-            onClick={() => setLocation("/")}
-            data-testid="button-back-to-home"
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            返回首页
+            返回场景
           </Button>
         </Header>
         <div className="container mx-auto py-8">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">实验未找到</h2>
             <p className="text-muted-foreground mb-6">请检查实验ID是否正确</p>
-            <Button onClick={() => setLocation("/")}>
-              返回首页
+            <Button onClick={() => setLocation(getBackToSceneUrl())}>
+              返回场景
             </Button>
           </div>
         </div>
@@ -118,9 +135,9 @@ export default function ExperimentDetailPage() {
     // 可以在这里处理实验完成逻辑，比如更新进度
     setShowCustomsForm(false);
     setShowEportForm(false);
-    // 返回首页
+    // 返回对应场景
     setTimeout(() => {
-      setLocation("/");
+      setLocation(getBackToSceneUrl());
     }, 2000);
   };
 
@@ -177,12 +194,12 @@ export default function ExperimentDetailPage() {
       <Header title="实验详情">
         <Button 
           variant="outline" 
-          onClick={() => setLocation("/")}
+          onClick={() => setLocation(getBackToSceneUrl())}
           className="hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
-          data-testid="button-back-to-home"
+          data-testid="button-back-to-scene"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          返回首页
+          返回场景
         </Button>
       </Header>
 

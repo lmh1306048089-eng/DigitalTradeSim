@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Building2, 
   Shield, 
@@ -24,6 +24,17 @@ export default function SimplifiedStudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+
+  // 监听URL查询参数，设置对应的场景
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const section = urlParams.get('section') as ActiveSection;
+    if (section && ['overview', 'enterprise_scene', 'customs_scene', 'customs_supervision_scene', 'overseas_warehouse_scene', 'buyer_home_scene'].includes(section)) {
+      setActiveSection(section);
+      // 清除URL参数，保持URL干净
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
   const {
     hasSelectedRole,
     selectedRoleCode,
