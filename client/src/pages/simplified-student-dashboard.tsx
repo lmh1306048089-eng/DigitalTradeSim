@@ -97,22 +97,35 @@ export default function SimplifiedStudentDashboard() {
   const renderOverviewSection = () => (
     <div className="space-y-6">
       {/* 数字贸易城区可视化 */}
-      <div className="bg-gradient-to-br from-blue-50 via-green-50 to-purple-50 dark:from-blue-950 dark:via-green-950 dark:to-purple-950 rounded-xl p-8">
-        <h2 className="text-3xl font-bold text-center mb-2">数字贸易生态城区</h2>
-        <p className="text-center text-muted-foreground mb-8">
-          模拟真实的跨境电商全流程业务场景，体验完整的数字贸易生态链
-        </p>
+      <div className="bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50 dark:from-blue-950 dark:via-slate-950 dark:to-indigo-950 rounded-xl p-8">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
+            数字贸易生态城区
+          </h2>
+          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
+            模拟真实的跨境电商全流程业务场景，体验完整的数字贸易生态链
+          </p>
+        </div>
         
         {/* 数字贸易流程可视化 */}
         <div className="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-xl p-6 shadow-xl border border-white/20">
           {/* 标题区域 */}
-          <div className="text-center mb-6">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
+              <span className="text-white text-2xl font-bold">🔗</span>
+            </div>
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-3">
               数字贸易全流程业务链
             </h3>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              跨境电商端到端业务流程 · 点击场景深入了解
-            </p>
+            <div className="flex items-center justify-center space-x-2 text-sm">
+              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+                跨境电商端到端业务流程
+              </span>
+              <span className="text-slate-400">•</span>
+              <span className="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-full">
+                点击场景深入了解
+              </span>
+            </div>
           </div>
           
           <div className="relative max-w-6xl mx-auto">
