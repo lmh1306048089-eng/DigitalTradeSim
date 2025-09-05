@@ -5,7 +5,8 @@ import {
   Warehouse,
   Home,
   Plane,
-  MapPin
+  MapPin,
+  ArrowRight
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
@@ -278,12 +279,137 @@ export default function SimplifiedStudentDashboard() {
     const scene = sceneConfigs.find(s => s.code === sceneCode);
     if (!scene) return null;
 
-    const hasAccess = canAccessScene(sceneCode);
+    // 定义每个场景的任务列表
+    const getSceneTasks = (sceneCode: string) => {
+      switch (sceneCode) {
+        case SCENES.ENTERPRISE:
+          return [
+            {
+              id: 'enterprise-backup',
+              title: '海关企业资质备案',
+              description: '企业资质备案申请流程，完成企业信息注册和资质审核',
+              icon: <Building2 className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'cross_border_ecommerce_operator') {
+                  setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
+            },
+            {
+              id: 'eport-ic-card',
+              title: '电子口岸IC卡申请',
+              description: '申请电子口岸IC卡的完整流程，包括资料准备和在线申请',
+              icon: <Shield className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'cross_border_ecommerce_operator') {
+                  setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
+            }
+          ];
+        case SCENES.CUSTOMS:
+          return [
+            {
+              id: 'customs-review',
+              title: '备案材料审核',
+              description: '审核企业备案申请，检查资质材料和合规性',
+              icon: <Shield className="h-6 w-6" />,
+              status: 'developing',
+              requiredRole: '海关审核员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'customs_reviewer') {
+                  alert("海关场景实验正在开发中...");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"海关审核员"角色后重试。`);
+                }
+              }
+            }
+          ];
+        case SCENES.CUSTOMS_SUPERVISION:
+          return [
+            {
+              id: 'cargo-inspection',
+              title: '货物查验操作',
+              description: '对进出口货物进行查验，确保符合监管要求',
+              icon: <Warehouse className="h-6 w-6" />,
+              status: 'developing',
+              requiredRole: '海关审核员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'customs_reviewer' || currentRole?.roleCode === 'logistics_operator') {
+                  alert("货物查验操作实验正在开发中...");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"海关审核员"或"物流企业操作员"角色后重试。`);
+                }
+              }
+            }
+          ];
+        case SCENES.OVERSEAS_WAREHOUSE:
+          return [
+            {
+              id: 'warehouse-picking',
+              title: '海外仓拣货打包',
+              description: '在海外仓库进行商品拣选和打包操作',
+              icon: <Plane className="h-6 w-6" />,
+              status: 'developing',
+              requiredRole: '物流企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'logistics_operator') {
+                  alert("海外仓拣货打包实验正在开发中...");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
+                }
+              }
+            }
+          ];
+        case SCENES.BUYER_HOME:
+          return [
+            {
+              id: 'delivery-confirmation',
+              title: '买家签收确认',
+              description: '完成最后一公里配送和买家签收确认流程',
+              icon: <Home className="h-6 w-6" />,
+              status: 'developing',
+              requiredRole: '物流企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'logistics_operator') {
+                  alert("买家签收确认实验正在开发中...");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
+                }
+              }
+            }
+          ];
+        default:
+          return [];
+      }
+    };
+
+    const tasks = getSceneTasks(sceneCode);
+
+    const getStatusBadge = (status: string) => {
+      switch (status) {
+        case 'available':
+          return <Badge className="bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300">可开始</Badge>;
+        case 'developing':
+          return <Badge variant="outline" className="text-amber-600 border-amber-300 dark:text-amber-400">开发中</Badge>;
+        default:
+          return <Badge variant="outline">未开始</Badge>;
+      }
+    };
     
     return (
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-xl p-6">
-          <div className="flex items-center gap-4 mb-4">
+        {/* Scene Header */}
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-xl p-6">
+          <div className="flex items-center gap-4">
             <div className={`p-3 ${scene.color} text-white rounded-lg`}>
               {scene.icon}
             </div>
@@ -292,155 +418,49 @@ export default function SimplifiedStudentDashboard() {
               <p className="text-muted-foreground">{scene.description}</p>
             </div>
           </div>
-          
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-            <h3 className="font-semibold mb-4">角色操作权限</h3>
-            <div className="space-y-3">
-              {currentRole && hasAccess ? (
-                BUSINESS_ROLE_CONFIGS[currentRole.roleCode]?.availableOperations.map((operation, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>{operation}</span>
-                  </div>
-                ))
-              ) : (
-                <div className="text-sm text-muted-foreground">
-                  当前角色"{currentRole?.roleName || "未选择"}"在此场景下暂无操作权限
+        {/* Tasks Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tasks.map((task) => (
+            <div
+              key={task.id}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-200 dark:border-gray-700"
+              onClick={task.onClick}
+              data-testid={`task-card-${task.id}`}
+            >
+              <div className="flex items-start space-x-4 mb-4">
+                <div className={`p-3 rounded-lg ${scene.color} text-white group-hover:scale-110 transition-transform duration-300`}>
+                  {task.icon}
                 </div>
-              )}
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {task.title}
+                  </h3>
+                  {getStatusBadge(task.status)}
+                </div>
+              </div>
+              
+              <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+                {task.description}
+              </p>
+              
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>需要角色: {task.requiredRole}</span>
+                <div className="flex items-center space-x-1">
+                  <span>开始任务</span>
+                  <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-            <h3 className="font-semibold mb-4">相关实验任务</h3>
-            <div className="space-y-3">
-              {sceneCode === SCENES.ENTERPRISE && (
-                <>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Building2 className="mr-2 h-4 w-4" />
-                    海关企业资质备案
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Shield className="mr-2 h-4 w-4" />
-                    电子口岸IC卡申请
-                  </Button>
-                </>
-              )}
-              
-              {sceneCode === SCENES.CUSTOMS && (
-                <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        // 跳转到海关相关实验
-                        alert("海关场景实验正在开发中...");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"海关审核员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Shield className="mr-2 h-4 w-4" />
-                    备案材料审核
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    该场景的其他实验任务正在开发中...
-                  </div>
-                </div>
-              )}
-              
-              {sceneCode === SCENES.CUSTOMS_SUPERVISION && (
-                <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        alert("监管作业场所实验正在开发中...");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"海关审核员"或"物流企业操作员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Warehouse className="mr-2 h-4 w-4" />
-                    货物查验操作
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    该场景的其他实验任务正在开发中...
-                  </div>
-                </div>
-              )}
-              
-              {sceneCode === SCENES.OVERSEAS_WAREHOUSE && (
-                <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        alert("海外仓库实验正在开发中...");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Plane className="mr-2 h-4 w-4" />
-                    海外仓拣货打包
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    该场景的其他实验任务正在开发中...
-                  </div>
-                </div>
-              )}
-              
-              {sceneCode === SCENES.BUYER_HOME && (
-                <div className="space-y-3">
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start"
-                    onClick={() => {
-                      if (hasAccess) {
-                        alert("买家居家实验正在开发中...");
-                      } else {
-                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
-                      }
-                    }}
-                  >
-                    <Home className="mr-2 h-4 w-4" />
-                    买家签收确认
-                  </Button>
-                  <div className="text-sm text-muted-foreground">
-                    该场景的其他实验任务正在开发中...
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          ))}
         </div>
+
+        {tasks.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-muted-foreground">该场景的实验任务正在开发中...</div>
+          </div>
+        )}
       </div>
     );
   };
