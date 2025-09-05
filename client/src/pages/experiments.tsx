@@ -27,7 +27,8 @@ export default function ExperimentsPage() {
       if (experimentName && experiments.length > 0) {
         const targetExperiment = experiments.find(exp => exp.name === experimentName);
         if (targetExperiment) {
-          setSelectedExperiment(targetExperiment);
+          // 直接跳转到实验详情页面而不是打开模态框
+          setLocation(`/experiments/${targetExperiment.id}`);
         }
       }
     };
@@ -37,7 +38,7 @@ export default function ExperimentsPage() {
     return () => {
       window.removeEventListener('autoStartExperiment', handleAutoStartExperiment as EventListener);
     };
-  }, [experiments]);
+  }, [experiments, setLocation]);
 
   const { data: progress = [] } = useQuery<StudentProgress[]>({
     queryKey: ["/api/progress"],
@@ -202,7 +203,7 @@ export default function ExperimentsPage() {
                     experiment={experiment}
                     progress={getExperimentProgress(experiment.id)}
                     disabled={!isExperimentUnlocked(experiment)}
-                    onClick={() => setSelectedExperiment(experiment)}
+                    onClick={() => setLocation(`/experiments/${experiment.id}`)}
                   />
                 ))}
               </div>
@@ -312,7 +313,7 @@ export default function ExperimentsPage() {
                       return !prog || prog.status === "not_started";
                     });
                     if (nextExperiment && isExperimentUnlocked(nextExperiment)) {
-                      setSelectedExperiment(nextExperiment);
+                      setLocation(`/experiments/${nextExperiment.id}`);
                     }
                   }}
                   data-testid="button-start-next"
@@ -330,7 +331,7 @@ export default function ExperimentsPage() {
                       return prog?.status === "in_progress";
                     });
                     if (inProgressExp) {
-                      setSelectedExperiment(inProgressExp);
+                      setLocation(`/experiments/${inProgressExp.id}`);
                     }
                   }}
                   data-testid="button-continue-current"
@@ -354,13 +355,7 @@ export default function ExperimentsPage() {
         </div>
       </div>
 
-      {/* Experiment Modal */}
-      <ExperimentModal
-        open={!!selectedExperiment}
-        onOpenChange={(open) => !open && setSelectedExperiment(null)}
-        experiment={selectedExperiment}
-        progress={selectedExperiment ? getExperimentProgress(selectedExperiment.id) : undefined}
-      />
+      {/* 注意：现在使用页面跳转而不是模态框 */}
     </div>
   );
 }

@@ -135,10 +135,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
 
   const handleFileUpload = (file: any) => {
     setUploadedFiles(prev => [...prev, file]);
-    toast({
-      title: "文件上传成功",
-      description: `${file.originalName || file.name} 已成功上传`
-    });
+    // 移除重复的toast提示，文件列表已经显示上传成功状态
   };
 
   const onSubmit = async (data: CustomsFormData) => {
