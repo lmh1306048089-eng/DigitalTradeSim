@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FileUpload } from "@/components/experiments/file-upload";
-import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
+import { EnterpriseQualificationForm } from "@/components/customs/enterprise-qualification-form";
 import type { Experiment, StudentProgress } from "@/types/index";
 
 interface ExperimentModalProps {
@@ -16,7 +16,7 @@ interface ExperimentModalProps {
 
 export function ExperimentModal({ open, onOpenChange, experiment, progress }: ExperimentModalProps) {
   const [currentStep, setCurrentStep] = useState(progress?.currentStep || 0);
-  const [showCustomsForm, setShowCustomsForm] = useState(false);
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
 
   if (!experiment) return null;
 
@@ -93,19 +93,19 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
   };
 
   // 海关企业资质备案实验的特殊处理
-  if (experiment.name === "海关企业资质备案" && showCustomsForm) {
+  if (experiment.name === "海关企业资质备案" && showEnterpriseForm) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto" data-testid="experiment-modal">
-          <CustomsQualificationForm
+          <EnterpriseQualificationForm
             onComplete={(data) => {
               console.log("海关备案申请完成:", data);
               // 可以在这里处理完成逻辑，比如更新进度、显示成功信息等
-              setShowCustomsForm(false);
+              setShowEnterpriseForm(false);
               onOpenChange(false);
             }}
             onCancel={() => {
-              setShowCustomsForm(false);
+              setShowEnterpriseForm(false);
             }}
           />
         </DialogContent>
@@ -124,7 +124,7 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
 
         <div className="space-y-6">
           {/* 海关企业资质备案实验的开始按钮 */}
-          {experiment.name === "海关企业资质备案" && !showCustomsForm && (
+          {experiment.name === "海关企业资质备案" && !showEnterpriseForm && (
             <div className="bg-blue-50 dark:bg-blue-950 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-center space-y-4">
                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
@@ -152,7 +152,7 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
                   </div>
                 </div>
                 <Button
-                  onClick={() => setShowCustomsForm(true)}
+                  onClick={() => setShowEnterpriseForm(true)}
                   className="mt-4"
                   data-testid="button-start-customs-filing"
                 >

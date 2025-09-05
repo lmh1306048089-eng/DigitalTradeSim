@@ -7,14 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
-import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
+import { EnterpriseQualificationForm } from "@/components/customs/enterprise-qualification-form";
 import { EportIcCardForm } from "@/components/eport/eport-ic-card-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
-  const [showCustomsForm, setShowCustomsForm] = useState(false);
+  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
   const [showEportForm, setShowEportForm] = useState(false);
 
   // 根据实验ID映射到对应的场景
@@ -124,7 +124,7 @@ export default function ExperimentDetailPage() {
 
   const handleStartExperiment = () => {
     if (experiment?.name === "海关企业资质备案") {
-      setShowCustomsForm(true);
+      setShowEnterpriseForm(true);
     } else if (experiment?.name === "电子口岸IC卡申请") {
       setShowEportForm(true);
     }
@@ -133,7 +133,7 @@ export default function ExperimentDetailPage() {
   const handleExperimentComplete = (data: any) => {
     console.log("实验完成:", data);
     // 可以在这里处理实验完成逻辑，比如更新进度
-    setShowCustomsForm(false);
+    setShowEnterpriseForm(false);
     setShowEportForm(false);
     // 返回对应场景
     setTimeout(() => {
@@ -141,27 +141,13 @@ export default function ExperimentDetailPage() {
     }, 2000);
   };
 
-  // 如果正在显示海关备案表单，直接渲染表单
-  if (showCustomsForm && experiment?.name === "海关企业资质备案") {
+  // 如果正在显示电商企业备案表单，直接渲染表单
+  if (showEnterpriseForm && experiment?.name === "海关企业资质备案") {
     return (
-      <div className="min-h-screen bg-muted">
-        <Header title="海关企业资质备案实验">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowCustomsForm(false)}
-            data-testid="button-back-to-experiment"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回实验详情
-          </Button>
-        </Header>
-        <div className="container mx-auto py-6">
-          <CustomsQualificationForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setShowCustomsForm(false)}
-          />
-        </div>
-      </div>
+      <EnterpriseQualificationForm
+        onComplete={handleExperimentComplete}
+        onCancel={() => setShowEnterpriseForm(false)}
+      />
     );
   }
 
