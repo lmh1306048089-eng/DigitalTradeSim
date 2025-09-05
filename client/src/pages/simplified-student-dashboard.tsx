@@ -6,6 +6,7 @@ import {
   Home,
   Plane,
   MapPin,
+  Upload,
   ArrowRight
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
@@ -335,6 +336,21 @@ export default function SimplifiedStudentDashboard() {
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
                   setLocation("/enterprise-qualification");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
+            },
+            {
+              id: 'transport-id-application',
+              title: '传输ID申请',
+              description: '申请中国电子口岸数据中心传输ID，支持报关单模式和清单模式，完成企业数据对接',
+              icon: <Upload className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'enterprise_operator') {
+                  setLocation("/transport-id-application");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
