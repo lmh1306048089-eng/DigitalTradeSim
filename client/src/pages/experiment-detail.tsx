@@ -324,37 +324,44 @@ export default function ExperimentDetailPage() {
                 </div>
               )}
               
-              {/* 开始实验按钮 - 紧接着实验流程 */}
-              <div className="flex justify-center pt-6">
-                <div className="text-center">
-                  <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
-                    <h3 className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-2">准备开始实验？</h3>
-                    <p className="text-blue-700 dark:text-blue-300 mb-4 text-sm">点击下方按钮进入实训环境，体验真实的海关企业资质备案流程</p>
-                    <Button 
-                      size="lg" 
-                      onClick={handleStartExperiment}
-                      disabled={experimentProgress?.status === "completed"}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                      data-testid="button-start-experiment"
-                    >
-                      {experimentProgress?.status === "completed" ? (
-                        <>
-                          <CheckCircle className="mr-2 h-5 w-5" />
-                          实验已完成
-                        </>
-                      ) : experimentProgress?.status === "in_progress" ? (
-                        <>
-                          <Play className="mr-2 h-5 w-5" />
-                          继续实验
-                        </>
-                      ) : (
-                        <>
-                          <FlaskConical className="mr-2 h-5 w-5" />
-                          开始实验
-                        </>
-                      )}
-                    </Button>
+              {/* 开始实验按钮 - 融入整体设计 */}
+              <div className="mt-8 p-1 bg-gradient-to-r from-emerald-500 via-blue-500 via-purple-500 to-orange-500 rounded-2xl">
+                <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="p-3 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                      <FlaskConical className="h-6 w-6" />
+                    </div>
+                    <h3 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      开始您的实验之旅
+                    </h3>
                   </div>
+                  <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed">
+                    点击下方按钮进入实训环境，体验完整的海关企业资质备案流程
+                  </p>
+                  <Button 
+                    size="lg" 
+                    onClick={handleStartExperiment}
+                    disabled={experimentProgress?.status === "completed"}
+                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-10 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg"
+                    data-testid="button-start-experiment"
+                  >
+                    {experimentProgress?.status === "completed" ? (
+                      <>
+                        <CheckCircle className="mr-3 h-6 w-6" />
+                        实验已完成
+                      </>
+                    ) : experimentProgress?.status === "in_progress" ? (
+                      <>
+                        <Play className="mr-3 h-6 w-6" />
+                        继续实验
+                      </>
+                    ) : (
+                      <>
+                        <FlaskConical className="mr-3 h-6 w-6" />
+                        开始实验
+                      </>
+                    )}
+                  </Button>
                 </div>
               </div>
             </div>
