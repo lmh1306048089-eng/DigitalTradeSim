@@ -296,21 +296,6 @@ export default function SimplifiedStudentDashboard() {
         case SCENES.ENTERPRISE:
           return [
             {
-              id: 'enterprise-qualification',
-              title: '电商企业资质备案',
-              description: '完成跨境电商企业资质备案填报，包括营业执照、贸易备案、税务信息等',
-              icon: <Building2 className="h-6 w-6" />,
-              status: 'available',
-              requiredRole: '跨境电商企业操作员',
-              onClick: () => {
-                if (currentRole?.roleCode === 'enterprise_operator') {
-                  setLocation("/enterprise-qualification");
-                } else {
-                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
-                }
-              }
-            },
-            {
               id: 'enterprise-backup',
               title: '海关企业资质备案',
               description: '企业资质备案申请流程，完成企业信息注册和资质审核',
@@ -335,6 +320,21 @@ export default function SimplifiedStudentDashboard() {
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
                   setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
+            },
+            {
+              id: 'enterprise-qualification',
+              title: '电商企业资质备案',
+              description: '完成跨境电商企业资质备案填报，包括营业执照、贸易备案、税务信息等',
+              icon: <Building2 className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'enterprise_operator') {
+                  setLocation("/enterprise-qualification");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
