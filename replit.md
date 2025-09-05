@@ -6,6 +6,21 @@ This is a full-stack digital trade training platform designed for educational in
 
 The platform supports role-based access control with three user types: students who complete training modules and experiments, teachers who manage assignments and evaluate student performance, and administrators who oversee system configuration and user management.
 
+## Recent Changes
+
+### 5 Training Scenarios Implementation (September 2025)
+- **Scenario-Based Architecture**: Transformed from task-centered to scenario-based approach matching the digital trade ecosystem definition
+- **5 Virtual Training Scenarios**: 
+  1. Enterprise Scene (电商企业场景) - Cross-border e-commerce enterprise operations
+  2. Customs Office Scene (海关场景) - Customs review and supervision
+  3. Customs Supervision Scene (海关监管作业场所场景) - Customs supervision operations
+  4. Overseas Warehouse Scene (海外仓库场景) - Overseas warehousing and logistics
+  5. Buyer Home Scene (买家居家场景) - Consumer receiving and delivery scenarios
+- **City-District Visualization**: Homepage features an interactive city-district layout showing the complete digital trade process flow
+- **Role-Based Scene Access**: Different business roles can only access their permitted training scenarios with visual permission indicators
+- **Direct Navigation Flow**: Task center → experiment details → homepage (bypassing intermediate pages)
+- **Removed Experiment List**: Complete removal of experiment progress overview interfaces for cleaner user experience
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

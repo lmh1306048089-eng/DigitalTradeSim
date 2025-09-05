@@ -254,7 +254,7 @@ export default function SimplifiedStudentDashboard() {
     
     return (
       <div className="space-y-6">
-        <div className={`bg-gradient-to-r from-${scene.color.split('-')[1]}-50 to-${scene.color.split('-')[1]}-100 dark:from-${scene.color.split('-')[1]}-950 dark:to-${scene.color.split('-')[1]}-900 rounded-xl p-6`}>
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-xl p-6">
           <div className="flex items-center gap-4 mb-4">
             <div className={`p-3 ${scene.color} text-white rounded-lg`}>
               {scene.icon}
