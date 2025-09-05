@@ -104,112 +104,137 @@ export default function SimplifiedStudentDashboard() {
         </p>
         
         {/* 城区地图 */}
-        <div className="relative bg-white dark:bg-gray-800 rounded-lg p-6 shadow-lg">
-          <div className="grid grid-cols-3 gap-6 h-96">
-            {/* 第一行：电商企业 */}
-            <div className="col-span-1 flex items-center justify-center">
-              <div 
-                className={`relative p-6 rounded-xl ${sceneConfigs[0].color} text-white cursor-pointer transform hover:scale-105 transition-all`}
-                onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
-              >
-                <div className="text-center">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
+          {/* 数字贸易流程标题 */}
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold mb-2">数字贸易全流程业务链</h3>
+            <p className="text-sm text-muted-foreground">点击各个场景了解详细操作流程</p>
+          </div>
+          
+          <div className="space-y-8">
+            {/* 第一行：国内场景 */}
+            <div className="grid grid-cols-3 gap-8 items-center">
+              {/* 电商企业 */}
+              <div className="text-center">
+                <div 
+                  className={`p-6 rounded-xl ${sceneConfigs[0].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
+                  onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
+                >
                   <Building2 className="h-12 w-12 mx-auto mb-2" />
                   <h3 className="font-bold">电商企业</h3>
                   <p className="text-xs opacity-90">企业操作中心</p>
                 </div>
-                {!canAccessScene(SCENES.ENTERPRISE) && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
-                    <span className="text-xs">无权限</span>
-                  </div>
-                )}
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <div>① 备案申报</div>
+                  <div>② 出口申报</div>
+                </div>
               </div>
-            </div>
-            
-            {/* 第一行：海关办事处 */}
-            <div className="col-span-1 flex items-center justify-center">
-              <div 
-                className={`relative p-6 rounded-xl ${sceneConfigs[1].color} text-white cursor-pointer transform hover:scale-105 transition-all`}
-                onClick={() => setActiveSection(SCENES.CUSTOMS as ActiveSection)}
-              >
-                <div className="text-center">
+              
+              {/* 箭头 */}
+              <div className="flex flex-col items-center">
+                <div className="flex items-center">
+                  <div className="w-12 h-0.5 bg-blue-400"></div>
+                  <div className="w-0 h-0 border-l-8 border-l-blue-400 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                </div>
+                <span className="text-xs text-blue-600 mt-1 font-medium">申报材料</span>
+              </div>
+              
+              {/* 海关办事处 */}
+              <div className="text-center">
+                <div 
+                  className={`p-6 rounded-xl ${sceneConfigs[1].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
+                  onClick={() => setActiveSection(SCENES.CUSTOMS as ActiveSection)}
+                >
                   <Shield className="h-12 w-12 mx-auto mb-2" />
                   <h3 className="font-bold">海关办事处</h3>
                   <p className="text-xs opacity-90">审核监管中心</p>
                 </div>
-                {!canAccessScene(SCENES.CUSTOMS) && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
-                    <span className="text-xs">无权限</span>
-                  </div>
-                )}
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <div>③ 审核备案</div>
+                  <div>④ 布控查验</div>
+                </div>
               </div>
             </div>
             
-            {/* 第一行：海关监管作业场所 */}
-            <div className="col-span-1 flex items-center justify-center">
-              <div 
-                className={`relative p-6 rounded-xl ${sceneConfigs[2].color} text-white cursor-pointer transform hover:scale-105 transition-all`}
-                onClick={() => setActiveSection(SCENES.CUSTOMS_SUPERVISION as ActiveSection)}
-              >
-                <div className="text-center">
+            {/* 箭头向下 */}
+            <div className="flex justify-center">
+              <div className="flex flex-col items-center">
+                <div className="w-0.5 h-8 bg-green-400"></div>
+                <div className="w-0 h-0 border-t-8 border-t-green-400 border-l-4 border-l-transparent border-r-4 border-r-transparent"></div>
+                <span className="text-xs text-green-600 mt-1 font-medium">查验放行</span>
+              </div>
+            </div>
+            
+            {/* 海关监管作业场所 */}
+            <div className="flex justify-center">
+              <div className="text-center">
+                <div 
+                  className={`p-6 rounded-xl ${sceneConfigs[2].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
+                  onClick={() => setActiveSection(SCENES.CUSTOMS_SUPERVISION as ActiveSection)}
+                >
                   <Warehouse className="h-12 w-12 mx-auto mb-2" />
                   <h3 className="font-bold">监管作业场所</h3>
                   <p className="text-xs opacity-90">货物查验中心</p>
                 </div>
-                {!canAccessScene(SCENES.CUSTOMS_SUPERVISION) && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
-                    <span className="text-xs">无权限</span>
-                  </div>
-                )}
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <div>⑤ 货物查验</div>
+                  <div>⑥ 运抵登记</div>
+                </div>
               </div>
             </div>
             
-            {/* 流程箭头和连接线 */}
-            <div className="col-span-3 flex items-center justify-center py-4">
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <MapPin className="h-6 w-6 text-gray-400" />
-                <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <span className="text-sm text-muted-foreground">跨境物流</span>
-                <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
-                <MapPin className="h-6 w-6 text-gray-400" />
-                <div className="w-16 h-1 bg-gray-300 dark:bg-gray-600"></div>
+            {/* 跨境物流分隔线 */}
+            <div className="flex items-center justify-center py-4">
+              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
+              <div className="px-4 py-2 bg-orange-100 dark:bg-orange-900 rounded-full">
+                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">🚢 跨境物流运输</span>
               </div>
+              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
             </div>
             
-            {/* 第三行：海外仓库和买家居家 */}
-            <div className="col-span-1"></div>
-            <div className="col-span-1 flex items-center justify-center">
-              <div 
-                className={`relative p-6 rounded-xl ${sceneConfigs[3].color} text-white cursor-pointer transform hover:scale-105 transition-all`}
-                onClick={() => setActiveSection(SCENES.OVERSEAS_WAREHOUSE as ActiveSection)}
-              >
-                <div className="text-center">
+            {/* 第三行：海外场景 */}
+            <div className="grid grid-cols-2 gap-8 items-center justify-items-center">
+              {/* 海外仓库 */}
+              <div className="text-center">
+                <div 
+                  className={`p-6 rounded-xl ${sceneConfigs[3].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
+                  onClick={() => setActiveSection(SCENES.OVERSEAS_WAREHOUSE as ActiveSection)}
+                >
                   <Plane className="h-12 w-12 mx-auto mb-2" />
                   <h3 className="font-bold">海外仓库</h3>
                   <p className="text-xs opacity-90">仓储物流中心</p>
                 </div>
-                {!canAccessScene(SCENES.OVERSEAS_WAREHOUSE) && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
-                    <span className="text-xs">无权限</span>
-                  </div>
-                )}
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <div>⑦ 入境清关</div>
+                  <div>⑧ 仓库拣货</div>
+                </div>
               </div>
+              
+              {/* 箭头 */}
+              <div className="flex items-center">
+                <div className="w-12 h-0.5 bg-purple-400"></div>
+                <div className="w-0 h-0 border-l-8 border-l-purple-400 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                <span className="text-xs text-purple-600 ml-2 font-medium">最后一公里</span>
+              </div>
+              
+              {/* 买家居家（移到右侧） */}
             </div>
-            <div className="col-span-1 flex items-center justify-center">
-              <div 
-                className={`relative p-6 rounded-xl ${sceneConfigs[4].color} text-white cursor-pointer transform hover:scale-105 transition-all`}
-                onClick={() => setActiveSection(SCENES.BUYER_HOME as ActiveSection)}
-              >
-                <div className="text-center">
+            
+            {/* 买家居家单独一行 */}
+            <div className="flex justify-center">
+              <div className="text-center">
+                <div 
+                  className={`p-6 rounded-xl ${sceneConfigs[4].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
+                  onClick={() => setActiveSection(SCENES.BUYER_HOME as ActiveSection)}
+                >
                   <Home className="h-12 w-12 mx-auto mb-2" />
                   <h3 className="font-bold">买家居家</h3>
                   <p className="text-xs opacity-90">消费者场景</p>
                 </div>
-                {!canAccessScene(SCENES.BUYER_HOME) && (
-                  <div className="absolute inset-0 bg-black bg-opacity-50 rounded-xl flex items-center justify-center">
-                    <span className="text-xs">无权限</span>
-                  </div>
-                )}
+                <div className="mt-2 text-xs text-muted-foreground">
+                  <div>⑨ 配送签收</div>
+                  <div>⑩ 完成交易</div>
+                </div>
               </div>
             </div>
           </div>
@@ -265,81 +290,154 @@ export default function SimplifiedStudentDashboard() {
             </div>
           </div>
           
-          {!hasAccess && (
-            <div className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <p className="text-red-700 dark:text-red-300 text-sm">
-                <strong>权限不足：</strong>当前角色"{currentRole?.roleName}"无法访问此场景。
-                请联系管理员或切换到有权限的角色。
-              </p>
-            </div>
-          )}
         </div>
 
-        {hasAccess ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-              <h3 className="font-semibold mb-4">可执行操作</h3>
-              <div className="space-y-2">
-                {BUSINESS_ROLE_CONFIGS[currentRole?.roleCode || ""]?.availableOperations.map((operation, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+            <h3 className="font-semibold mb-4">角色操作权限</h3>
+            <div className="space-y-3">
+              {currentRole && hasAccess ? (
+                BUSINESS_ROLE_CONFIGS[currentRole.roleCode]?.availableOperations.map((operation, index) => (
                   <div key={index} className="flex items-center gap-2 text-sm">
                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                     <span>{operation}</span>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-              <h3 className="font-semibold mb-4">相关实验任务</h3>
-              <div className="space-y-3">
-                {sceneCode === SCENES.ENTERPRISE && (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f")}
-                    >
-                      <Building2 className="mr-2 h-4 w-4" />
-                      海关企业资质备案
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start"
-                      onClick={() => setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97")}
-                    >
-                      <Shield className="mr-2 h-4 w-4" />
-                      电子口岸IC卡申请
-                    </Button>
-                  </>
-                )}
-                
-                {(sceneCode === SCENES.CUSTOMS || sceneCode === SCENES.CUSTOMS_SUPERVISION) && (
-                  <div className="text-sm text-muted-foreground">
-                    该场景的实验任务正在开发中...
-                  </div>
-                )}
-                
-                {(sceneCode === SCENES.OVERSEAS_WAREHOUSE || sceneCode === SCENES.BUYER_HOME) && (
-                  <div className="text-sm text-muted-foreground">
-                    该场景的实验任务正在开发中...
-                  </div>
-                )}
-              </div>
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground">
+                  当前角色"{currentRole?.roleName || "未选择"}"在此场景下暂无操作权限
+                </div>
+              )}
             </div>
           </div>
-        ) : (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 text-center">
-            <div className="text-gray-400 mb-4">
-              <Home className="h-16 w-16 mx-auto" />
+          
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
+            <h3 className="font-semibold mb-4">相关实验任务</h3>
+            <div className="space-y-3">
+              {sceneCode === SCENES.ENTERPRISE && (
+                <>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    海关企业资质备案
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    电子口岸IC卡申请
+                  </Button>
+                </>
+              )}
+              
+              {sceneCode === SCENES.CUSTOMS && (
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        // 跳转到海关相关实验
+                        alert("海关场景实验正在开发中...");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"海关审核员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Shield className="mr-2 h-4 w-4" />
+                    备案材料审核
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    该场景的其他实验任务正在开发中...
+                  </div>
+                </div>
+              )}
+              
+              {sceneCode === SCENES.CUSTOMS_SUPERVISION && (
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        alert("监管作业场所实验正在开发中...");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"海关审核员"或"物流企业操作员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Warehouse className="mr-2 h-4 w-4" />
+                    货物查验操作
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    该场景的其他实验任务正在开发中...
+                  </div>
+                </div>
+              )}
+              
+              {sceneCode === SCENES.OVERSEAS_WAREHOUSE && (
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        alert("海外仓库实验正在开发中...");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Plane className="mr-2 h-4 w-4" />
+                    海外仓拣货打包
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    该场景的其他实验任务正在开发中...
+                  </div>
+                </div>
+              )}
+              
+              {sceneCode === SCENES.BUYER_HOME && (
+                <div className="space-y-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      if (hasAccess) {
+                        alert("买家居家实验正在开发中...");
+                      } else {
+                        alert(`当前角色"${currentRole?.roleName}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
+                      }
+                    }}
+                  >
+                    <Home className="mr-2 h-4 w-4" />
+                    买家签收确认
+                  </Button>
+                  <div className="text-sm text-muted-foreground">
+                    该场景的其他实验任务正在开发中...
+                  </div>
+                </div>
+              )}
             </div>
-            <h3 className="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">
-              无访问权限
-            </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              请切换到有权限的角色后重试
-            </p>
           </div>
-        )}
+        </div>
       </div>
     );
   };
@@ -395,17 +493,9 @@ export default function SimplifiedStudentDashboard() {
               icon={scene.icon}
               active={activeSection === scene.code}
               onClick={() => setActiveSection(scene.code as ActiveSection)}
-              disabled={!canAccessScene(scene.code)}
               data-testid={`sidebar-${scene.code}`}
             >
-              <div className="flex items-center justify-between w-full">
-                <span>{scene.name}</span>
-                {!canAccessScene(scene.code) && (
-                  <Badge variant="secondary" className="text-xs">
-                    无权限
-                  </Badge>
-                )}
-              </div>
+              {scene.name}
             </SidebarItem>
           ))}
           
