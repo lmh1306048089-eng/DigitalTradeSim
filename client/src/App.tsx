@@ -13,7 +13,7 @@ import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ExperimentDetailPage from "@/pages/experiment-detail";
 import NotFound from "@/pages/not-found";
-import { EnterpriseQualificationForm } from "@/components/customs/enterprise-qualification-form";
+import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -66,7 +66,7 @@ function Router() {
           <Route path="/" component={SimplifiedStudentDashboard} />
           <Route path="/experiments/:id" component={ExperimentDetailPage} />
           <Route path="/customs-qualification">
-            <EnterpriseQualificationForm />
+            <CustomsQualificationForm />
           </Route>
         </>
       )}

@@ -62,7 +62,7 @@ export function TaskDashboard() {
   const businessTasks: BusinessTask[] = [
     {
       id: "customs-qualification",
-      title: "海关企业资质备案",
+      title: "任务1: 海关企业资质备案",
       description: "完成企业向海关的资质备案申请，这是开展跨境电商业务的前提条件",
       category: "preparation",
       status: "available",
@@ -105,7 +105,7 @@ export function TaskDashboard() {
     },
     {
       id: "eport-ic-card",
-      title: "电子口岸IC卡申请",
+      title: "任务2: 电子口岸IC卡申请",
       description: "在中国电子口岸数据中心平台申请办理IC卡，完成企业入网准备工作",
       category: "preparation",
       status: "available",
@@ -155,6 +155,91 @@ export function TaskDashboard() {
           id: "step6",
           title: "确认提交申请",
           description: "核对信息并提交IC卡申请",
+          status: "pending",
+          estimatedTime: "5分钟"
+        }
+      ]
+    },
+    {
+      id: "ecommerce-qualification",
+      title: "任务3: 电商企业资质备案",
+      description: "完成跨境电商企业资质备案申请，包括企业基本信息、平台信息、经营资质等完整备案流程",
+      category: "preparation",
+      status: "available",
+      progress: 0,
+      estimatedTime: "60分钟",
+      requiredRole: "enterprise_operator",
+      priority: "normal",
+      nextAction: "填写企业基本信息",
+      steps: [
+        {
+          id: "step1",
+          title: "企业基本信息",
+          description: "填写企业名称、统一社会信用代码、注册地址等基本信息",
+          status: "current",
+          scene: "电商企业办公场景",
+          estimatedTime: "8分钟"
+        },
+        {
+          id: "step2",
+          title: "法定代表人信息",
+          description: "填写法定代表人姓名、身份证号、联系方式",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step3",
+          title: "联系信息",
+          description: "填写企业联系人信息和邮箱地址",
+          status: "pending",
+          estimatedTime: "3分钟"
+        },
+        {
+          id: "step4",
+          title: "经营资质",
+          description: "选择经营范围并填写相关资质证书信息",
+          status: "pending",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step5",
+          title: "财务税务",
+          description: "填写银行账户和税务登记信息",
+          status: "pending",
+          estimatedTime: "8分钟"
+        },
+        {
+          id: "step6",
+          title: "电商平台信息",
+          description: "填写电商平台名称、网址和运营模式",
+          status: "pending",
+          estimatedTime: "8分钟"
+        },
+        {
+          id: "step7",
+          title: "跨境电商信息",
+          description: "选择跨境电商模式和目标市场",
+          status: "pending",
+          estimatedTime: "8分钟"
+        },
+        {
+          id: "step8",
+          title: "产品信息",
+          description: "填写主要产品描述和质量认证",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step9",
+          title: "文件上传",
+          description: "上传相关证明文件和资料",
+          status: "pending",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step10",
+          title: "确认提交",
+          description: "核对所有信息并提交备案申请",
           status: "pending",
           estimatedTime: "5分钟"
         }
@@ -286,6 +371,9 @@ export function TaskDashboard() {
     } else if (task.id === "eport-ic-card") {
       // 直接跳转到电子口岸IC卡申请实验详情页
       setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+    } else if (task.id === "ecommerce-qualification") {
+      // 直接跳转到电商企业资质备案实验详情页
+      setLocation("/experiments/c6698989-4218-482b-afeb-8f3351c5964d");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);

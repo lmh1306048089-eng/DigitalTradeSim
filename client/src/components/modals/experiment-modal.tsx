@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { FileUpload } from "@/components/experiments/file-upload";
-import { EnterpriseQualificationForm } from "@/components/customs/enterprise-qualification-form";
+import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import type { Experiment, StudentProgress } from "@/types/index";
 
 interface ExperimentModalProps {
@@ -16,7 +16,7 @@ interface ExperimentModalProps {
 
 export function ExperimentModal({ open, onOpenChange, experiment, progress }: ExperimentModalProps) {
   const [currentStep, setCurrentStep] = useState(progress?.currentStep || 0);
-  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+  const [showCustomsForm, setShowCustomsForm] = useState(false);
 
   if (!experiment) return null;
 
@@ -93,19 +93,19 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
   };
 
   // 海关企业资质备案实验的特殊处理
-  if (experiment.name === "海关企业资质备案" && showEnterpriseForm) {
+  if (experiment.name === "海关企业资质备案" && showCustomsForm) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-auto" data-testid="experiment-modal">
-          <EnterpriseQualificationForm
+          <CustomsQualificationForm
             onComplete={(data) => {
               console.log("海关备案申请完成:", data);
               // 可以在这里处理完成逻辑，比如更新进度、显示成功信息等
-              setShowEnterpriseForm(false);
+              setShowCustomsForm(false);
               onOpenChange(false);
             }}
             onCancel={() => {
-              setShowEnterpriseForm(false);
+              setShowCustomsForm(false);
             }}
           />
         </DialogContent>

@@ -7,21 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
-import { EnterpriseQualificationForm } from "@/components/customs/enterprise-qualification-form";
+import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { EportIcCardForm } from "@/components/eport/eport-ic-card-form";
+import { EcommerceQualificationForm } from "@/components/ecommerce/ecommerce-qualification-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
-  const [showEnterpriseForm, setShowEnterpriseForm] = useState(false);
+  const [showCustomsForm, setShowCustomsForm] = useState(false);
   const [showEportForm, setShowEportForm] = useState(false);
+  const [showEcommerceForm, setShowEcommerceForm] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
     const experimentSceneMap: Record<string, string> = {
       '873e1fe1-0430-4f47-9db2-c4f00e2b048f': 'enterprise_scene', // 海关企业资质备案
       'b6566249-2b05-497a-9517-b09f2b7eaa97': 'enterprise_scene', // 电子口岸IC卡申请
+      'c6698989-4218-482b-afeb-8f3351c5964d': 'enterprise_scene', // 电商企业资质备案
     };
     return experimentSceneMap[experimentId] || 'overview';
   };
@@ -124,30 +127,47 @@ export default function ExperimentDetailPage() {
 
   const handleStartExperiment = () => {
     if (experiment?.name === "海关企业资质备案") {
-      setShowEnterpriseForm(true);
+      setShowCustomsForm(true);
     } else if (experiment?.name === "电子口岸IC卡申请") {
       setShowEportForm(true);
+    } else if (experiment?.name === "电商企业资质备案") {
+      setShowEcommerceForm(true);
     }
   };
 
   const handleExperimentComplete = (data: any) => {
     console.log("实验完成:", data);
     // 可以在这里处理实验完成逻辑，比如更新进度
-    setShowEnterpriseForm(false);
+    setShowCustomsForm(false);
     setShowEportForm(false);
+    setShowEcommerceForm(false);
     // 返回对应场景
     setTimeout(() => {
       setLocation(getBackToSceneUrl());
     }, 2000);
   };
 
-  // 如果正在显示电商企业备案表单，直接渲染表单
-  if (showEnterpriseForm && experiment?.name === "海关企业资质备案") {
+  // 如果正在显示海关备案表单，直接渲染表单
+  if (showCustomsForm && experiment?.name === "海关企业资质备案") {
     return (
-      <EnterpriseQualificationForm
-        onComplete={handleExperimentComplete}
-        onCancel={() => setShowEnterpriseForm(false)}
-      />
+      <div className="min-h-screen bg-muted">
+        <Header title="海关企业资质备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCustomsForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <CustomsQualificationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowCustomsForm(false)}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -169,6 +189,30 @@ export default function ExperimentDetailPage() {
           <EportIcCardForm
             onComplete={handleExperimentComplete}
             onCancel={() => setShowEportForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示电商企业资质备案表单，直接渲染表单
+  if (showEcommerceForm && experiment?.name === "电商企业资质备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="电商企业资质备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEcommerceForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <EcommerceQualificationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowEcommerceForm(false)}
           />
         </div>
       </div>
