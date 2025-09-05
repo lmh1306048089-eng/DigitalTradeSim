@@ -56,7 +56,6 @@ const enterpriseQualificationSchema = z.object({
   
   // 生产能力信息
   productionCapacity: z.string().min(10, "请详细描述生产能力"),
-  mainProducts: z.array(z.string()).min(1, "请至少选择一个主营产品类别"),
   qualityCertification: z.array(z.string()).optional(),
   
   // 声明确认
@@ -75,7 +74,12 @@ interface EnterpriseQualificationFormProps {
 export function EnterpriseQualificationForm({ onComplete, onCancel }: EnterpriseQualificationFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
+  const [filesByCategory, setFilesByCategory] = useState<{ [key: string]: any[] }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{
+    applicationNumber: string;
+    submittedAt: string;
+  } | null>(null);
   const { toast } = useToast();
 
   const form = useForm<EnterpriseQualificationData>({
@@ -101,7 +105,6 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
       taxRegistrationNumber: "",
       vatNumber: "",
       productionCapacity: "",
-      mainProducts: [],
       qualityCertification: [],
       dataAccuracy: false,
       legalResponsibility: false,
@@ -122,18 +125,6 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
     "其他"
   ];
 
-  const productCategoryOptions = [
-    "服装鞋帽",
-    "3C数码",
-    "家居生活",
-    "美妆个护",
-    "食品保健",
-    "母婴玩具",
-    "运动户外",
-    "汽车用品",
-    "珠宝首饰",
-    "工艺品"
-  ];
 
   const certificationOptions = [
     "ISO9001质量管理体系",
@@ -146,7 +137,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
     "其他"
   ];
 
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   const getStepProgress = () => {
     return (currentStep / totalSteps) * 100;
@@ -159,6 +150,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
       case 3: return "贸易备案信息";
       case 4: return "财务税务信息";
       case 5: return "生产能力信息";
+      case 6: return "提交成功";
       default: return "";
     }
   };
@@ -180,7 +172,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
         isValid = await form.trigger(['bankName', 'accountNumber', 'accountName', 'taxRegistrationNumber']);
         break;
       case 5:
-        isValid = await form.trigger(['productionCapacity', 'mainProducts', 'dataAccuracy', 'legalResponsibility', 'submitConsent']);
+        isValid = await form.trigger(['productionCapacity', 'dataAccuracy', 'legalResponsibility', 'submitConsent']);
         break;
     }
     
@@ -194,20 +186,28 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
   };
 
   const onSubmit = async (data: EnterpriseQualificationData) => {
-    if (currentStep !== totalSteps) return;
+    if (currentStep !== totalSteps - 1) return; // 第5步提交
     
     setIsSubmitting(true);
     
     try {
+      console.log("企业资质备案完成:", { ...data, uploadedFiles });
+      
       // 模拟提交API
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast({
-        title: "提交成功",
-        description: "企业资质备案申请已提交，请等待审核结果。",
+      // 生成申请号和提交时间
+      const applicationNumber = `EQ${Date.now()}`;
+      const submittedAt = new Date().toLocaleString('zh-CN');
+      
+      setSubmissionResult({
+        applicationNumber,
+        submittedAt
       });
       
-      onComplete?.({ ...data, uploadedFiles });
+      // 跳转到成功页面
+      setCurrentStep(6);
+      
     } catch (error) {
       toast({
         title: "提交失败",
@@ -221,7 +221,23 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
 
   const handleFileUpload = (files: any[], category: string) => {
     const newFiles = files.map(file => ({ ...file, category }));
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+    
+    // 更新总文件列表
+    setUploadedFiles(prev => {
+      // 移除同类别的旧文件，添加新文件
+      const filtered = prev.filter(f => f.category !== category);
+      return [...filtered, ...newFiles];
+    });
+    
+    // 更新按类别分组的文件
+    setFilesByCategory(prev => ({
+      ...prev,
+      [category]: newFiles
+    }));
+  };
+
+  const getFilesByCategory = (category: string) => {
+    return filesByCategory[category] || [];
   };
 
   return (
@@ -336,6 +352,18 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                     }}
                     maxSize={10 * 1024 * 1024}
                   />
+                  
+                  {/* 显示已上传文件 */}
+                  {getFilesByCategory("营业执照等企业证明文件").length > 0 && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700 dark:text-green-300">
+                          已上传 {getFilesByCategory("营业执照等企业证明文件").length} 个文件
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -526,6 +554,18 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                     }}
                     maxSize={10 * 1024 * 1024}
                   />
+                  
+                  {/* 显示已上传文件 */}
+                  {getFilesByCategory("对外贸易经营者备案登记表").length > 0 && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700 dark:text-green-300">
+                          已上传 {getFilesByCategory("对外贸易经营者备案登记表").length} 个文件
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -646,36 +686,6 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="mainProducts"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>主营产品类别 *</FormLabel>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mt-2">
-                        {productCategoryOptions.map((product) => (
-                          <div key={product} className="flex items-center space-x-2">
-                            <Checkbox
-                              id={`product-${product}`}
-                              checked={field.value.includes(product)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  field.onChange([...field.value, product]);
-                                } else {
-                                  field.onChange(field.value.filter((item) => item !== product));
-                                }
-                              }}
-                            />
-                            <label htmlFor={`product-${product}`} className="text-sm">
-                              {product}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 
                 <FormField
                   control={form.control}
@@ -723,6 +733,18 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                     }}
                     maxSize={10 * 1024 * 1024}
                   />
+                  
+                  {/* 显示已上传文件 */}
+                  {getFilesByCategory("生产能力证明及产品认证文件").length > 0 && (
+                    <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700 dark:text-green-300">
+                          已上传 {getFilesByCategory("生产能力证明及产品认证文件").length} 个文件
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 确认声明 */}
@@ -797,16 +819,69 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
             </Card>
           )}
 
+          {/* 第六步：提交成功 */}
+          {currentStep === 6 && submissionResult && (
+            <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+              <CardContent className="p-8 text-center">
+                <div className="flex flex-col items-center space-y-6">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-green-800 dark:text-green-200">
+                      申请提交成功！
+                    </h2>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      您的电商企业资质备案申请已成功提交，我们将尽快处理。
+                    </p>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-green-200 dark:border-green-800 w-full max-w-md">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">申请编号：</span>
+                        <span className="text-sm font-bold text-green-700 dark:text-green-300">{submissionResult.applicationNumber}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">提交时间：</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{submissionResult.submittedAt}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">预计审核时间：</span>
+                        <span className="text-sm text-blue-600 dark:text-blue-400">3-5个工作日</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg w-full max-w-md">
+                    <div className="flex items-start space-x-3">
+                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                        <p className="font-medium">后续流程：</p>
+                        <ul className="list-disc list-inside space-y-1 text-xs">
+                          <li>我们将在1个工作日内进行初审</li>
+                          <li>审核结果将通过短信和邮件通知您</li>
+                          <li>如有疑问，请联系客服：400-xxx-xxxx</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* 按钮区域 */}
           <div className="flex justify-between pt-6">
             <div>
-              {currentStep > 1 && (
+              {currentStep > 1 && currentStep < 6 && (
                 <Button type="button" variant="outline" onClick={handlePrev}>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   上一步
                 </Button>
               )}
-              {onCancel && (
+              {onCancel && currentStep < 6 && (
                 <Button type="button" variant="ghost" onClick={onCancel} className="ml-2">
                   取消
                 </Button>
@@ -814,12 +889,12 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
             </div>
             
             <div>
-              {currentStep < totalSteps ? (
+              {currentStep < 5 ? (
                 <Button type="button" onClick={handleNext}>
                   下一步
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
-              ) : (
+              ) : currentStep === 5 ? (
                 <Button 
                   type="submit" 
                   className="bg-blue-600 hover:bg-blue-700"
@@ -836,6 +911,14 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                       提交申请
                     </>
                   )}
+                </Button>
+              ) : (
+                <Button 
+                  type="button" 
+                  onClick={() => onComplete?.({ uploadedFiles })}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  返回任务列表
                 </Button>
               )}
             </div>
