@@ -292,7 +292,7 @@ export default function SimplifiedStudentDashboard() {
               status: 'available',
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
-                if (currentRole?.roleCode === 'cross_border_ecommerce_operator') {
+                if (currentRole?.roleCode === 'enterprise_operator') {
                   setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
@@ -307,7 +307,7 @@ export default function SimplifiedStudentDashboard() {
               status: 'available',
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
-                if (currentRole?.roleCode === 'cross_border_ecommerce_operator') {
+                if (currentRole?.roleCode === 'enterprise_operator') {
                   setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
@@ -325,7 +325,7 @@ export default function SimplifiedStudentDashboard() {
               status: 'developing',
               requiredRole: '海关审核员',
               onClick: () => {
-                if (currentRole?.roleCode === 'customs_reviewer') {
+                if (currentRole?.roleCode === 'customs_officer') {
                   alert("海关场景实验正在开发中...");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"海关审核员"角色后重试。`);
@@ -343,7 +343,7 @@ export default function SimplifiedStudentDashboard() {
               status: 'developing',
               requiredRole: '海关审核员',
               onClick: () => {
-                if (currentRole?.roleCode === 'customs_reviewer' || currentRole?.roleCode === 'logistics_operator') {
+                if (currentRole?.roleCode === 'customs_officer' || currentRole?.roleCode === 'logistics_operator') {
                   alert("货物查验操作实验正在开发中...");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"海关审核员"或"物流企业操作员"角色后重试。`);
@@ -422,22 +422,28 @@ export default function SimplifiedStudentDashboard() {
 
         {/* Tasks Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <div
               key={task.id}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group border border-gray-200 dark:border-gray-700"
-              onClick={task.onClick}
+              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700"
               data-testid={`task-card-${task.id}`}
             >
+              {/* 任务序号 */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/30 px-3 py-1 rounded-full">
+                  任务{index + 1}
+                </span>
+                {getStatusBadge(task.status)}
+              </div>
+              
               <div className="flex items-start space-x-4 mb-4">
-                <div className={`p-3 rounded-lg ${scene.color} text-white group-hover:scale-110 transition-transform duration-300`}>
+                <div className={`p-3 rounded-lg ${scene.color} text-white`}>
                   {task.icon}
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-lg mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <h3 className="font-semibold text-lg mb-2">
                     {task.title}
                   </h3>
-                  {getStatusBadge(task.status)}
                 </div>
               </div>
               
@@ -445,13 +451,19 @@ export default function SimplifiedStudentDashboard() {
                 {task.description}
               </p>
               
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>需要角色: {task.requiredRole}</span>
-                <div className="flex items-center space-x-1">
-                  <span>开始任务</span>
-                  <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
-                </div>
+              <div className="mb-4">
+                <span className="text-xs text-muted-foreground">需要角色: {task.requiredRole}</span>
               </div>
+              
+              {/* 开始任务按钮 */}
+              <Button 
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium"
+                onClick={task.onClick}
+                data-testid={`start-task-${task.id}`}
+              >
+                <span>开始任务</span>
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
           ))}
         </div>
