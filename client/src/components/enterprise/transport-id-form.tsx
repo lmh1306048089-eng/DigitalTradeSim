@@ -96,9 +96,8 @@ export function TransportIdForm({ onComplete, onCancel }: TransportIdFormProps) 
   const { toast } = useToast();
 
   // 动态创建表单验证schema
-  const [currentSchema, setCurrentSchema] = useState(() => createTransportIdSchema());
   const form = useForm({
-    resolver: zodResolver(currentSchema),
+    resolver: zodResolver(createTransportIdSchema(selectedMode)),
     defaultValues: {
       companyName: "",
       unifiedCreditCode: "",
@@ -132,13 +131,13 @@ export function TransportIdForm({ onComplete, onCancel }: TransportIdFormProps) 
     }
   });
 
-  // 当模式改变时重新设置schema
+  // 当模式改变时重新创建表单验证
   useEffect(() => {
     if (selectedMode) {
-      const newSchema = createTransportIdSchema(selectedMode);
-      setCurrentSchema(newSchema);
+      // 重新设置表单验证resolver
+      form.clearErrors();
     }
-  }, [selectedMode]);
+  }, [selectedMode, form]);
 
   // 监听applicationMode变化
   const watchedMode = form.watch("applicationMode");

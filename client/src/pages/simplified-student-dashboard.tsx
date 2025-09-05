@@ -335,7 +335,7 @@ export default function SimplifiedStudentDashboard() {
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
-                  setLocation("/enterprise-qualification");
+                  setLocation("/experiments/enterprise-qualification-exp");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
@@ -350,7 +350,7 @@ export default function SimplifiedStudentDashboard() {
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
-                  setLocation("/transport-id-application");
+                  setLocation("/experiments/transport-id-application-exp");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }

@@ -12,8 +12,6 @@ import SimplifiedStudentDashboard from "@/pages/simplified-student-dashboard";
 import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ExperimentDetailPage from "@/pages/experiment-detail";
-import EnterpriseQualificationPage from "@/pages/enterprise-qualification-page";
-import TransportIdApplicationPage from "@/pages/transport-id-application-page";
 import NotFound from "@/pages/not-found";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 
@@ -67,8 +65,6 @@ function Router() {
         <>
           <Route path="/" component={SimplifiedStudentDashboard} />
           <Route path="/experiments/:id" component={ExperimentDetailPage} />
-          <Route path="/enterprise-qualification" component={EnterpriseQualificationPage} />
-          <Route path="/transport-id-application" component={TransportIdApplicationPage} />
           <Route path="/customs-qualification">
             <CustomsQualificationForm />
           </Route>

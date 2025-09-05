@@ -9,6 +9,8 @@ import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { EportIcCardForm } from "@/components/eport/eport-ic-card-form";
+import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
+import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
@@ -16,12 +18,16 @@ export default function ExperimentDetailPage() {
   const { id } = useParams();
   const [showCustomsForm, setShowCustomsForm] = useState(false);
   const [showEportForm, setShowEportForm] = useState(false);
+  const [showEnterpriseQualificationForm, setShowEnterpriseQualificationForm] = useState(false);
+  const [showTransportIdForm, setShowTransportIdForm] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
     const experimentSceneMap: Record<string, string> = {
       '873e1fe1-0430-4f47-9db2-c4f00e2b048f': 'enterprise_scene', // 海关企业资质备案
       'b6566249-2b05-497a-9517-b09f2b7eaa97': 'enterprise_scene', // 电子口岸IC卡申请
+      'enterprise-qualification-exp': 'enterprise_scene', // 电商企业资质备案
+      'transport-id-application-exp': 'enterprise_scene', // 传输ID申请
     };
     return experimentSceneMap[experimentId] || 'overview';
   };
@@ -127,6 +133,10 @@ export default function ExperimentDetailPage() {
       setShowCustomsForm(true);
     } else if (experiment?.name === "电子口岸IC卡申请") {
       setShowEportForm(true);
+    } else if (experiment?.name === "电商企业资质备案") {
+      setShowEnterpriseQualificationForm(true);
+    } else if (experiment?.name === "传输ID申请") {
+      setShowTransportIdForm(true);
     }
   };
 
@@ -135,6 +145,8 @@ export default function ExperimentDetailPage() {
     // 可以在这里处理实验完成逻辑，比如更新进度
     setShowCustomsForm(false);
     setShowEportForm(false);
+    setShowEnterpriseQualificationForm(false);
+    setShowTransportIdForm(false);
     // 返回对应场景
     setTimeout(() => {
       setLocation(getBackToSceneUrl());
@@ -183,6 +195,54 @@ export default function ExperimentDetailPage() {
           <EportIcCardForm
             onComplete={handleExperimentComplete}
             onCancel={() => setShowEportForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示电商企业资质备案表单，直接渲染表单
+  if (showEnterpriseQualificationForm && experiment?.name === "电商企业资质备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="电商企业资质备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEnterpriseQualificationForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <EnterpriseQualificationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowEnterpriseQualificationForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示传输ID申请表单，直接渲染表单
+  if (showTransportIdForm && experiment?.name === "传输ID申请") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="传输ID申请实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTransportIdForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <TransportIdForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowTransportIdForm(false)}
           />
         </div>
       </div>
