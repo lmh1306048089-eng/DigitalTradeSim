@@ -183,12 +183,18 @@ export default function ExperimentDetailPage() {
           </CardContent>
         </Card>
 
-        {/* 实验步骤 */}
+        {/* 核心实验流程 */}
         <Card>
           <CardHeader>
-            <CardTitle>实验步骤</CardTitle>
+            <CardTitle className="flex items-center space-x-2">
+              <FlaskConical className="h-5 w-5" />
+              <span>核心实验流程</span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-muted-foreground text-sm mb-6">
+              按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程。
+            </p>
             <div className="space-y-4">
               {experiment.steps && experiment.steps.length > 0 ? (
                 experiment.steps.map((step, index) => (
@@ -197,7 +203,7 @@ export default function ExperimentDetailPage() {
                       <span className="text-sm font-medium text-primary">{index + 1}</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">{step.title}</h4>
+                      <h4 className="font-medium text-lg">{step.title}</h4>
                       <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
                       {step.required && (
                         <Badge variant="outline" className="mt-2">必需</Badge>
@@ -221,8 +227,8 @@ export default function ExperimentDetailPage() {
                       <span className="text-sm font-medium text-primary">1</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">企业基本信息填写</h4>
-                      <p className="text-sm text-muted-foreground mt-1">填写企业注册信息和联系方式</p>
+                      <h4 className="font-medium text-lg">企业基本信息填写</h4>
+                      <p className="text-sm text-muted-foreground mt-1">填写企业注册信息和联系方式，包括企业名称、统一社会信用代码、法定代表人等必要信息</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
@@ -230,8 +236,8 @@ export default function ExperimentDetailPage() {
                       <span className="text-sm font-medium text-primary">2</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">经营范围确认</h4>
-                      <p className="text-sm text-muted-foreground mt-1">选择企业进出口经营范围</p>
+                      <h4 className="font-medium text-lg">经营范围确认</h4>
+                      <p className="text-sm text-muted-foreground mt-1">选择企业进出口经营范围，确认业务类型和产品类别，完善联系人信息</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
@@ -239,8 +245,8 @@ export default function ExperimentDetailPage() {
                       <span className="text-sm font-medium text-primary">3</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">上传备案材料</h4>
-                      <p className="text-sm text-muted-foreground mt-1">提交相关证明文件</p>
+                      <h4 className="font-medium text-lg">上传备案材料</h4>
+                      <p className="text-sm text-muted-foreground mt-1">提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
@@ -248,8 +254,8 @@ export default function ExperimentDetailPage() {
                       <span className="text-sm font-medium text-primary">4</span>
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium">确认提交申请</h4>
-                      <p className="text-sm text-muted-foreground mt-1">核对信息并提交审核</p>
+                      <h4 className="font-medium text-lg">确认提交申请</h4>
+                      <p className="text-sm text-muted-foreground mt-1">核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请</p>
                     </div>
                   </div>
                 </div>

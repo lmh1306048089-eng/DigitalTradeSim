@@ -402,21 +402,6 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               onUploadComplete={handleFileUpload}
               experimentId="873e1fe1-0430-4f47-9db2-c4f00e2b048f"
             />
-
-            {uploadedFiles.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium">已上传文件：</h4>
-                {uploadedFiles.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm">{file.name}</span>
-                    </div>
-                    <Badge variant="secondary">已上传</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         );
 
