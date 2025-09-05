@@ -103,139 +103,247 @@ export default function SimplifiedStudentDashboard() {
           模拟真实的跨境电商全流程业务场景，体验完整的数字贸易生态链
         </p>
         
-        {/* 城区地图 */}
-        <div className="relative bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
-          {/* 数字贸易流程标题 */}
-          <div className="text-center mb-6">
-            <h3 className="text-xl font-bold mb-2">数字贸易全流程业务链</h3>
-            <p className="text-sm text-muted-foreground">点击各个场景了解详细操作流程</p>
+        {/* 数字贸易流程可视化 */}
+        <div className="relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 rounded-2xl p-10 shadow-2xl border border-white/20">
+          {/* 标题区域 */}
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
+              数字贸易全流程业务链
+            </h3>
+            <p className="text-lg text-slate-600 dark:text-slate-300">
+              跨境电商端到端业务流程 · 点击场景深入了解
+            </p>
           </div>
           
-          <div className="space-y-8">
-            {/* 第一行：国内场景 */}
-            <div className="grid grid-cols-3 gap-8 items-center">
-              {/* 电商企业 */}
-              <div className="text-center">
-                <div 
-                  className={`p-6 rounded-xl ${sceneConfigs[0].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
-                  onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
-                >
-                  <Building2 className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="font-bold">电商企业</h3>
-                  <p className="text-xs opacity-90">企业操作中心</p>
+          <div className="relative">
+            {/* 流程步骤 */}
+            <div className="space-y-16">
+              
+              {/* 第一阶段：国内出口 */}
+              <div className="relative">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full shadow-lg">
+                    <span className="text-sm font-semibold tracking-wider">🇨🇳 国内出口阶段</span>
+                  </div>
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <div>① 备案申报</div>
-                  <div>② 出口申报</div>
+                
+                <div className="grid grid-cols-3 gap-12 items-center">
+                  {/* 电商企业 */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <div 
+                      className="relative bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-8 rounded-2xl shadow-xl cursor-pointer transform hover:scale-105 transition-all duration-300"
+                      onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/20 p-4 rounded-xl mb-4 mx-auto w-fit">
+                          <Building2 className="h-12 w-12" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">电商企业</h3>
+                        <p className="text-blue-100 text-sm mb-4">Cross-border E-commerce</p>
+                        <div className="space-y-1 text-xs text-blue-100">
+                          <div className="bg-white/10 px-3 py-1 rounded-full">① 备案申报</div>
+                          <div className="bg-white/10 px-3 py-1 rounded-full">② 出口申报</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 流程箭头 */}
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      <svg width="120" height="60" viewBox="0 0 120 60" className="mx-auto">
+                        <defs>
+                          <linearGradient id="arrowGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#3B82F6" />
+                            <stop offset="100%" stopColor="#10B981" />
+                          </linearGradient>
+                          <marker id="arrowhead1" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <polygon points="0,0 10,3 0,6" fill="url(#arrowGradient1)" />
+                          </marker>
+                        </defs>
+                        <path d="M10,30 Q60,10 110,30" stroke="url(#arrowGradient1)" strokeWidth="3" fill="none" markerEnd="url(#arrowhead1)" />
+                      </svg>
+                    </div>
+                    <div className="bg-gradient-to-r from-blue-500 to-emerald-500 text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg">
+                      申报材料传输
+                    </div>
+                  </div>
+                  
+                  {/* 海关办事处 */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <div 
+                      className="relative bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white p-8 rounded-2xl shadow-xl cursor-pointer transform hover:scale-105 transition-all duration-300"
+                      onClick={() => setActiveSection(SCENES.CUSTOMS as ActiveSection)}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/20 p-4 rounded-xl mb-4 mx-auto w-fit">
+                          <Shield className="h-12 w-12" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">海关办事处</h3>
+                        <p className="text-emerald-100 text-sm mb-4">Customs Office</p>
+                        <div className="space-y-1 text-xs text-emerald-100">
+                          <div className="bg-white/10 px-3 py-1 rounded-full">③ 审核备案</div>
+                          <div className="bg-white/10 px-3 py-1 rounded-full">④ 布控查验</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              {/* 箭头 */}
-              <div className="flex flex-col items-center">
-                <div className="flex items-center">
-                  <div className="w-12 h-0.5 bg-blue-400"></div>
-                  <div className="w-0 h-0 border-l-8 border-l-blue-400 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
-                </div>
-                <span className="text-xs text-blue-600 mt-1 font-medium">申报材料</span>
-              </div>
-              
-              {/* 海关办事处 */}
-              <div className="text-center">
-                <div 
-                  className={`p-6 rounded-xl ${sceneConfigs[1].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
-                  onClick={() => setActiveSection(SCENES.CUSTOMS as ActiveSection)}
-                >
-                  <Shield className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="font-bold">海关办事处</h3>
-                  <p className="text-xs opacity-90">审核监管中心</p>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <div>③ 审核备案</div>
-                  <div>④ 布控查验</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* 箭头向下 */}
-            <div className="flex justify-center">
-              <div className="flex flex-col items-center">
-                <div className="w-0.5 h-8 bg-green-400"></div>
-                <div className="w-0 h-0 border-t-8 border-t-green-400 border-l-4 border-l-transparent border-r-4 border-r-transparent"></div>
-                <span className="text-xs text-green-600 mt-1 font-medium">查验放行</span>
-              </div>
-            </div>
-            
-            {/* 海关监管作业场所 */}
-            <div className="flex justify-center">
-              <div className="text-center">
-                <div 
-                  className={`p-6 rounded-xl ${sceneConfigs[2].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
-                  onClick={() => setActiveSection(SCENES.CUSTOMS_SUPERVISION as ActiveSection)}
-                >
-                  <Warehouse className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="font-bold">监管作业场所</h3>
-                  <p className="text-xs opacity-90">货物查验中心</p>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <div>⑤ 货物查验</div>
-                  <div>⑥ 运抵登记</div>
-                </div>
-              </div>
-            </div>
-            
-            {/* 跨境物流分隔线 */}
-            <div className="flex items-center justify-center py-4">
-              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
-              <div className="px-4 py-2 bg-orange-100 dark:bg-orange-900 rounded-full">
-                <span className="text-sm font-medium text-orange-600 dark:text-orange-400">🚢 跨境物流运输</span>
-              </div>
-              <div className="flex-1 h-0.5 bg-gradient-to-r from-transparent via-orange-400 to-transparent"></div>
-            </div>
-            
-            {/* 第三行：海外场景 */}
-            <div className="grid grid-cols-2 gap-8 items-center justify-items-center">
-              {/* 海外仓库 */}
-              <div className="text-center">
-                <div 
-                  className={`p-6 rounded-xl ${sceneConfigs[3].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
-                  onClick={() => setActiveSection(SCENES.OVERSEAS_WAREHOUSE as ActiveSection)}
-                >
-                  <Plane className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="font-bold">海外仓库</h3>
-                  <p className="text-xs opacity-90">仓储物流中心</p>
-                </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <div>⑦ 入境清关</div>
-                  <div>⑧ 仓库拣货</div>
+              {/* 向下箭头 */}
+              <div className="flex justify-center">
+                <div className="flex flex-col items-center">
+                  <svg width="60" height="80" viewBox="0 0 60 80" className="mx-auto">
+                    <defs>
+                      <linearGradient id="arrowGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#10B981" />
+                        <stop offset="100%" stopColor="#F59E0B" />
+                      </linearGradient>
+                      <marker id="arrowhead2" markerWidth="10" markerHeight="10" refX="3" refY="9" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0,0 6,10 3,10" fill="url(#arrowGradient2)" />
+                      </marker>
+                    </defs>
+                    <path d="M30,10 L30,70" stroke="url(#arrowGradient2)" strokeWidth="4" fill="none" markerEnd="url(#arrowhead2)" />
+                  </svg>
+                  <div className="bg-gradient-to-r from-emerald-500 to-amber-500 text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg mt-2">
+                    查验放行
+                  </div>
                 </div>
               </div>
               
-              {/* 箭头 */}
-              <div className="flex items-center">
-                <div className="w-12 h-0.5 bg-purple-400"></div>
-                <div className="w-0 h-0 border-l-8 border-l-purple-400 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
-                <span className="text-xs text-purple-600 ml-2 font-medium">最后一公里</span>
+              {/* 第二阶段：监管查验 */}
+              <div className="relative">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full shadow-lg">
+                    <span className="text-sm font-semibold tracking-wider">🏭 监管查验阶段</span>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center">
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-orange-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <div 
+                      className="relative bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white p-8 rounded-2xl shadow-xl cursor-pointer transform hover:scale-105 transition-all duration-300"
+                      onClick={() => setActiveSection(SCENES.CUSTOMS_SUPERVISION as ActiveSection)}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/20 p-4 rounded-xl mb-4 mx-auto w-fit">
+                          <Warehouse className="h-12 w-12" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">监管作业场所</h3>
+                        <p className="text-amber-100 text-sm mb-4">Supervision Warehouse</p>
+                        <div className="space-y-1 text-xs text-amber-100">
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑤ 货物查验</div>
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑥ 运抵登记</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              {/* 买家居家（移到右侧） */}
-            </div>
-            
-            {/* 买家居家单独一行 */}
-            <div className="flex justify-center">
-              <div className="text-center">
-                <div 
-                  className={`p-6 rounded-xl ${sceneConfigs[4].color} text-white cursor-pointer transform hover:scale-105 transition-all mx-auto w-fit`}
-                  onClick={() => setActiveSection(SCENES.BUYER_HOME as ActiveSection)}
-                >
-                  <Home className="h-12 w-12 mx-auto mb-2" />
-                  <h3 className="font-bold">买家居家</h3>
-                  <p className="text-xs opacity-90">消费者场景</p>
+              {/* 跨境运输分隔 */}
+              <div className="relative py-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t-2 border-dashed border-slate-300 dark:border-slate-600"></div>
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">
-                  <div>⑨ 配送签收</div>
-                  <div>⑩ 完成交易</div>
+                <div className="relative flex justify-center">
+                  <div className="bg-gradient-to-r from-orange-500 via-red-500 to-purple-500 text-white px-8 py-4 rounded-full shadow-2xl border-4 border-white dark:border-slate-800">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">🚢</span>
+                      <div>
+                        <div className="font-bold text-lg">跨境物流运输</div>
+                        <div className="text-xs opacity-90">International Shipping</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
+              
+              {/* 第三阶段：海外配送 */}
+              <div className="relative">
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg">
+                    <span className="text-sm font-semibold tracking-wider">🌍 海外配送阶段</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-16 items-center max-w-4xl mx-auto">
+                  {/* 海外仓库 */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <div 
+                      className="relative bg-gradient-to-br from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white p-8 rounded-2xl shadow-xl cursor-pointer transform hover:scale-105 transition-all duration-300"
+                      onClick={() => setActiveSection(SCENES.OVERSEAS_WAREHOUSE as ActiveSection)}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/20 p-4 rounded-xl mb-4 mx-auto w-fit">
+                          <Plane className="h-12 w-12" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">海外仓库</h3>
+                        <p className="text-purple-100 text-sm mb-4">Overseas Warehouse</p>
+                        <div className="space-y-1 text-xs text-purple-100">
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑦ 入境清关</div>
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑧ 仓库拣货</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 流程箭头 */}
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      <svg width="120" height="60" viewBox="0 0 120 60" className="mx-auto">
+                        <defs>
+                          <linearGradient id="arrowGradient3" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#A855F7" />
+                            <stop offset="100%" stopColor="#EC4899" />
+                          </linearGradient>
+                          <marker id="arrowhead3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <polygon points="0,0 10,3 0,6" fill="url(#arrowGradient3)" />
+                          </marker>
+                        </defs>
+                        <path d="M10,30 Q60,10 110,30" stroke="url(#arrowGradient3)" strokeWidth="3" fill="none" markerEnd="url(#arrowhead3)" />
+                      </svg>
+                    </div>
+                    <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-xs font-medium shadow-lg">
+                      最后一公里配送
+                    </div>
+                  </div>
+                  
+                  {/* 买家居家 */}
+                  <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+                    <div 
+                      className="relative bg-gradient-to-br from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white p-8 rounded-2xl shadow-xl cursor-pointer transform hover:scale-105 transition-all duration-300"
+                      onClick={() => setActiveSection(SCENES.BUYER_HOME as ActiveSection)}
+                    >
+                      <div className="text-center">
+                        <div className="bg-white/20 p-4 rounded-xl mb-4 mx-auto w-fit">
+                          <Home className="h-12 w-12" />
+                        </div>
+                        <h3 className="text-xl font-bold mb-2">买家居家</h3>
+                        <p className="text-pink-100 text-sm mb-4">Consumer Home</p>
+                        <div className="space-y-1 text-xs text-pink-100">
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑨ 配送签收</div>
+                          <div className="bg-white/10 px-3 py-1 rounded-full">⑩ 完成交易</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+            
+            {/* 背景装饰 */}
+            <div className="absolute inset-0 -z-10 opacity-5">
+              <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-blue-500 rounded-full blur-3xl"></div>
+              <div className="absolute top-3/4 right-1/4 w-32 h-32 bg-purple-500 rounded-full blur-3xl"></div>
+              <div className="absolute bottom-1/4 left-1/3 w-32 h-32 bg-pink-500 rounded-full blur-3xl"></div>
             </div>
           </div>
         </div>
