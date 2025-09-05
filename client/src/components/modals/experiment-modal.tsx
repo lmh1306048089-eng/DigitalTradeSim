@@ -128,24 +128,35 @@ export function ExperimentModal({ open, onOpenChange, experiment, progress }: Ex
             <div className="bg-blue-50 dark:bg-blue-950 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="text-center space-y-4">
                 <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                  海关企业资质备案任务
+                  海关企业资质备案实验
                 </h3>
                 <p className="text-blue-700 dark:text-blue-300">
-                  作为电商企业操作员，您需要完成企业向海关的资质备案申请。
-                  这是开展跨境电商业务的重要前提步骤。
+                  按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程。
                 </p>
-                <div className="space-y-2 text-sm text-blue-600 dark:text-blue-400">
-                  <p>• 填写完整的企业基本信息</p>
-                  <p>• 确认进出口经营范围</p>
-                  <p>• 上传报关单位备案信息表（加盖公章）</p>
-                  <p>• 提交备案申请等待审核</p>
+                <div className="space-y-3 text-sm text-blue-600 dark:text-blue-400">
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-blue-700">步骤1:</span>
+                    <span>企业基本信息填写 - 填写企业注册信息和联系方式</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-blue-700">步骤2:</span>
+                    <span>经营范围确认 - 选择企业进出口经营范围</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-blue-700">步骤3:</span>
+                    <span>上传备案材料 - 提交相关证明文件</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-medium text-blue-700">步骤4:</span>
+                    <span>确认提交申请 - 核对信息并提交审核</span>
+                  </div>
                 </div>
                 <Button
                   onClick={() => setShowCustomsForm(true)}
                   className="mt-4"
                   data-testid="button-start-customs-filing"
                 >
-                  开始备案申请
+                  开始实验
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>

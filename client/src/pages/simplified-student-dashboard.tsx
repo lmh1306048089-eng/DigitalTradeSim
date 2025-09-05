@@ -14,14 +14,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { BusinessRoleSelector } from "@/components/business-role-selector";
 import { useBusinessRole } from "@/hooks/useBusinessRole";
 import { TaskDashboard } from "@/components/task-center/task-dashboard";
-import { ExperimentModal } from "@/components/modals/experiment-modal";
+// import { ExperimentModal } from "@/components/modals/experiment-modal"; // 已改为页面跳转
 import type { Experiment } from "@/types/index";
+import { useLocation } from "wouter";
 
 type ActiveSection = "tasks" | "learning_path" | "progress" | "resources";
 
 export default function SimplifiedStudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("tasks");
-  const [selectedExperiment, setSelectedExperiment] = useState<Experiment | null>(null);
+  const [, setLocation] = useLocation();
   const { user } = useAuth();
   const {
     hasSelectedRole,
@@ -264,12 +265,7 @@ export default function SimplifiedStudentDashboard() {
         </main>
       </div>
 
-      {/* Experiment Modal */}
-      <ExperimentModal
-        open={!!selectedExperiment}
-        onOpenChange={(open) => !open && setSelectedExperiment(null)}
-        experiment={selectedExperiment}
-      />
+      {/* 注意：现在使用页面跳转而不是模态框 */}
     </div>
   );
 }

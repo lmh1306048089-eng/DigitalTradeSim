@@ -4,7 +4,7 @@ import { ArrowLeft, FlaskConical, CheckCircle, Clock, Circle, ArrowRight } from 
 import { useLocation } from "wouter";
 import { Header } from "@/components/layout/header";
 import { ExperimentCard } from "@/components/experiments/experiment-card";
-import { ExperimentModal } from "@/components/modals/experiment-modal";
+// import { ExperimentModal } from "@/components/modals/experiment-modal"; // 已改为页面跳转
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
