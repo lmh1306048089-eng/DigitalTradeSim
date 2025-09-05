@@ -356,11 +356,20 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                   {/* 显示已上传文件 */}
                   {getFilesByCategory("营业执照等企业证明文件").length > 0 && (
                     <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-green-700 dark:text-green-300">
-                          已上传 {getFilesByCategory("营业执照等企业证明文件").length} 个文件
-                        </span>
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                            已上传 {getFilesByCategory("营业执照等企业证明文件").length} 个文件：
+                          </p>
+                          <div className="space-y-1">
+                            {getFilesByCategory("营业执照等企业证明文件").map((file, index) => (
+                              <p key={index} className="text-xs text-green-600 dark:text-green-400 truncate">
+                                • {file.originalName || file.name || `文件${index + 1}`}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -558,11 +567,20 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                   {/* 显示已上传文件 */}
                   {getFilesByCategory("对外贸易经营者备案登记表").length > 0 && (
                     <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-green-700 dark:text-green-300">
-                          已上传 {getFilesByCategory("对外贸易经营者备案登记表").length} 个文件
-                        </span>
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                            已上传 {getFilesByCategory("对外贸易经营者备案登记表").length} 个文件：
+                          </p>
+                          <div className="space-y-1">
+                            {getFilesByCategory("对外贸易经营者备案登记表").map((file, index) => (
+                              <p key={index} className="text-xs text-green-600 dark:text-green-400 truncate">
+                                • {file.originalName || file.name || `文件${index + 1}`}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -737,11 +755,20 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                   {/* 显示已上传文件 */}
                   {getFilesByCategory("生产能力证明及产品认证文件").length > 0 && (
                     <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle className="h-4 w-4 text-green-600" />
-                        <span className="text-sm text-green-700 dark:text-green-300">
-                          已上传 {getFilesByCategory("生产能力证明及产品认证文件").length} 个文件
-                        </span>
+                      <div className="flex items-start space-x-2">
+                        <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+                            已上传 {getFilesByCategory("生产能力证明及产品认证文件").length} 个文件：
+                          </p>
+                          <div className="space-y-1">
+                            {getFilesByCategory("生产能力证明及产品认证文件").map((file, index) => (
+                              <p key={index} className="text-xs text-green-600 dark:text-green-400 truncate">
+                                • {file.originalName || file.name || `文件${index + 1}`}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -854,16 +881,27 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
                     </div>
                   </div>
 
-                  <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg w-full max-w-md">
-                    <div className="flex items-start space-x-3">
-                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-                        <p className="font-medium">后续流程：</p>
-                        <ul className="list-disc list-inside space-y-1 text-xs">
-                          <li>我们将在1个工作日内进行初审</li>
-                          <li>审核结果将通过短信和邮件通知您</li>
-                          <li>如有疑问，请联系客服：400-xxx-xxxx</li>
-                        </ul>
+                  <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-lg w-full max-w-md border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center flex-shrink-0">
+                        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-3">后续流程</h4>
+                        <div className="space-y-3 text-sm text-blue-800 dark:text-blue-200">
+                          <div className="flex items-start space-x-2">
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <p className="leading-relaxed">我们将在1个工作日内进行初审</p>
+                          </div>
+                          <div className="flex items-start space-x-2">
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <p className="leading-relaxed">审核结果将通过短信和邮件通知您</p>
+                          </div>
+                          <div className="flex items-start space-x-2">
+                            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                            <p className="leading-relaxed">如有疑问，请联系客服：<span className="font-medium">400-xxx-xxxx</span></p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
