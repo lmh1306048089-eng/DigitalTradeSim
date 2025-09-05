@@ -2,7 +2,6 @@ import { useState } from "react";
 import { 
   CheckSquare, 
   TrendingUp, 
-  ChartLine, 
   Building,
   Clock,
   Users
@@ -18,7 +17,7 @@ import { TaskDashboard } from "@/components/task-center/task-dashboard";
 import type { Experiment } from "@/types/index";
 import { useLocation } from "wouter";
 
-type ActiveSection = "tasks" | "learning_path" | "progress" | "resources";
+type ActiveSection = "tasks" | "learning_path" | "resources";
 
 export default function SimplifiedStudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("tasks");
@@ -114,47 +113,6 @@ export default function SimplifiedStudentDashboard() {
     </div>
   );
 
-  const renderProgressSection = () => (
-    <div className="space-y-6">
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-xl p-6">
-        <h2 className="text-2xl font-bold text-green-900 dark:text-green-100 mb-2">
-          学习进度
-        </h2>
-        <p className="text-green-700 dark:text-green-300">
-          跟踪您的学习成果和技能掌握情况
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">完成任务数</h3>
-            <CheckSquare className="h-5 w-5 text-green-500" />
-          </div>
-          <div className="text-3xl font-bold mb-2">1 / 3</div>
-          <p className="text-sm text-muted-foreground">已完成33%的核心任务</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">学习时长</h3>
-            <Clock className="h-5 w-5 text-blue-500" />
-          </div>
-          <div className="text-3xl font-bold mb-2">2.5h</div>
-          <p className="text-sm text-muted-foreground">本周累计学习时长</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">技能等级</h3>
-            <TrendingUp className="h-5 w-5 text-purple-500" />
-          </div>
-          <div className="text-3xl font-bold mb-2">初级</div>
-          <p className="text-sm text-muted-foreground">继续学习提升技能等级</p>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderResourcesSection = () => (
     <div className="space-y-6">
@@ -195,7 +153,6 @@ export default function SimplifiedStudentDashboard() {
     switch (activeSection) {
       case "tasks": return renderTasksSection();
       case "learning_path": return renderLearningPathSection();
-      case "progress": return renderProgressSection();
       case "resources": return renderResourcesSection();
       default: return renderTasksSection();
     }
@@ -239,14 +196,6 @@ export default function SimplifiedStudentDashboard() {
             data-testid="sidebar-learning-path"
           >
             学习路径
-          </SidebarItem>
-          <SidebarItem
-            icon={<ChartLine />}
-            active={activeSection === "progress"}
-            onClick={() => setActiveSection("progress")}
-            data-testid="sidebar-progress"
-          >
-            学习进度
           </SidebarItem>
           <SidebarItem
             icon={<Building />}
