@@ -26,7 +26,7 @@ const customsFormSchema = z.object({
   registeredAddress: z.string().min(10, "注册地址信息不完整"),
   legalRepresentative: z.string().min(2, "法定代表人姓名至少2个字符"),
   businessLicense: z.string().min(15, "营业执照号码不能少于15位"),
-  registeredCapital: z.number().min(1, "注册资本必须大于0"),
+  registeredCapital: z.coerce.number().min(1, "注册资本必须大于0"),
   contactPerson: z.string().min(2, "联系人姓名至少2个字符"),
   contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号"),
   contactEmail: z.string().email("请输入有效的邮箱地址"),
@@ -93,7 +93,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
           registeredAddress: testData.registeredAddress,
           legalRepresentative: testData.legalRepresentative,
           businessLicense: testData.businessLicense,
-          registeredCapital: Number(testData.registeredCapital) || 0,
+          registeredCapital: Number.isFinite(+testData.registeredCapital) ? +testData.registeredCapital : 1000,
           contactPerson: testData.contactPerson,
           contactPhone: testData.contactPhone,
           contactEmail: testData.contactEmail,
@@ -279,6 +279,28 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                     <FormLabel>营业执照注册号 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="请输入营业执照注册号" data-testid="input-business-license" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="registeredCapital"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>注册资本（万元） <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="number" 
+                        inputMode="numeric"
+                        min="1"
+                        step="0.01"
+                        placeholder="请输入注册资本" 
+                        data-testid="input-registered-capital" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
