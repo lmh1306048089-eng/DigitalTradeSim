@@ -23,7 +23,8 @@ import {
   insertTrainingTaskSchema,
   insertExperimentResultSchema,
   insertBusinessRoleSchema,
-  insertUserBusinessRoleSchema
+  insertUserBusinessRoleSchema,
+  insertCustomsTestDataSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 
@@ -605,6 +606,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "备案申请提交失败，请重试" 
+      });
+    }
+  });
+
+  // Customs test data API endpoints
+  app.get("/api/customs-test-data", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getCustomsTestData();
+      res.json(testData);
+    } catch (error: any) {
+      console.error("获取海关测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/customs-test-data/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getCustomsTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          success: false,
+          message: "测试数据集不存在"
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取海关测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.post("/api/customs-test-data", authenticateToken, requireRole(["admin", "teacher"]), async (req, res) => {
+    try {
+      const testData = insertCustomsTestDataSchema.parse(req.body);
+      const result = await storage.createCustomsTestData(testData);
+      
+      res.json({
+        success: true,
+        message: "测试数据创建成功",
+        data: result
+      });
+    } catch (error: any) {
+      console.error("创建海关测试数据失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "创建测试数据失败" 
       });
     }
   });

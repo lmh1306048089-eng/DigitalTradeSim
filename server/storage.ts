@@ -11,6 +11,7 @@ import {
   collaborationData,
   workflowInstances,
   workflowStepExecutions,
+  customsTestData,
   type User,
   type InsertUser,
   type VirtualScene,
@@ -35,6 +36,8 @@ import {
   type InsertWorkflowInstance,
   type WorkflowStepExecution,
   type InsertWorkflowStepExecution,
+  type CustomsTestData,
+  type InsertCustomsTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -102,6 +105,12 @@ export interface IStorage {
   getUserWorkflows(userId: string, businessRoleCode: string): Promise<WorkflowInstance[]>;
   createWorkflowInstance(instance: InsertWorkflowInstance): Promise<WorkflowInstance>;
   executeWorkflowStep(workflowId: string, userId: string, stepExecution: any): Promise<any>;
+  
+  // Customs test data operations
+  getCustomsTestData(): Promise<CustomsTestData[]>;
+  getCustomsTestDataByName(dataSetName: string): Promise<CustomsTestData | undefined>;
+  createCustomsTestData(testData: InsertCustomsTestData): Promise<CustomsTestData>;
+  updateCustomsTestData(id: string, updates: Partial<CustomsTestData>): Promise<CustomsTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -537,6 +546,49 @@ export class DatabaseStorage implements IStorage {
       status: newStatus,
       message: stepExecution.action + " 执行成功"
     };
+  }
+
+  // Customs test data operations
+  async getCustomsTestData(): Promise<CustomsTestData[]> {
+    return db.select().from(customsTestData).where(eq(customsTestData.isActive, true));
+  }
+
+  async getCustomsTestDataByName(dataSetName: string): Promise<CustomsTestData | undefined> {
+    const [testData] = await db.select().from(customsTestData)
+      .where(and(eq(customsTestData.dataSetName, dataSetName), eq(customsTestData.isActive, true)));
+    return testData;
+  }
+
+  async createCustomsTestData(testDataInput: InsertCustomsTestData): Promise<CustomsTestData> {
+    await db.insert(customsTestData).values([{
+      dataSetName: testDataInput.dataSetName,
+      companyName: testDataInput.companyName,
+      unifiedCreditCode: testDataInput.unifiedCreditCode,
+      registeredAddress: testDataInput.registeredAddress,
+      legalRepresentative: testDataInput.legalRepresentative,
+      businessLicense: testDataInput.businessLicense,
+      contactPerson: testDataInput.contactPerson,
+      contactPhone: testDataInput.contactPhone,
+      contactEmail: testDataInput.contactEmail,
+      businessScope: testDataInput.businessScope ? JSON.parse(JSON.stringify(testDataInput.businessScope)) : [],
+      importExportLicense: testDataInput.importExportLicense,
+      registeredCapital: testDataInput.registeredCapital,
+      isActive: testDataInput.isActive ?? true
+    }]);
+    const [insertedData] = await db.select().from(customsTestData)
+      .where(eq(customsTestData.dataSetName, testDataInput.dataSetName));
+    if (!insertedData) throw new Error("Failed to create customs test data");
+    return insertedData;
+  }
+
+  async updateCustomsTestData(id: string, updates: Partial<CustomsTestData>): Promise<CustomsTestData> {
+    await db
+      .update(customsTestData)
+      .set(updates)
+      .where(eq(customsTestData.id, id));
+    const data = await db.select().from(customsTestData).where(eq(customsTestData.id, id));
+    if (!data[0]) throw new Error("Failed to update customs test data");
+    return data[0];
   }
 }
 

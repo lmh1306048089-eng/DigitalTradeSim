@@ -395,3 +395,31 @@ export type WorkflowInstance = typeof workflowInstances.$inferSelect;
 export type InsertWorkflowInstance = z.infer<typeof insertWorkflowInstanceSchema>;
 export type WorkflowStepExecution = typeof workflowStepExecutions.$inferSelect;
 export type InsertWorkflowStepExecution = z.infer<typeof insertWorkflowStepExecutionSchema>;
+
+// 海关企业资质备案测试数据表
+export const customsTestData = mysqlTable("customs_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  businessScope: json("business_scope").$type<string[]>().notNull(),
+  importExportLicense: varchar("import_export_license", { length: 30 }),
+  registeredCapital: decimal("registered_capital", { precision: 15, scale: 2 }).notNull(),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 海关测试数据相关 schema
+export const insertCustomsTestDataSchema = createInsertSchema(customsTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CustomsTestData = typeof customsTestData.$inferSelect;
+export type InsertCustomsTestData = z.infer<typeof insertCustomsTestDataSchema>;

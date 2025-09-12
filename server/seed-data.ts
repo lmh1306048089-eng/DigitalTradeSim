@@ -223,13 +223,58 @@ export async function seedBasicData() {
       }
     }
 
+    // 7. 创建海关企业资质备案测试数据
+    console.log('创建海关企业资质备案测试数据...');
+    const customsTestDatasets = [
+      {
+        dataSetName: '默认测试企业',
+        companyName: '深圳市跨境通电子商务有限公司',
+        unifiedCreditCode: '91440300MA5DA1234X',
+        registeredAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        legalRepresentative: '张三',
+        businessLicense: 'GL440300123456789012345',
+        contactPerson: '李四',
+        contactPhone: '13800138001',
+        contactEmail: 'contact@crossborder.com',
+        businessScope: ['跨境电商零售进出口', '一般贸易进出口', '技术进出口', '货物进出口'],
+        importExportLicense: 'IE4403001234567',
+        registeredCapital: '1000000.00',
+        isActive: true
+      },
+      {
+        dataSetName: '示例电商企业',
+        companyName: '上海全球购贸易股份有限公司',
+        unifiedCreditCode: '91310000567890123Y',
+        registeredAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        legalRepresentative: '王五',
+        businessLicense: 'GL310000567890123456789',
+        contactPerson: '赵六',
+        contactPhone: '13900139002',
+        contactEmail: 'service@globalmarket.com',
+        businessScope: ['跨境电商零售进出口', '保税区仓储服务', '供应链管理服务'],
+        importExportLicense: 'IE3100005678901',
+        registeredCapital: '5000000.00',
+        isActive: true
+      }
+    ];
+
+    for (const testData of customsTestDatasets) {
+      try {
+        await db.insert(schema.customsTestData).values(testData);
+        console.log(`✅ 测试数据集创建成功: ${testData.dataSetName}`);
+      } catch (error) {
+        console.error(`❌ 测试数据集创建失败: ${testData.dataSetName}`, error);
+      }
+    }
+
     console.log('基础数据初始化完成！');
 
     // 返回插入的数据用于验证
     return {
       scenes: virtualScenes.length,
       roles: businessRoles.length,
-      experiments: experiments.length
+      experiments: experiments.length,
+      testDatasets: customsTestDatasets.length
     };
 
   } catch (error) {
