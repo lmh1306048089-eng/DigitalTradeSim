@@ -59,10 +59,9 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
-  // Handle HEAD /api requests - likely from Vite HMR health checks
+  // Handle HEAD /api requests - likely from Sentry monitoring
   app.head("/api", (req, res) => {
-    // Return 204 No Content to satisfy health check without response body
-    res.status(204).end();
+    res.status(204).end(); // 204 No Content - satisfies health check
   });
   
   // Auth routes
