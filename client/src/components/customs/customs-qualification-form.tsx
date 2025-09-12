@@ -83,7 +83,6 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     const dataSetName = '默认测试企业';
     try {
       setIsLoadingTestData(true);
-      console.log('开始自动填充测试数据:', dataSetName);
       const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
       const data = await response.json();
       
@@ -121,9 +120,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
 
   // 组件挂载时自动填充默认测试数据
   useEffect(() => {
-    console.log('useEffect triggered, testDataSets:', testDataSets);
     if (testDataSets && Array.isArray(testDataSets) && testDataSets.length > 0) {
-      console.log('条件满足，开始自动填充');
       autoFillDefaultTestData();
     }
   }, [testDataSets]);
