@@ -8,6 +8,12 @@ The platform supports role-based access control with three user types: students 
 
 ## Recent Changes
 
+### API Performance Optimization (September 2025)
+- **Sentry Monitoring Fix**: Added proper HEAD /api endpoint handler to respond with 204 status codes
+- **Performance Improvement**: Eliminated continuous HEAD request polling issues that were causing log spam
+- **Monitoring Compliance**: Proper health check response for external monitoring systems
+- **Clean Logging**: Removed debug middleware that was polluting application logs
+
 ### 5 Training Scenarios Implementation (September 2025)
 - **Scenario-Based Architecture**: Transformed from task-centered to scenario-based approach matching the digital trade ecosystem definition
 - **5 Virtual Training Scenarios**: 
