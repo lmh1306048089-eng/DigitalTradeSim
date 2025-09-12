@@ -83,8 +83,10 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     const dataSetName = '默认测试企业';
     try {
       setIsLoadingTestData(true);
-      const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
+      console.log('开始获取测试数据:', dataSetName);
+      const response = await apiRequest('GET', `/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
       const data = await response.json();
+      console.log('响应数据:', data);
       
       if (data.success && data.data) {
         const testData = data.data;
@@ -120,8 +122,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
 
   // 组件挂载时自动填充默认测试数据
   useEffect(() => {
+    console.log('useEffect 被触发, testDataSets:', testDataSets);
     if (testDataSets && Array.isArray(testDataSets) && testDataSets.length > 0) {
+      console.log('条件满足，开始自动填充');
       autoFillDefaultTestData();
+    } else {
+      console.log('条件不满足:', { hasData: !!testDataSets, isArray: Array.isArray(testDataSets), length: testDataSets?.length });
     }
   }, [testDataSets]);
 
@@ -130,7 +136,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
   const handleAutoFillTestData = async (dataSetName: string) => {
     try {
       setIsLoadingTestData(true);
-      const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
+      const response = await apiRequest('GET', `/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
       const data = await response.json();
       
       if (data.success && data.data) {
