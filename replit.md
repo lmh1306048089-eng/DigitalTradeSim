@@ -21,6 +21,14 @@ The platform supports role-based access control with three user types: students 
 - **Direct Navigation Flow**: Task center → experiment details → homepage (bypassing intermediate pages)
 - **Removed Experiment List**: Complete removal of experiment progress overview interfaces for cleaner user experience
 
+### Automated Test Data Pre-filling System (September 2025)
+- **Default Data Population**: All experimental task forms automatically pre-fill with realistic test data on component mount
+- **Database-Driven**: Test data stored in MySQL database with configurable datasets for different scenarios
+- **No Manual Interaction**: Students see forms already populated with valid data, eliminating manual data entry step
+- **Multiple Test Datasets**: Support for multiple enterprise data sets with easy switching capabilities
+- **Realistic Chinese Enterprise Data**: Includes valid unified credit codes, business licenses, and registration information
+- **Development Rule**: All future experimental tasks MUST implement automatic test data pre-filling following this pattern
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

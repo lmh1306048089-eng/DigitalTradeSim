@@ -699,26 +699,15 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               {steps[currentStep - 1]?.title}
             </CardTitle>
             
-            {/* 测试数据自动填充按钮 */}
+            {/* 显示已自动填充测试数据的提示 */}
             {currentStep === 1 && (
-              <div className="flex flex-col gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleAutoFillTestData('默认测试企业')}
-                  disabled={isLoadingTestData || isSubmitting}
-                  className="flex items-center gap-2"
-                  data-testid="button-autofill-default"
-                >
-                  <TestTube className="w-4 h-4" />
-                  {isLoadingTestData ? '加载中...' : '填充测试数据'}
-                </Button>
-                
+              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <CheckCircle className="w-4 h-4" />
+                <span>已自动填充测试数据</span>
                 {(testDataSets?.success && testDataSets.data && testDataSets.data.length > 1) && (
                   <Select onValueChange={handleAutoFillTestData} disabled={isLoadingTestData || isSubmitting}>
-                    <SelectTrigger className="w-32 h-8 text-xs" data-testid="select-test-data">
-                      <SelectValue placeholder="其他数据集" />
+                    <SelectTrigger className="w-24 h-7 text-xs ml-2" data-testid="select-test-data">
+                      <SelectValue placeholder="切换" />
                     </SelectTrigger>
                     <SelectContent>
                       {testDataSets.data?.map((dataset: any) => (
