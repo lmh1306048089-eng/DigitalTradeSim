@@ -370,7 +370,7 @@ export default function ExperimentDetailPage() {
             {/* 实验步骤卡片 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               {/* 第1步：企业基本信息填写 */}
-              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col">
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">1</span>
@@ -383,14 +383,14 @@ export default function ExperimentDetailPage() {
                   </div>
                 </div>
                 <div className="mt-auto pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
-                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40">
+                  <div className="text-center text-sm text-blue-600 dark:text-blue-400 font-medium">
                     📋 企业信息
-                  </Button>
+                  </div>
                 </div>
               </div>
 
               {/* 第2步：企业经营资质 */}
-              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col">
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">2</span>
@@ -403,14 +403,14 @@ export default function ExperimentDetailPage() {
                   </div>
                 </div>
                 <div className="mt-auto pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
-                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40">
+                  <div className="text-center text-sm text-blue-600 dark:text-blue-400 font-medium">
                     📄 资质证明
-                  </Button>
+                  </div>
                 </div>
               </div>
 
               {/* 第3步：上传备案材料 */}
-              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200/50 dark:border-purple-700/50 flex flex-col">
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200/50 dark:border-purple-700/50 flex flex-col hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">3</span>
@@ -423,14 +423,14 @@ export default function ExperimentDetailPage() {
                   </div>
                 </div>
                 <div className="mt-auto pt-3 border-t border-purple-200/50 dark:border-purple-700/50">
-                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/40">
+                  <div className="text-center text-sm text-purple-600 dark:text-purple-400 font-medium">
                     📤 文件上传
-                  </Button>
+                  </div>
                 </div>
               </div>
 
               {/* 第4步：确认提交申请 */}
-              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50 border border-orange-200/50 dark:border-orange-700/50 flex flex-col">
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50 border border-orange-200/50 dark:border-orange-700/50 flex flex-col hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer">
                 <div className="flex items-start gap-3 flex-1">
                   <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
                     <span className="text-lg font-bold text-white">4</span>
@@ -443,9 +443,9 @@ export default function ExperimentDetailPage() {
                   </div>
                 </div>
                 <div className="mt-auto pt-3 border-t border-orange-200/50 dark:border-orange-700/50">
-                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/40">
+                  <div className="text-center text-sm text-orange-600 dark:text-orange-400 font-medium">
                     ✅ 备案提交
-                  </Button>
+                  </div>
                 </div>
               </div>
             </div>
