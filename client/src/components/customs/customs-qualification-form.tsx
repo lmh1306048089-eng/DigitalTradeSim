@@ -55,7 +55,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
   const { toast } = useToast();
 
   // 获取海关测试数据
-  const { data: testDataSets, isLoading: isTestDataLoading } = useQuery({
+  const { data: testDataSets, isLoading: isTestDataLoading } = useQuery<{success: boolean; data: any[]}>({
     queryKey: ['/api/customs-test-data']
   });
 
@@ -78,11 +78,20 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     }
   });
 
+  // 组件挂载时自动填充默认测试数据
+  useEffect(() => {
+    if (testDataSets?.success && testDataSets.data && testDataSets.data.length > 0) {
+      autoFillDefaultTestData();
+    }
+  }, [testDataSets]);
+
   // 自动填充测试数据
-  const handleAutoFillTestData = async (dataSetName: string = '默认测试企业') => {
+  const autoFillDefaultTestData = async () => {
+    const dataSetName = '默认测试企业';
     try {
       setIsLoadingTestData(true);
-      const data = await apiRequest(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`, 'GET');
+      const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
+      const data = await response.json();
       
       if (data.success && data.data) {
         const testData = data.data;
@@ -113,6 +122,49 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
       toast({
         title: "测试数据加载失败",
         description: error.message || "无法获取测试数据，请手动填写表单。",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingTestData(false);
+    }
+  };
+
+  // 手动切换测试数据集（保留用于数据集选择）
+  const handleAutoFillTestData = async (dataSetName: string) => {
+    try {
+      setIsLoadingTestData(true);
+      const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const testData = data.data;
+        // 使用测试数据填充表单
+        form.reset({
+          companyName: testData.companyName,
+          unifiedCreditCode: testData.unifiedCreditCode,
+          registeredAddress: testData.registeredAddress,
+          legalRepresentative: testData.legalRepresentative,
+          businessLicense: testData.businessLicense,
+          registeredCapital: Number.isFinite(+testData.registeredCapital) ? +testData.registeredCapital : 1000,
+          contactPerson: testData.contactPerson,
+          contactPhone: testData.contactPhone,
+          contactEmail: testData.contactEmail,
+          businessScope: testData.businessScope || [],
+          importExportLicense: testData.importExportLicense || "",
+          dataAccuracy: false, // 需要用户手动确认
+          legalResponsibility: false // 需要用户手动确认
+        });
+        
+        toast({
+          title: "测试数据已切换",
+          description: `已切换到"${dataSetName}"的企业信息。`,
+        });
+      }
+    } catch (error: any) {
+      console.error('切换测试数据失败:', error);
+      toast({
+        title: "数据切换失败",
+        description: error.message || "无法切换测试数据。",
         variant: "destructive"
       });
     } finally {
@@ -663,13 +715,13 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
                   {isLoadingTestData ? '加载中...' : '填充测试数据'}
                 </Button>
                 
-                {(testDataSets && testDataSets.length > 1) && (
+                {(testDataSets?.success && testDataSets.data && testDataSets.data.length > 1) && (
                   <Select onValueChange={handleAutoFillTestData} disabled={isLoadingTestData || isSubmitting}>
                     <SelectTrigger className="w-32 h-8 text-xs" data-testid="select-test-data">
                       <SelectValue placeholder="其他数据集" />
                     </SelectTrigger>
                     <SelectContent>
-                      {testDataSets.map((dataset: any) => (
+                      {testDataSets.data?.map((dataset: any) => (
                         <SelectItem 
                           key={dataset.id} 
                           value={dataset.dataSetName}
