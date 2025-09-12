@@ -55,7 +55,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
   const { toast } = useToast();
 
   // 获取海关测试数据
-  const { data: testDataSets, isLoading: isTestDataLoading } = useQuery<{success: boolean; data: any[]}>({
+  const { data: testDataSets, isLoading: isTestDataLoading } = useQuery<any[]>({
     queryKey: ['/api/customs-test-data']
   });
 
@@ -122,7 +122,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
   // 组件挂载时自动填充默认测试数据
   useEffect(() => {
     console.log('useEffect triggered, testDataSets:', testDataSets);
-    if (testDataSets?.success && testDataSets.data && testDataSets.data.length > 0) {
+    if (testDataSets && Array.isArray(testDataSets) && testDataSets.length > 0) {
       console.log('条件满足，开始自动填充');
       autoFillDefaultTestData();
     }
@@ -704,7 +704,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
                 <CheckCircle className="w-4 h-4" />
                 <span>已自动填充测试数据</span>
-                {(testDataSets?.success && testDataSets.data && testDataSets.data.length > 1) && (
+                {(testDataSets && Array.isArray(testDataSets) && testDataSets.length > 1) && (
                   <Select onValueChange={handleAutoFillTestData} disabled={isLoadingTestData || isSubmitting}>
                     <SelectTrigger className="w-24 h-7 text-xs ml-2" data-testid="select-test-data">
                       <SelectValue placeholder="切换" />
