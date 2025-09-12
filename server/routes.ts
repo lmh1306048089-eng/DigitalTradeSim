@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { z } from "zod";
 import { storage } from "./storage";
 import { 
   authenticateToken, 
@@ -480,6 +481,130 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "申请提交失败，请重试" 
+      });
+    }
+  });
+
+  // Customs qualification filing form submission
+  app.post("/api/experiments/customs-qualification/submit", authenticateToken, upload.fields([
+    { name: "businessLicense", maxCount: 1 },
+    { name: "customsBackupForm", maxCount: 1 },
+    { name: "additionalDocs", maxCount: 5 }
+  ]), async (req: AuthRequest, res) => {
+    const experimentId = '873e1fe1-0430-4f47-9db2-c4f00e2b048f'; // Stable UUID from seed data
+    
+    try {
+      console.log("收到海关企业资质备案提交:", req.body);
+      console.log("文件信息:", req.files);
+
+      // Form data validation schema
+      const customsFormSchema = z.object({
+        companyName: z.string().min(2, "企业名称至少2个字符"),
+        unifiedCreditCode: z.string().regex(/^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}$/, "请输入正确的统一社会信用代码"),
+        legalRepresentative: z.string().min(2, "法定代表人姓名至少2个字符"),
+        registeredAddress: z.string().min(10, "注册地址信息不完整"),
+        businessScope: z.string().min(10, "经营范围描述至少10个字符"),
+        registeredCapital: z.coerce.number().min(1, "注册资本必须大于0"),
+        contactPerson: z.string().min(2, "联系人姓名至少2个字符"),
+        contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号"),
+        contactEmail: z.string().email("请输入有效的邮箱地址"),
+        dataAccuracy: z.boolean().refine(val => val === true, "必须确认数据真实性"),
+        legalResponsibility: z.boolean().refine(val => val === true, "必须承诺承担法律责任")
+      });
+
+      // Validate form data
+      const formData = customsFormSchema.parse(req.body);
+
+      // Check required files
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      if (!files?.businessLicense?.[0] || !files?.customsBackupForm?.[0]) {
+        return res.status(400).json({
+          success: false,
+          message: "缺少必需的文件：营业执照和报关单位备案信息表"
+        });
+      }
+
+      // Verify experiment exists
+      const experiment = await storage.getExperiment(experimentId);
+      if (!experiment) {
+        return res.status(500).json({
+          success: false,
+          message: "系统配置错误：找不到对应的实验"
+        });
+      }
+
+      // Create experiment result with proper types
+      const resultData = insertExperimentResultSchema.parse({
+        userId: req.user!.id,
+        experimentId: experimentId,
+        formData: formData, // Store as JSON object, not string
+        submittedAt: new Date(),
+        score: 100, // Number, not string
+        status: "completed",
+        feedback: "海关企业资质备案提交成功，材料齐全，符合要求"
+      });
+
+      const result = await storage.createExperimentResult(resultData);
+
+      // Process all uploaded files with proper handling
+      const uploadedFileData: any[] = [];
+      if (files) {
+        for (const [fieldName, fileArray] of Object.entries(files)) {
+          // Handle all files in the array, not just the first one
+          for (const file of fileArray) {
+            const fileData = {
+              filename: file.filename,
+              originalName: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+              mimeType: file.mimetype,
+              size: file.size,
+              path: file.path,
+              uploadedBy: req.user!.id,
+              experimentId: experimentId,
+              resultId: result.id
+            };
+            const uploadedFile = await storage.createUploadedFile(fileData);
+            uploadedFileData.push(uploadedFile);
+          }
+        }
+      }
+
+      // Update student progress with validation
+      const progressData = insertStudentProgressSchema.parse({
+        userId: req.user!.id,
+        experimentId: experimentId,
+        status: "completed",
+        progress: 100,
+        currentStep: 5,
+        completedAt: new Date()
+      });
+
+      await storage.createOrUpdateProgress(progressData);
+
+      res.json({ 
+        success: true, 
+        message: "海关企业资质备案提交成功！您的备案申请已提交海关审核，请等待审核结果。",
+        result: {
+          id: result.id,
+          experimentId: experimentId,
+          submittedAt: result.submittedAt,
+          uploadedFiles: uploadedFileData.length
+        }
+      });
+    } catch (error: any) {
+      console.error("海关企业资质备案提交失败:", error);
+      
+      // Return validation errors specifically
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "表单数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "备案申请提交失败，请重试" 
       });
     }
   });

@@ -129,7 +129,7 @@ export async function seedBasicData() {
     // 3. 创建实验任务 - 海关企业资质备案
     const experiments = [
       {
-        id: 'customs_qualification_filing',
+        id: '873e1fe1-0430-4f47-9db2-c4f00e2b048f',
         name: '海关企业资质备案',
         description: '跨境电商企业进行海关企业资质备案，完成线上填报和材料提交',
         category: 'preparation',

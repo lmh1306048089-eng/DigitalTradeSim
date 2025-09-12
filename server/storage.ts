@@ -144,14 +144,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
-    const [insertedRole] = await db.insert(businessRoles).values([{
+    await db.insert(businessRoles).values([{
       roleCode: roleData.roleCode,
       roleName: roleData.roleName,
       description: roleData.description,
       availableScenes: roleData.availableScenes ? JSON.parse(JSON.stringify(roleData.availableScenes)) : [],
       availableOperations: roleData.availableOperations ? JSON.parse(JSON.stringify(roleData.availableOperations)) : [],
       isActive: roleData.isActive ?? true
-    }]).returning();
+    }]);
+    const [insertedRole] = await db.select().from(businessRoles).where(eq(businessRoles.roleCode, roleData.roleCode));
     if (!insertedRole) throw new Error("Failed to create business role");
     return insertedRole;
   }
@@ -192,7 +193,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVirtualScene(sceneData: InsertVirtualScene): Promise<VirtualScene> {
-    const [insertedScene] = await db.insert(virtualScenes).values([{
+    await db.insert(virtualScenes).values([{
       name: sceneData.name,
       description: sceneData.description,
       imageUrl: sceneData.imageUrl,
@@ -200,7 +201,8 @@ export class DatabaseStorage implements IStorage {
       order: sceneData.order ?? 0,
       operationPoints: sceneData.operationPoints ? JSON.parse(JSON.stringify(sceneData.operationPoints)) : [],
       interactiveElements: sceneData.interactiveElements ? JSON.parse(JSON.stringify(sceneData.interactiveElements)) : []
-    }]).returning();
+    }]);
+    const [insertedScene] = await db.select().from(virtualScenes).where(eq(virtualScenes.name, sceneData.name));
     if (!insertedScene) throw new Error("Failed to create virtual scene");
     return insertedScene;
   }
@@ -232,7 +234,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperiment(experimentData: InsertExperiment): Promise<Experiment> {
-    const [insertedExperiment] = await db.insert(experiments).values([{
+    await db.insert(experiments).values([{
       name: experimentData.name,
       category: experimentData.category,
       description: experimentData.description,
@@ -240,7 +242,8 @@ export class DatabaseStorage implements IStorage {
       isActive: experimentData.isActive ?? true,
       steps: experimentData.steps ? JSON.parse(JSON.stringify(experimentData.steps)) : [],
       requirements: experimentData.requirements ? JSON.parse(JSON.stringify(experimentData.requirements)) : []
-    }]).returning();
+    }]);
+    const [insertedExperiment] = await db.select().from(experiments).where(eq(experiments.name, experimentData.name));
     if (!insertedExperiment) throw new Error("Failed to create experiment");
     return insertedExperiment;
   }
@@ -319,7 +322,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTrainingTask(taskData: InsertTrainingTask): Promise<TrainingTask> {
-    const [insertedTask] = await db.insert(trainingTasks).values([{
+    await db.insert(trainingTasks).values([{
       title: taskData.title,
       teacherId: taskData.teacherId,
       experimentId: taskData.experimentId,
@@ -330,7 +333,8 @@ export class DatabaseStorage implements IStorage {
       requiredBusinessRoles: taskData.requiredBusinessRoles ? JSON.parse(JSON.stringify(taskData.requiredBusinessRoles)) : [],
       roleAssignments: taskData.roleAssignments ? JSON.parse(JSON.stringify(taskData.roleAssignments)) : [],
       assignedStudents: taskData.assignedStudents ? JSON.parse(JSON.stringify(taskData.assignedStudents)) : []
-    }]).returning();
+    }]);
+    const [insertedTask] = await db.select().from(trainingTasks).where(eq(trainingTasks.title, taskData.title));
     if (!insertedTask) throw new Error("Failed to create training task");
     return insertedTask;
   }
