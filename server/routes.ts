@@ -59,6 +59,18 @@ const upload = multer({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // Global middleware to catch ALL requests to /api
+  app.use("/api", (req, res, next) => {
+    if (req.method === "HEAD" && req.path === "/") {
+      console.log("🔍 HEAD /api request detected from:", req.headers['user-agent']);
+      console.log("🔍 Request headers:", JSON.stringify(req.headers, null, 2));
+      console.log("🔍 Request origin:", req.headers.origin, "Referer:", req.headers.referer);
+      // Return 404 to try to break the polling loop
+      return res.status(404).json({ error: "Not found" });
+    }
+    next();
+  });
+  
   // Auth routes
   app.post("/api/auth/register", async (req, res) => {
     try {
