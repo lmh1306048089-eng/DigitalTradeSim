@@ -1,22 +1,22 @@
 import { sql } from "drizzle-orm";
 import { 
-  pgTable, 
+  mysqlTable, 
   varchar, 
   text, 
   timestamp, 
-  integer, 
+  int, 
   json, 
   boolean,
   decimal
-} from "drizzle-orm/pg-core";
+} from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // 产品用户角色表（第一层角色：决定系统基础权限）
 // 保持现有结构兼容性，role字段对应产品用户角色
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = mysqlTable("users", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   phone: varchar("phone", { length: 11 }).notNull().unique(),
   password: text("password").notNull(),
   username: varchar("username", { length: 50 }).notNull(),
@@ -28,8 +28,8 @@ export const users = pgTable("users", {
 });
 
 // 实训业务角色表（第二层角色：决定实训操作范围，仅对学生开放）
-export const businessRoles = pgTable("business_roles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const businessRoles = mysqlTable("business_roles", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   roleCode: varchar("role_code", { length: 50 }).notNull().unique(),
   roleName: varchar("role_name", { length: 100 }).notNull(),
   description: text("description"),
@@ -40,18 +40,18 @@ export const businessRoles = pgTable("business_roles", {
 });
 
 // 用户-业务角色关联表（记录学生在实训任务中选择的业务角色）
-export const userBusinessRoles = pgTable("user_business_roles", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  businessRoleId: varchar("business_role_id").notNull().references(() => businessRoles.id, { onDelete: "cascade" }),
-  taskId: varchar("task_id").references(() => trainingTasks.id), // 关联到具体实训任务
+export const userBusinessRoles = mysqlTable("user_business_roles", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  businessRoleId: varchar("business_role_id", { length: 36 }).notNull().references(() => businessRoles.id, { onDelete: "cascade" }),
+  taskId: varchar("task_id", { length: 36 }).references(() => trainingTasks.id), // 关联到具体实训任务
   isActive: boolean("is_active").default(true),
   assignedAt: timestamp("assigned_at").defaultNow(),
 });
 
 // 5大实训场景配置（物理空间/操作载体）
-export const virtualScenes = pgTable("virtual_scenes", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const virtualScenes = mysqlTable("virtual_scenes", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
@@ -64,49 +64,49 @@ export const virtualScenes = pgTable("virtual_scenes", {
   }[]>(),
   interactiveElements: json("interactive_elements").$type<string[]>(),
   status: varchar("status", { length: 20 }).notNull().default("active"),
-  order: integer("order").notNull().default(0),
+  order: int("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Experiment workflows
-export const experiments = pgTable("experiments", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const experiments = mysqlTable("experiments", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 50 }).notNull(), // preparation, declaration, inspection, etc.
   steps: json("steps").$type<any[]>(),
   requirements: json("requirements").$type<string[]>(),
-  order: integer("order").notNull().default(0),
+  order: int("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 学生进度跟踪（基于业务角色的操作记录）
-export const studentProgress = pgTable("student_progress", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  experimentId: varchar("experiment_id").notNull().references(() => experiments.id, { onDelete: "cascade" }),
-  businessRoleId: varchar("business_role_id").references(() => businessRoles.id), // 当前扮演的业务角色
-  sceneId: varchar("scene_id").references(() => virtualScenes.id),
+export const studentProgress = mysqlTable("student_progress", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
+  businessRoleId: varchar("business_role_id", { length: 36 }).references(() => businessRoles.id), // 当前扮演的业务角色
+  sceneId: varchar("scene_id", { length: 36 }).references(() => virtualScenes.id),
   status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, in_progress, completed
-  progress: integer("progress").notNull().default(0), // 0-100
-  currentStep: integer("current_step").default(0),
+  progress: int("progress").notNull().default(0), // 0-100
+  currentStep: int("current_step").default(0),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  timeSpent: integer("time_spent").default(0), // in minutes
+  timeSpent: int("time_spent").default(0), // in minutes
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // 业务协作数据表（记录角色间的数据流转）
-export const collaborationData = pgTable("collaboration_data", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  taskId: varchar("task_id").notNull().references(() => trainingTasks.id, { onDelete: "cascade" }),
-  fromUserId: varchar("from_user_id").notNull().references(() => users.id),
-  fromRoleCode: varchar("from_role_code").notNull(), // 发起方业务角色
-  toUserId: varchar("to_user_id").references(() => users.id), // 接收方用户（可为空，如系统自动处理）
-  toRoleCode: varchar("to_role_code").notNull(), // 接收方业务角色
-  dataType: varchar("data_type").notNull(), // 数据类型：backup_application, customs_declaration, etc.
+export const collaborationData = mysqlTable("collaboration_data", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  taskId: varchar("task_id", { length: 36 }).notNull().references(() => trainingTasks.id, { onDelete: "cascade" }),
+  fromUserId: varchar("from_user_id", { length: 36 }).notNull().references(() => users.id),
+  fromRoleCode: varchar("from_role_code", { length: 50 }).notNull(), // 发起方业务角色
+  toUserId: varchar("to_user_id", { length: 36 }).references(() => users.id), // 接收方用户（可为空，如系统自动处理）
+  toRoleCode: varchar("to_role_code", { length: 50 }).notNull(), // 接收方业务角色
+  dataType: varchar("data_type", { length: 100 }).notNull(), // 数据类型：backup_application, customs_declaration, etc.
   data: json("data").$type<any>(), // 协作数据内容
   status: varchar("status", { length: 20 }).default("pending"), // pending, processed, completed
   processedAt: timestamp("processed_at"),
@@ -114,12 +114,12 @@ export const collaborationData = pgTable("collaboration_data", {
 });
 
 // 实训任务表（教师分配，支持业务角色分工）
-export const trainingTasks = pgTable("training_tasks", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: varchar("title").notNull(),
+export const trainingTasks = mysqlTable("training_tasks", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
-  teacherId: varchar("teacher_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  experimentId: varchar("experiment_id").notNull().references(() => experiments.id, { onDelete: "cascade" }),
+  teacherId: varchar("teacher_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
   // 任务需要的业务角色配置
   requiredBusinessRoles: json("required_business_roles").$type<string[]>(), // 必需的业务角色代码列表
   // 学生-业务角色分配
@@ -135,30 +135,30 @@ export const trainingTasks = pgTable("training_tasks", {
 });
 
 // Student submissions and evaluation results
-export const experimentResults = pgTable("experiment_results", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  experimentId: varchar("experiment_id").notNull().references(() => experiments.id, { onDelete: "cascade" }),
-  taskId: varchar("task_id").references(() => trainingTasks.id),
+export const experimentResults = mysqlTable("experiment_results", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
+  taskId: varchar("task_id", { length: 36 }).references(() => trainingTasks.id),
   submissionData: json("submission_data").$type<any>(),
   score: decimal("score", { precision: 5, scale: 2 }),
   feedback: text("feedback"),
-  evaluatedBy: varchar("evaluated_by").references(() => users.id),
+  evaluatedBy: varchar("evaluated_by", { length: 36 }).references(() => users.id),
   evaluatedAt: timestamp("evaluated_at"),
   submittedAt: timestamp("submitted_at").defaultNow(),
 });
 
 // File uploads for training materials
-export const uploadedFiles = pgTable("uploaded_files", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  filename: varchar("filename").notNull(),
-  originalName: varchar("original_name").notNull(),
-  mimeType: varchar("mime_type"),
-  size: integer("size"),
+export const uploadedFiles = mysqlTable("uploaded_files", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  mimeType: varchar("mime_type", { length: 100 }),
+  size: int("size"),
   path: text("path").notNull(),
-  uploadedBy: varchar("uploaded_by").notNull().references(() => users.id),
-  experimentId: varchar("experiment_id").references(() => experiments.id),
-  resultId: varchar("result_id").references(() => experimentResults.id),
+  uploadedBy: varchar("uploaded_by", { length: 36 }).notNull().references(() => users.id),
+  experimentId: varchar("experiment_id", { length: 36 }).references(() => experiments.id),
+  resultId: varchar("result_id", { length: 36 }).references(() => experimentResults.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -351,12 +351,12 @@ export const WORKFLOWS = {
 } as const;
 
 // 工作流程实例表
-export const workflowInstances = pgTable("workflow_instances", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  workflowCode: varchar("workflow_code").notNull(),
-  businessRoleCode: varchar("business_role_code").notNull(),
-  initiatorUserId: varchar("initiator_user_id").notNull(),
-  currentStep: integer("current_step").notNull().default(1),
+export const workflowInstances = mysqlTable("workflow_instances", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  workflowCode: varchar("workflow_code", { length: 50 }).notNull(),
+  businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
+  initiatorUserId: varchar("initiator_user_id", { length: 36 }).notNull(),
+  currentStep: int("current_step").notNull().default(1),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, paused, failed
   stepData: json("step_data"), // 存储各步骤的数据
   collaborators: json("collaborators"), // 参与的其他角色用户
@@ -365,13 +365,13 @@ export const workflowInstances = pgTable("workflow_instances", {
 });
 
 // 工作流程步骤执行记录表
-export const workflowStepExecutions = pgTable("workflow_step_executions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  workflowInstanceId: varchar("workflow_instance_id").notNull(),
-  stepNumber: integer("step_number").notNull(),
-  executorUserId: varchar("executor_user_id").notNull(),
-  businessRoleCode: varchar("business_role_code").notNull(),
-  action: varchar("action").notNull(),
+export const workflowStepExecutions = mysqlTable("workflow_step_executions", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  workflowInstanceId: varchar("workflow_instance_id", { length: 36 }).notNull(),
+  stepNumber: int("step_number").notNull(),
+  executorUserId: varchar("executor_user_id", { length: 36 }).notNull(),
+  businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
   inputData: json("input_data"),
   outputData: json("output_data"),
   status: varchar("status", { length: 20 }).notNull().default("completed"), // completed, failed
