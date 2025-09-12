@@ -143,14 +143,8 @@ export default function ExperimentDetailPage() {
   const handleExperimentComplete = (data: any) => {
     console.log("实验完成:", data);
     // 可以在这里处理实验完成逻辑，比如更新进度
-    setShowCustomsForm(false);
-    setShowEportForm(false);
-    setShowEnterpriseQualificationForm(false);
-    setShowTransportIdForm(false);
-    // 返回对应场景
-    setTimeout(() => {
-      setLocation(getBackToSceneUrl());
-    }, 2000);
+    // 直接跳转到任务列表页，不显示中间的实验详情页
+    setLocation(getBackToSceneUrl());
   };
 
   // 如果正在显示海关备案表单，直接渲染表单
