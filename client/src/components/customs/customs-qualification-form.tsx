@@ -78,23 +78,18 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     }
   });
 
-  // 组件挂载时自动填充默认测试数据
-  useEffect(() => {
-    if (testDataSets?.success && testDataSets.data && testDataSets.data.length > 0) {
-      autoFillDefaultTestData();
-    }
-  }, [testDataSets]);
-
-  // 自动填充测试数据
+  // 自动填充测试数据函数
   const autoFillDefaultTestData = async () => {
     const dataSetName = '默认测试企业';
     try {
       setIsLoadingTestData(true);
+      console.log('开始自动填充测试数据:', dataSetName);
       const response = await fetch(`/api/customs-test-data/${encodeURIComponent(dataSetName)}`);
       const data = await response.json();
       
       if (data.success && data.data) {
         const testData = data.data;
+        console.log('获取到测试数据:', testData);
         // 使用测试数据填充表单
         form.reset({
           companyName: testData.companyName,
@@ -113,21 +108,26 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
         });
         
         toast({
-          title: "测试数据加载成功",
-          description: `已自动填入"${dataSetName}"的企业信息，请核对后继续操作。`,
+          title: "测试数据已自动填充",
+          description: `已自动填入"${dataSetName}"的企业信息。`,
         });
       }
     } catch (error: any) {
-      console.error('获取测试数据失败:', error);
-      toast({
-        title: "测试数据加载失败",
-        description: error.message || "无法获取测试数据，请手动填写表单。",
-        variant: "destructive"
-      });
+      console.error('自动填充测试数据失败:', error);
     } finally {
       setIsLoadingTestData(false);
     }
   };
+
+  // 组件挂载时自动填充默认测试数据
+  useEffect(() => {
+    console.log('useEffect triggered, testDataSets:', testDataSets);
+    if (testDataSets?.success && testDataSets.data && testDataSets.data.length > 0) {
+      console.log('条件满足，开始自动填充');
+      autoFillDefaultTestData();
+    }
+  }, [testDataSets]);
+
 
   // 手动切换测试数据集（保留用于数据集选择）
   const handleAutoFillTestData = async (dataSetName: string) => {
