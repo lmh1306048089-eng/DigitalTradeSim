@@ -360,130 +360,125 @@ export default function ExperimentDetailPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="mb-8 p-6 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-700/50">
-              <p className="text-blue-800 dark:text-blue-200 text-base leading-relaxed">
-                🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程。通过模拟真实场景，让您掌握企业资质备案的核心技能。
+            {/* 说明文字 */}
+            <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-700/50">
+              <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
+                🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。
               </p>
             </div>
-            <div className="space-y-8">
-              {experiment.steps && experiment.steps.length > 0 ? (
-                experiment.steps.map((step, index) => (
-                  <div key={step.id || index} className="flex items-start gap-4 p-4 bg-muted/50 rounded-lg">
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">{index + 1}</span>
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-lg">{step.title}</h4>
-                      <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
-                      {step.required && (
-                        <Badge variant="outline" className="mt-2">必需</Badge>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0">
-                      {index < (experimentProgress?.currentStep || 0) ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      ) : index === (experimentProgress?.currentStep || 0) ? (
-                        <Clock className="h-5 w-5 text-blue-600" />
-                      ) : (
-                        <div className="h-5 w-5 rounded-full border-2 border-muted-foreground/30" />
-                      )}
-                    </div>
+
+            {/* 实验步骤卡片 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* 第1步：企业基本信息填写 */}
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">1</span>
                   </div>
-                ))
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="group hover:scale-105 transition-all duration-300">
-                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/50 dark:to-green-900/50 rounded-xl border border-emerald-200/50 dark:border-emerald-700/50 shadow-md hover:shadow-lg transition-shadow">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-emerald-500 to-green-600 flex items-center justify-center shadow-lg">
-                        <span className="text-lg font-bold text-white">1</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-lg text-emerald-900 dark:text-emerald-100 mb-2">企业基本信息填写</h4>
-                        <p className="text-emerald-700 dark:text-emerald-300 leading-relaxed">填写企业注册信息和联系方式，包括企业名称、统一社会信用代码、法定代表人等必要信息</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700">📋 信息收集</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group hover:scale-105 transition-all duration-300">
-                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-blue-50 to-cyan-100 dark:from-blue-950/50 dark:to-cyan-900/50 rounded-xl border border-blue-200/50 dark:border-blue-700/50 shadow-md hover:shadow-lg transition-shadow">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
-                        <span className="text-lg font-bold text-white">2</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">经营范围确认</h4>
-                        <p className="text-blue-700 dark:text-blue-300 leading-relaxed">选择企业进出口经营范围，确认业务类型和产品类别，完善联系人信息</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">🎯 范围选择</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group hover:scale-105 transition-all duration-300">
-                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/50 dark:to-violet-900/50 rounded-xl border border-purple-200/50 dark:border-purple-700/50 shadow-md hover:shadow-lg transition-shadow">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-violet-600 flex items-center justify-center shadow-lg">
-                        <span className="text-lg font-bold text-white">3</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-lg text-purple-900 dark:text-purple-100 mb-2">上传备案材料</h4>
-                        <p className="text-purple-700 dark:text-purple-300 leading-relaxed">提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">📄 文件上传</Badge>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="group hover:scale-105 transition-all duration-300">
-                    <div className="flex items-start gap-4 p-6 bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-950/50 dark:to-amber-900/50 rounded-xl border border-orange-200/50 dark:border-orange-700/50 shadow-md hover:shadow-lg transition-shadow">
-                      <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-amber-600 flex items-center justify-center shadow-lg">
-                        <span className="text-lg font-bold text-white">4</span>
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-bold text-lg text-orange-900 dark:text-orange-100 mb-2">确认提交申请</h4>
-                        <p className="text-orange-700 dark:text-orange-300 leading-relaxed">核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请</p>
-                        <div className="mt-3 flex items-center gap-2">
-                          <Badge variant="outline" className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700">✅ 最终提交</Badge>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">企业基本信息填写</h4>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                      填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息
+                    </p>
                   </div>
                 </div>
-              )}
-              
-              {/* 开始实验按钮 - 自然融入设计 */}
-              <div className="mt-8 text-center">
-                <Button 
-                  size="lg" 
-                  onClick={handleStartExperiment}
-                  disabled={experimentProgress?.status === "completed"}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                  data-testid="button-start-experiment"
-                >
-                  {experimentProgress?.status === "completed" ? (
-                    <>
-                      <CheckCircle className="mr-3 h-5 w-5" />
-                      实验已完成
-                    </>
-                  ) : experimentProgress?.status === "in_progress" ? (
-                    <>
-                      <Play className="mr-3 h-5 w-5" />
-                      继续实验
-                    </>
-                  ) : (
-                    <>
-                      <FlaskConical className="mr-3 h-5 w-5" />
-                      开始实验
-                    </>
-                  )}
-                </Button>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
-                  预计完成时间：30-45分钟
-                </p>
+                <div className="mt-auto pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
+                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40">
+                    📋 企业信息
+                  </Button>
+                </div>
               </div>
+
+              {/* 第2步：企业经营资质 */}
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/50 dark:to-blue-950/50 border border-cyan-200/50 dark:border-cyan-700/50 flex flex-col">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">2</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100 mb-2">企业经营资质</h4>
+                    <p className="text-blue-700 dark:text-blue-300 text-sm leading-relaxed">
+                      提供企业营业执照、税务登记证、组织机构代码证相关资质证明
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
+                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/40">
+                    📄 资质证明
+                  </Button>
+                </div>
+              </div>
+
+              {/* 第3步：上传备案材料 */}
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/50 dark:to-violet-950/50 border border-purple-200/50 dark:border-purple-700/50 flex flex-col">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">3</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-lg text-purple-900 dark:text-purple-100 mb-2">上传备案材料</h4>
+                    <p className="text-purple-700 dark:text-purple-300 text-sm leading-relaxed">
+                      提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-3 border-t border-purple-200/50 dark:border-purple-700/50">
+                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/40">
+                    📤 文件上传
+                  </Button>
+                </div>
+              </div>
+
+              {/* 第4步：确认提交申请 */}
+              <div className="h-48 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/50 dark:to-yellow-950/50 border border-orange-200/50 dark:border-orange-700/50 flex flex-col">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+                    <span className="text-lg font-bold text-white">4</span>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-bold text-lg text-orange-900 dark:text-orange-100 mb-2">确认提交申请</h4>
+                    <p className="text-orange-700 dark:text-orange-300 text-sm leading-relaxed">
+                      核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-auto pt-3 border-t border-orange-200/50 dark:border-orange-700/50">
+                  <Button variant="outline" size="sm" className="w-full bg-white/80 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700 text-orange-700 dark:text-orange-300 hover:bg-orange-50 dark:hover:bg-orange-900/40">
+                    ✅ 备案提交
+                  </Button>
+                </div>
+              </div>
+            </div>
+              
+            {/* 开始实验按钮 - 自然融入设计 */}
+            <div className="mt-8 text-center">
+              <Button 
+                size="lg" 
+                onClick={handleStartExperiment}
+                disabled={experimentProgress?.status === "completed"}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                data-testid="button-start-experiment"
+              >
+                {experimentProgress?.status === "completed" ? (
+                  <>
+                    <CheckCircle className="mr-3 h-5 w-5" />
+                    实验已完成
+                  </>
+                ) : experimentProgress?.status === "in_progress" ? (
+                  <>
+                    <Play className="mr-3 h-5 w-5" />
+                    继续实验
+                  </>
+                ) : (
+                  <>
+                    <FlaskConical className="mr-3 h-5 w-5" />
+                    开始实验
+                  </>
+                )}
+              </Button>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                预计完成时间：30-45分钟
+              </p>
             </div>
           </CardContent>
         </Card>
