@@ -8,7 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -105,10 +104,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
           legalResponsibility: false // 需要用户手动确认
         });
         
-        toast({
-          title: "测试数据已自动填充",
-          description: `已自动填入"${dataSetName}"的企业信息。`,
-        });
+        // 数据已静默填充，无需用户通知
       }
     } catch (error: any) {
       console.error('自动填充测试数据失败:', error);
@@ -151,18 +147,12 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
           legalResponsibility: false // 需要用户手动确认
         });
         
-        toast({
-          title: "测试数据已切换",
-          description: `已切换到"${dataSetName}"的企业信息。`,
-        });
+        // 数据已静默切换，无需用户通知
       }
     } catch (error: any) {
       console.error('切换测试数据失败:', error);
-      toast({
-        title: "数据切换失败",
-        description: error.message || "无法切换测试数据。",
-        variant: "destructive"
-      });
+      // 数据切换失败，静默处理
+      console.error('数据切换失败:', error.message);
     } finally {
       setIsLoadingTestData(false);
     }
@@ -695,31 +685,7 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
               {steps[currentStep - 1]?.title}
             </CardTitle>
             
-            {/* 显示已自动填充测试数据的提示 */}
-            {currentStep === 1 && (
-              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                <CheckCircle className="w-4 h-4" />
-                <span>已自动填充测试数据</span>
-                {(testDataSets && Array.isArray(testDataSets) && testDataSets.length > 1) && (
-                  <Select onValueChange={handleAutoFillTestData} disabled={isLoadingTestData || isSubmitting}>
-                    <SelectTrigger className="w-24 h-7 text-xs ml-2" data-testid="select-test-data">
-                      <SelectValue placeholder="切换" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {testDataSets?.map((dataset: any) => (
-                        <SelectItem 
-                          key={dataset.id} 
-                          value={dataset.dataSetName}
-                          data-testid={`option-test-data-${dataset.dataSetName}`}
-                        >
-                          {dataset.dataSetName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-            )}
+            {/* 测试数据已静默自动填充 - 无需UI提示 */}
           </div>
         </CardHeader>
         <CardContent>

@@ -28,12 +28,16 @@ The platform supports role-based access control with three user types: students 
 - **Removed Experiment List**: Complete removal of experiment progress overview interfaces for cleaner user experience
 
 ### Automated Test Data Pre-filling System (September 2025)
-- **Default Data Population**: All experimental task forms automatically pre-fill with realistic test data on component mount
-- **Database-Driven**: Test data stored in MySQL database with configurable datasets for different scenarios
-- **No Manual Interaction**: Students see forms already populated with valid data, eliminating manual data entry step
-- **Multiple Test Datasets**: Support for multiple enterprise data sets with easy switching capabilities
+- **Invisible Auto-filling**: All experimental task forms automatically pre-fill with realistic test data on component mount without any user notifications or UI indicators
+- **Database-Driven**: Test data stored in MySQL database with configurable datasets for different scenarios  
+- **Completely Silent Process**: Students see forms already populated with valid data with no "已自动填充测试数据" notifications or dropdown selectors
+- **No Manual Switching**: Removed all data set switching UI controls - auto-filling happens seamlessly in background
 - **Realistic Chinese Enterprise Data**: Includes valid unified credit codes, business licenses, and registration information
-- **Development Rule**: All future experimental tasks MUST implement automatic test data pre-filling following this pattern
+- **Mandatory Development Rule**: ALL future experimental tasks MUST implement invisible automatic test data pre-filling with:
+  - No toast notifications about data being filled
+  - No dropdown selectors for switching datasets
+  - No UI indicators showing auto-fill status
+  - Silent background data population on component mount
 
 ## User Preferences
 
