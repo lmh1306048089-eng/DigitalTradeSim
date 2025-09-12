@@ -41,11 +41,11 @@ export default function ExperimentDetailPage() {
   };
 
   // Fetch experiment data
-  const { data: experiments = [] } = useQuery<Experiment[]>({
+  const { data: experiments = [], isLoading: experimentsLoading, error: experimentsError } = useQuery<Experiment[]>({
     queryKey: ["/api/experiments"],
   });
 
-  const { data: progress = [] } = useQuery<StudentProgress[]>({
+  const { data: progress = [], isLoading: progressLoading, error: progressError } = useQuery<StudentProgress[]>({
     queryKey: ["/api/progress"],
   });
 
@@ -54,8 +54,38 @@ export default function ExperimentDetailPage() {
 
   // 移除自动显示表单的逻辑，让用户先看到实验详情页
 
+  // 检查认证错误
+  const hasAuthError = experimentsError && experimentsError.message.includes('401');
+  
+  if (hasAuthError) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/')}
+            data-testid="button-back-home"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回首页
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-orange-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-4">登录已过期</h2>
+            <p className="text-muted-foreground mb-6">请重新登录后继续使用</p>
+            <Button onClick={() => setLocation('/login')}>
+              重新登录
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 如果数据还在加载中，显示加载状态
-  if (!experiments || experiments.length === 0) {
+  if (experimentsLoading || progressLoading) {
     return (
       <div className="min-h-screen bg-muted">
         <Header title="实验详情">
