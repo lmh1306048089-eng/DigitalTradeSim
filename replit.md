@@ -44,7 +44,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Design
 - **ORM**: Drizzle ORM for type-safe database operations and migrations
-- **Database**: PostgreSQL with Neon serverless infrastructure
+- **Database**: MySQL (preferred) for production reliability and performance
 - **Schema Structure**:
   - Users table with role-based permissions (student/teacher/admin)
   - Virtual scenes for immersive learning environments
@@ -67,8 +67,8 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Database Infrastructure
-- **Neon Database**: Serverless PostgreSQL with connection pooling
-- **Drizzle Kit**: Database migration and schema management tools
+- **MySQL Database**: Production-grade MySQL for reliable data storage
+- **Drizzle Kit**: Database migration and schema management tools with MySQL config (drizzle.mysql.config.ts)
 
 ### UI/UX Libraries
 - **Radix UI**: Headless component primitives for accessibility
