@@ -158,12 +158,12 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
   ];
 
   const steps = [
-    { id: 1, title: "企业基本信息", description: "填写企业注册信息" },
-    { id: 2, title: "操作员信息", description: "填写IC卡操作员信息" },
-    { id: 3, title: "备案证明信息", description: "填写相关备案证明编号" },
-    { id: 4, title: "上传申请材料", description: "提交必需的证明文件" },
-    { id: 5, title: "确认提交", description: "核对信息并提交申请" },
-    { id: 6, title: "申请成功", description: "IC卡申请已提交" }
+    { id: 1, title: "新企业入网申请", description: "中国电子口岸数据中心平台入网" },
+    { id: 2, title: "操作员信息填写", description: "IC卡操作员身份信息" },
+    { id: 3, title: "海关备案证明", description: "提交相关备案证明编号" },
+    { id: 4, title: "上传申请材料", description: "营业执照等必需文件" },
+    { id: 5, title: "确认提交申请", description: "核对信息并提交IC卡申请" },
+    { id: 6, title: "申请提交成功", description: "IC卡办理申请已成功提交" }
   ];
 
   const getStepProgress = () => ((currentStep - 1) / (steps.length - 1)) * 100;
@@ -248,9 +248,9 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
         return (
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mb-6">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">企业入网申请</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">中国电子口岸数据中心平台入网申请</h3>
               <p className="text-blue-700 dark:text-blue-300 text-sm">
-                请填写企业基本信息，用于电子口岸平台的新企业入网申请。
+                请填写企业基本信息，用于在中国电子口岸数据中心平台进行新企业入网申请操作。
               </p>
             </div>
             
@@ -354,9 +354,9 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
         return (
           <div className="space-y-6">
             <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg border border-orange-200 dark:border-orange-800 mb-6">
-              <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">操作员信息填写</h3>
+              <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">IC卡操作员信息</h3>
               <p className="text-orange-700 dark:text-orange-300 text-sm">
-                请填写IC卡操作员相关信息，包括联系方式和经营范围。
+                请填写IC卡操作员身份信息、联系方式和企业经营范围。操作员身份证原件需要在后续步骤中上传。
               </p>
             </div>
             
@@ -486,9 +486,9 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
         return (
           <div className="space-y-6">
             <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg border border-purple-200 dark:border-purple-800 mb-6">
-              <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">备案证明信息</h3>
+              <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">海关备案证明信息</h3>
               <p className="text-purple-700 dark:text-purple-300 text-sm">
-                请填写海关相关备案证明的编号信息，用于IC卡申请验证。
+                请填写海关签发的相关备案证明编号信息，这些证明文件的原件需要在下一步骤中上传。
               </p>
             </div>
 
