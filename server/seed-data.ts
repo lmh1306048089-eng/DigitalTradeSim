@@ -267,6 +267,62 @@ export async function seedBasicData() {
       }
     }
 
+    // 8. 创建电子口岸IC卡申请测试数据
+    console.log('创建电子口岸IC卡申请测试数据...');
+    const icCardTestDatasets = [
+      {
+        dataSetName: '默认测试企业',
+        companyName: '深圳市跨境通电子商务有限公司',
+        unifiedCreditCode: '91440300MA5DA1234X',
+        registeredAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        legalRepresentative: '张三',
+        businessLicense: 'GL440300123456789012345',
+        registeredCapital: '1000000.00',
+        contactPerson: '李四',
+        contactPhone: '13800138001',
+        contactEmail: 'contact@crossborder.com',
+        businessScope: ['跨境电商零售进出口', '一般贸易进出口', '技术进出口', '货物进出口'],
+        operatorName: '李四',
+        operatorIdCard: '440300199001011234',
+        customsDeclarantCertificate: 'BG440300202400001',
+        foreignTradeRegistration: 'FT440300202400001',
+        customsImportExportReceipt: 'IE440300202400001',
+        applicationReason: '企业新设立，需申请电子口岸IC卡用于进出口业务办理，包括海关申报、检验检疫等相关业务操作',
+        expectedCardQuantity: 1,
+        isActive: true
+      },
+      {
+        dataSetName: '示例电商企业',
+        companyName: '上海全球购贸易股份有限公司',
+        unifiedCreditCode: '91310000567890123Y',
+        registeredAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        legalRepresentative: '王五',
+        businessLicense: 'GL310000567890123456789',
+        registeredCapital: '5000000.00',
+        contactPerson: '赵六',
+        contactPhone: '13900139002',
+        contactEmail: 'service@globalmarket.com',
+        businessScope: ['跨境电商零售进出口', '保税区仓储服务', '供应链管理服务'],
+        operatorName: '赵六',
+        operatorIdCard: '310000199002022345',
+        customsDeclarantCertificate: 'BG310000202400002',
+        foreignTradeRegistration: 'FT310000202400002',
+        customsImportExportReceipt: 'IE310000202400002',
+        applicationReason: '业务扩展需要，申请电子口岸IC卡用于办理跨境电商相关海关业务，提高业务处理效率',
+        expectedCardQuantity: 2,
+        isActive: true
+      }
+    ];
+
+    for (const testData of icCardTestDatasets) {
+      try {
+        await db.insert(schema.icCardTestData).values(testData);
+        console.log(`✅ IC卡测试数据集创建成功: ${testData.dataSetName}`);
+      } catch (error) {
+        console.error(`❌ IC卡测试数据集创建失败: ${testData.dataSetName}`, error);
+      }
+    }
+
     console.log('基础数据初始化完成！');
 
     // 返回插入的数据用于验证
@@ -274,7 +330,8 @@ export async function seedBasicData() {
       scenes: virtualScenes.length,
       roles: businessRoles.length,
       experiments: experiments.length,
-      testDatasets: customsTestDatasets.length
+      testDatasets: customsTestDatasets.length,
+      icCardTestDatasets: icCardTestDatasets.length
     };
 
   } catch (error) {
