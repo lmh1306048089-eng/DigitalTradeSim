@@ -192,6 +192,90 @@ export async function seedBasicData() {
         ],
         order: 1,
         isActive: true
+      },
+      {
+        id: 'b2e8f3c1-1234-4567-8901-234567890abc',
+        name: '电子口岸IC卡申请',
+        description: '企业入网申请，办理中国电子口岸数据中心IC卡，用于海关申报等业务操作',
+        category: 'preparation',
+        steps: [
+          {
+            id: 'step_1',
+            title: '了解IC卡申请要求',
+            description: '学习中国电子口岸数据中心IC卡申请的相关要求和流程',
+            type: 'instruction',
+            content: '根据《中国电子口岸数据中心管理办法》，进出口企业需要申请IC卡用于海关申报、检验检疫等电子口岸业务办理。IC卡是企业进行电子口岸业务的必要工具。',
+            estimatedTime: 5
+          },
+          {
+            id: 'step_2',
+            title: '填写企业基本信息',
+            description: '填写企业入网申请基本信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'companyName', label: '企业名称', type: 'text', required: true },
+              { name: 'unifiedCreditCode', label: '统一社会信用代码', type: 'text', required: true },
+              { name: 'legalRepresentative', label: '法定代表人', type: 'text', required: true },
+              { name: 'registeredAddress', label: '注册地址', type: 'text', required: true },
+              { name: 'businessLicense', label: '营业执照注册号', type: 'text', required: true },
+              { name: 'registeredCapital', label: '注册资本（万元）', type: 'number', required: true },
+              { name: 'contactPerson', label: '联系人', type: 'text', required: true },
+              { name: 'contactPhone', label: '联系电话', type: 'tel', required: true },
+              { name: 'contactEmail', label: '联系邮箱', type: 'email', required: true },
+              { name: 'businessScope', label: '经营范围', type: 'textarea', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_3',
+            title: '填写操作员信息',
+            description: '填写IC卡操作员信息和申请说明',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'operatorName', label: '操作员姓名', type: 'text', required: true },
+              { name: 'operatorIdCard', label: '操作员身份证号', type: 'text', required: true },
+              { name: 'customsDeclarantCertificate', label: '报关员证书编号', type: 'text', required: true },
+              { name: 'foreignTradeRegistration', label: '对外贸易经营者备案登记表编号', type: 'text', required: true },
+              { name: 'customsImportExportReceipt', label: '海关进出口货物收发货人备案回执编号', type: 'text', required: true },
+              { name: 'applicationReason', label: '申请原因', type: 'textarea', required: true },
+              { name: 'expectedCardQuantity', label: '申请IC卡数量', type: 'number', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_4',
+            title: '上传申请材料',
+            description: '上传企业营业执照、操作员身份证等必要材料',
+            type: 'upload',
+            required: true,
+            uploadConfig: {
+              acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
+              maxSize: 10,
+              maxFiles: 5,
+              description: '请依次上传：1.企业营业执照 2.操作员身份证 3.海关注册登记证书 4.对外贸易经营者备案登记表 5.海关进出口货物收发货人备案回执（支持PDF、JPG、PNG格式，单个文件不超过10MB）'
+            },
+            estimatedTime: 15
+          },
+          {
+            id: 'step_5',
+            title: '提交IC卡申请',
+            description: '确认信息无误后提交IC卡申请',
+            type: 'submit',
+            required: true,
+            submitAction: 'ic_card_application_submit',
+            estimatedTime: 2
+          }
+        ],
+        requirements: [
+          '企业已完成海关进出口货物收发货人备案',
+          '企业具有对外贸易经营者备案登记',
+          '指定操作员具有报关员资格证书',
+          '准备好企业营业执照、操作员身份证等材料'
+        ],
+        order: 2,
+        isActive: true
       }
     ];
 
