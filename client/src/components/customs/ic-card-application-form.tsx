@@ -235,7 +235,7 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
       });
 
       // 切换到成功页面
-      setCurrentStep(6);
+      setCurrentStep(5);
       
       // 3秒后执行回调
       setTimeout(() => {
@@ -257,9 +257,9 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
         return (
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800 mb-6">
-              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">中国电子口岸数据中心平台入网申请</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">企业基本信息填写</h3>
               <p className="text-blue-700 dark:text-blue-300 text-sm">
-                请填写企业基本信息，用于在中国电子口岸数据中心平台进行新企业入网申请操作。
+                填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息
               </p>
             </div>
             
@@ -308,6 +308,110 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
 
               <FormField
                 control={form.control}
+                name="contactPerson"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>联系人 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入联系人姓名" data-testid="input-contact" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contactPhone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>联系电话 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入联系电话" data-testid="input-phone" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="contactEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>联系邮箱 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} type="email" placeholder="请输入联系邮箱" data-testid="input-email" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="registeredAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>注册地址 <span className="text-red-500">*</span></FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="请输入详细的企业注册地址" className="min-h-[80px]" data-testid="textarea-address" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="businessScope"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel>经营范围 <span className="text-red-500">*</span></FormLabel>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {businessScopeOptions.map((scope) => (
+                      <FormItem key={scope} className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value?.includes(scope)}
+                            onCheckedChange={(checked) => {
+                              const currentValue = field.value || [];
+                              if (checked) {
+                                field.onChange([...currentValue, scope]);
+                              } else {
+                                field.onChange(currentValue.filter((item) => item !== scope));
+                              }
+                            }}
+                            data-testid={`checkbox-scope-${scope}`}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          {scope}
+                        </FormLabel>
+                      </FormItem>
+                    ))}
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg border border-orange-200 dark:border-orange-800 mb-6">
+              <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">企业经营资质</h3>
+              <p className="text-orange-700 dark:text-orange-300 text-sm">
+                提供企业营业执照、税务登记证、组织机构代码证相关资质证明
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="businessLicense"
                 render={({ field }) => (
                   <FormItem>
@@ -330,57 +434,8 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                       <Input 
                         {...field} 
                         type="number" 
-                        inputMode="numeric"
-                        min="1"
-                        step="0.01"
                         placeholder="请输入注册资本" 
-                        data-testid="input-registered-capital" 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="registeredAddress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>注册地址 <span className="text-red-500">*</span></FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="请输入详细的企业注册地址" className="min-h-[80px]" data-testid="textarea-address" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="bg-orange-50 dark:bg-orange-950 p-4 rounded-lg border border-orange-200 dark:border-orange-800 mb-6">
-              <h3 className="font-semibold text-orange-900 dark:text-orange-100 mb-2">IC卡操作员信息</h3>
-              <p className="text-orange-700 dark:text-orange-300 text-sm">
-                请填写IC卡操作员身份信息、联系方式和企业经营范围。操作员身份证原件需要在后续步骤中上传。
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="contactPerson"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>联系人 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field}
-                        placeholder="联系人姓名" 
-                        data-testid="input-contact-person"
+                        data-testid="input-capital" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -388,53 +443,14 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="contactPhone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>联系电话 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field}
-                        placeholder="手机号码" 
-                        data-testid="input-contact-phone"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="contactEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>联系邮箱 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field}
-                        placeholder="邮箱地址" 
-                        type="email" 
-                        data-testid="input-contact-email"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="operatorName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>操作员姓名 <span className="text-red-500">*</span></FormLabel>
+                    <FormLabel>IC卡操作员姓名 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="请输入操作员姓名" data-testid="input-operator-name" />
+                      <Input {...field} placeholder="请输入操作员真实姓名" data-testid="input-operator-name" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -448,96 +464,7 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                   <FormItem>
                     <FormLabel>操作员身份证号 <span className="text-red-500">*</span></FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="请输入18位身份证号" maxLength={18} data-testid="input-operator-id" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={form.control}
-              name="businessScope"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>经营范围 <span className="text-red-500">*</span></FormLabel>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {businessScopeOptions.map((scope) => (
-                      <div key={scope} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={scope}
-                          checked={field.value?.includes(scope) || false}
-                          onCheckedChange={(checked) => {
-                            const currentValue = field.value || [];
-                            if (checked) {
-                              field.onChange([...currentValue, scope]);
-                            } else {
-                              field.onChange(currentValue.filter((item) => item !== scope));
-                            }
-                          }}
-                          data-testid={`checkbox-${scope}`}
-                        />
-                        <label htmlFor={scope} className="text-sm font-medium leading-none">
-                          {scope}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg border border-purple-200 dark:border-purple-800 mb-6">
-              <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">海关备案证明信息</h3>
-              <p className="text-purple-700 dark:text-purple-300 text-sm">
-                请填写海关签发的相关备案证明编号信息，这些证明文件的原件需要在下一步骤中上传。
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="customsDeclarantCertificate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>报关人员备案证明编号 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="请输入备案证明编号" data-testid="input-declarant-certificate" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="foreignTradeRegistration"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>对外贸易经营者备案登记表编号 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="请输入登记表编号" data-testid="input-trade-registration" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="customsImportExportReceipt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>海关进出口货物收发人备案回执编号 <span className="text-red-500">*</span></FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="请输入回执编号" data-testid="input-import-export-receipt" />
+                      <Input {...field} placeholder="请输入操作员身份证号" maxLength={18} data-testid="input-operator-id" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -554,12 +481,53 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                       <Input 
                         {...field} 
                         type="number" 
-                        inputMode="numeric"
-                        min="1"
-                        max="10"
-                        placeholder="请输入申请数量" 
+                        min="1" 
+                        max="10" 
+                        placeholder="请输入需要申请的IC卡数量" 
                         data-testid="input-card-quantity" 
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="customsDeclarantCertificate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>报关人员备案证明编号 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入报关人员备案证明编号" data-testid="input-customs-cert" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="foreignTradeRegistration"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>对外贸易经营者备案登记表编号 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入对外贸易经营者备案登记表编号" data-testid="input-trade-reg" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="customsImportExportReceipt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>海关进出口货物收发货人备案回执编号 <span className="text-red-500">*</span></FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="请输入海关进出口货物收发货人备案回执编号" data-testid="input-customs-receipt" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -588,15 +556,18 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
-            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg border border-purple-200 dark:border-purple-800 mb-6">
               <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <h3 className="font-semibold text-blue-900 dark:text-blue-100">必需材料清单</h3>
+                <FileText className="h-5 w-5 text-purple-600" />
+                <h3 className="font-semibold text-purple-900 dark:text-purple-100">上传备案材料</h3>
               </div>
-              <ul className="text-blue-700 dark:text-blue-300 text-sm space-y-1">
+              <p className="text-purple-700 dark:text-purple-300 text-sm mb-3">
+                提交相关证明文件，包括报关单位备案表、营业执照副本、法定代表人身份证等
+              </p>
+              <ul className="text-purple-700 dark:text-purple-300 text-sm space-y-1">
                 <li>1. 企业营业执照副本复印件（加盖企业公章）</li>
                 <li>2. 法定代表人身份证复印件</li>
                 <li>3. 操作员身份证复印件</li>
@@ -620,16 +591,16 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="bg-amber-50 dark:bg-amber-950 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-5 w-5 text-amber-600" />
-                <h3 className="font-semibold text-amber-900 dark:text-amber-100">提交前确认</h3>
+                <h3 className="font-semibold text-amber-900 dark:text-amber-100">确认提交申请</h3>
               </div>
               <p className="text-amber-700 dark:text-amber-300 text-sm">
-                请仔细核对所填信息，提交后将无法修改。我们将在3-5个工作日内完成审核。
+                核对所有信息核实上传材料，确认数据准确性并承担法律责任，最终提交备案申请
               </p>
             </div>
 
@@ -669,45 +640,45 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                     </FormControl>
                     <div className="space-y-1 leading-none">
                       <FormLabel>
-                        我承诺承担因虚假信息导致的法律责任 <span className="text-red-500">*</span>
+                        我承诺对提交的信息承担法律责任 <span className="text-red-500">*</span>
                       </FormLabel>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        根据《中华人民共和国刑法》等相关法律法规，提供虚假信息将承担相应法律责任
+                      </p>
                     </div>
                   </FormItem>
                 )}
               />
             </div>
-
-            <Separator />
-
-            <div className="bg-muted p-4 rounded-lg">
-              <h4 className="font-medium mb-2">申请信息摘要</h4>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>企业名称：{form.getValues("companyName") || "未填写"}</p>
-                <p>操作员：{form.getValues("operatorName") || "未填写"}</p>
-                <p>申请IC卡数量：{form.getValues("expectedCardQuantity") || 0} 张</p>
-                <p>已上传文件：{uploadedFiles.length} 个</p>
-              </div>
-            </div>
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-6 text-center">
-            <div className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
-              <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
+            <div className="bg-green-50 dark:bg-green-950 p-6 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <Check className="h-8 w-8 text-green-600" />
+                <h3 className="text-xl font-semibold text-green-900 dark:text-green-100">申请提交成功</h3>
+              </div>
+              <p className="text-green-700 dark:text-green-300 text-sm">
+                您的IC卡备案申请已成功提交！我们将在3-5个工作日内完成审核，请关注审核结果通知。
+              </p>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-green-800 dark:text-green-200 mb-2">申请提交成功</h3>
-              <p className="text-green-600 dark:text-green-400">
-                您的电子口岸IC卡申请已成功提交，申请编号：IC-{Date.now().toString().slice(-8)}
-              </p>
-              <p className="text-sm text-muted-foreground mt-3">
-                我们将在3-5个工作日内完成审核，请保持联系方式畅通
-              </p>
+
+            <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">后续流程</h4>
+              <ul className="text-blue-700 dark:text-blue-300 text-sm space-y-1 text-left">
+                <li>• 审核通过后，您将收到现场核验通知</li>
+                <li>• 携带相关原件到指定地点进行核验</li>
+                <li>• 缴纳IC卡制作费用</li>
+                <li>• 完成制卡后通知您领取</li>
+                <li>• 现场激活IC卡并进行功能测试</li>
+              </ul>
             </div>
           </div>
         );
+
 
       default:
         return null;
