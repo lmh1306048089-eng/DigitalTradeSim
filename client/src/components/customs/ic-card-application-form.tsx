@@ -606,7 +606,7 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
               }}
               maxSize={10 * 1024 * 1024} // 10MB
               onUploadComplete={handleFileUpload}
-              experimentId="ic-card-experiment-id"
+              experimentId="b2e8f3c1-1234-4567-8901-234567890abc"
             />
           </div>
         );
