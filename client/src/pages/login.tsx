@@ -1,13 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Globe } from "lucide-react";
+import { Globe, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/hooks/useAuth";
 
 const loginSchema = z.object({
@@ -22,7 +23,19 @@ const registerSchema = loginSchema.extend({
 
 export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => void }) {
   const [isRegister, setIsRegister] = useState(false);
+  const [showLogoutMessage, setShowLogoutMessage] = useState(false);
   const { login, register, isLoginPending, isRegisterPending } = useAuth();
+
+  // 检查是否刚退出登录
+  useEffect(() => {
+    const justLoggedOut = localStorage.getItem('justLoggedOut');
+    if (justLoggedOut) {
+      setShowLogoutMessage(true);
+      localStorage.removeItem('justLoggedOut');
+      // 5秒后隐藏提示
+      setTimeout(() => setShowLogoutMessage(false), 5000);
+    }
+  }, []);
 
   const form = useForm({
     resolver: zodResolver(isRegister ? registerSchema : loginSchema),
@@ -61,6 +74,15 @@ export default function LoginPage({ onLoginSuccess }: { onLoginSuccess?: () => v
             <h1 className="text-2xl font-bold mb-2">数字贸易生态虚拟仿真实训系统</h1>
             <p className="text-muted-foreground text-sm">Digital Trade Ecosystem Virtual Simulation Training</p>
           </div>
+
+          {showLogoutMessage && (
+            <Alert className="mb-6 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <AlertDescription className="text-green-800 dark:text-green-300">
+                您已成功退出登录，请重新登录以继续使用系统
+              </AlertDescription>
+            </Alert>
+          )}
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">

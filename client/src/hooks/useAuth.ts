@@ -89,10 +89,16 @@ export function useAuth() {
   const logout = () => {
     clearAuthTokens();
     queryClient.clear();
+    // 设置登出标记，以便登录页面显示提示
+    localStorage.setItem('justLoggedOut', 'true');
     toast({
       title: "已退出登录",
       description: "感谢使用数字贸易实训系统",
     });
+    // 强制页面重新加载，立即显示登录页面
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000); // 给toast一点时间显示
   };
 
   // Auto-refresh token when it expires
