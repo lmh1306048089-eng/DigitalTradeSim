@@ -756,7 +756,7 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {renderStepContent()}
 
-              {currentStep < steps.length - 1 && (
+              {currentStep <= steps.length - 1 && (
                 <div className="flex justify-between pt-6 border-t">
                   <Button
                     type="button"
