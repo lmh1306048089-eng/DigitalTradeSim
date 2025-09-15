@@ -112,17 +112,46 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const accessToken = localStorage.getItem('accessToken');
-    const headers: Record<string, string> = {};
+    let accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
     
-    if (accessToken) {
-      headers["Authorization"] = `Bearer ${accessToken}`;
-    }
+    const makeRequest = async (token?: string) => {
+      const headers: Record<string, string> = {};
+      
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
 
-    const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-      headers,
-    });
+      return fetch(queryKey.join("/") as string, {
+        credentials: "include",
+        headers,
+      });
+    };
+
+    let res = await makeRequest(accessToken || undefined);
+
+    // If we get 401, try to refresh token once
+    if (res.status === 401 && refreshToken) {
+      try {
+        const refreshRes = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+          credentials: 'include',
+        });
+        
+        if (refreshRes.ok) {
+          const tokenData = await refreshRes.json();
+          localStorage.setItem('accessToken', tokenData.accessToken);
+          localStorage.setItem('refreshToken', tokenData.refreshToken);
+          
+          // Retry the original request with new token
+          res = await makeRequest(tokenData.accessToken);
+        }
+      } catch (error) {
+        console.warn('Auto token refresh failed in queryFn:', error);
+      }
+    }
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
@@ -135,7 +164,7 @@ export const getQueryFn: <T>(options: {
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "returnNull" }),
+      queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
