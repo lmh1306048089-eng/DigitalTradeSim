@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
@@ -19,6 +20,13 @@ import { useQuery } from "@tanstack/react-query";
 
 // 表单验证模式
 const icCardFormSchema = z.object({
+  // 入网资格自检
+  hasCustomsRegistration: z.boolean().refine(val => val === true, "必须已完成海关进出口货物收发货人备案"),
+  hasForeignTradeRegistration: z.boolean().refine(val => val === true, "必须已取得对外贸易经营者备案登记"),
+  hasBankAccount: z.boolean().refine(val => val === true, "必须在海关总署指定银行开立保证金账户"),
+  hasDesignatedOperator: z.boolean().refine(val => val === true, "必须已指定IC卡操作员"),
+  hasValidLicense: z.boolean().refine(val => val === true, "营业执照必须在有效期内"),
+  
   // 企业基本信息
   companyName: z.string().min(2, "企业名称至少2个字符"),
   unifiedCreditCode: z.string().regex(/^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}$/, "请输入正确的统一社会信用代码"),
@@ -31,16 +39,38 @@ const icCardFormSchema = z.object({
   contactEmail: z.string().email("请输入有效的邮箱地址"),
   businessScope: z.array(z.string()).min(1, "请至少选择一个经营范围"),
   
-  // IC卡申请特有字段
+  // 经办人信息与授权
   operatorName: z.string().min(2, "操作员姓名至少2个字符"),
   operatorIdCard: z.string().regex(/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/, "请输入有效的身份证号"),
-  customsDeclarantCertificate: z.string().min(8, "报关人员备案证明编号至少8位"),
-  foreignTradeRegistration: z.string().min(8, "对外贸易经营者备案登记表编号至少8位"),
-  customsImportExportReceipt: z.string().min(8, "海关进出口货物收发人备案回执编号至少8位"),
+  operatorPosition: z.string().min(2, "操作员职务至少2个字符"),
+  authorizationScope: z.string().min(5, "授权范围说明至少5个字符"),
   applicationReason: z.string().min(10, "申请原因至少10个字符"),
   expectedCardQuantity: z.coerce.number().min(1, "申请卡片数量至少为1").max(10, "申请卡片数量不能超过10"),
   
-  // 声明确认
+  // 备案编号关联校验
+  customsDeclarantCertificate: z.string().min(8, "报关人员备案证明编号至少8位"),
+  foreignTradeRegistration: z.string().min(8, "对外贸易经营者备案登记表编号至少8位"),
+  customsImportExportReceipt: z.string().min(8, "海关进出口货物收发人备案回执编号至少8位"),
+  bankAccountNumber: z.string().min(10, "保证金账户账号至少10位"),
+  bankName: z.string().min(4, "开户银行名称至少4个字符"),
+  
+  // 预约现场核验
+  appointmentDate: z.string().min(1, "请选择预约日期"),
+  appointmentTime: z.string().min(1, "请选择预约时间段"),
+  appointmentLocation: z.string().min(1, "请选择核验地点"),
+  attendeeName: z.string().min(2, "现场核验人员姓名至少2个字符"),
+  attendeeIdCard: z.string().regex(/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/, "请输入有效的身份证号"),
+  attendeePhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号"),
+  
+  // 缴费与制卡
+  paymentMethod: z.string().min(1, "请选择支付方式"),
+  paymentConfirmed: z.boolean().refine(val => val === true, "必须确认已完成缴费"),
+  
+  // 领卡与激活
+  pickupConfirmed: z.boolean().refine(val => val === true, "必须确认已完成领卡"),
+  activationConfirmed: z.boolean().refine(val => val === true, "必须确认已完成激活"),
+  
+  // 最终声明确认
   dataAccuracy: z.boolean().refine(val => val === true, "必须确认数据真实性"),
   legalResponsibility: z.boolean().refine(val => val === true, "必须承诺承担法律责任")
 });
@@ -67,6 +97,14 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
   const form = useForm<IcCardFormData>({
     resolver: zodResolver(icCardFormSchema),
     defaultValues: {
+      // 入网资格自检
+      hasCustomsRegistration: false,
+      hasForeignTradeRegistration: false,
+      hasBankAccount: false,
+      hasDesignatedOperator: false,
+      hasValidLicense: false,
+      
+      // 企业基本信息
       companyName: "",
       unifiedCreditCode: "",
       registeredAddress: "",
@@ -77,13 +115,39 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
       contactPhone: "",
       contactEmail: "",
       businessScope: [],
+      
+      // 经办人信息与授权
       operatorName: "",
       operatorIdCard: "",
+      operatorPosition: "",
+      authorizationScope: "",
+      applicationReason: "",
+      expectedCardQuantity: 1,
+      
+      // 备案编号关联校验
       customsDeclarantCertificate: "",
       foreignTradeRegistration: "",
       customsImportExportReceipt: "",
-      applicationReason: "",
-      expectedCardQuantity: 1,
+      bankAccountNumber: "",
+      bankName: "",
+      
+      // 预约现场核验
+      appointmentDate: "",
+      appointmentTime: "",
+      appointmentLocation: "",
+      attendeeName: "",
+      attendeeIdCard: "",
+      attendeePhone: "",
+      
+      // 缴费与制卡
+      paymentMethod: "",
+      paymentConfirmed: false,
+      
+      // 领卡与激活
+      pickupConfirmed: false,
+      activationConfirmed: false,
+      
+      // 最终声明确认
       dataAccuracy: false,
       legalResponsibility: false
     }
@@ -101,6 +165,14 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
         const testData = data.data;
         // 使用测试数据填充表单
         form.reset({
+          // 入网资格自检 - 自动填充为true
+          hasCustomsRegistration: true,
+          hasForeignTradeRegistration: true,
+          hasBankAccount: true,
+          hasDesignatedOperator: true,
+          hasValidLicense: true,
+          
+          // 企业基本信息
           companyName: testData.companyName,
           unifiedCreditCode: testData.unifiedCreditCode,
           registeredAddress: testData.registeredAddress,
@@ -111,13 +183,39 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
           contactPhone: testData.contactPhone,
           contactEmail: testData.contactEmail,
           businessScope: testData.businessScope || [],
+          
+          // 经办人信息与授权
           operatorName: testData.operatorName,
           operatorIdCard: testData.operatorIdCard,
+          operatorPosition: "业务经理",
+          authorizationScope: "海关申报、检验检疫、电子口岸相关业务",
+          applicationReason: testData.applicationReason,
+          expectedCardQuantity: testData.expectedCardQuantity || 1,
+          
+          // 备案编号关联校验
           customsDeclarantCertificate: testData.customsDeclarantCertificate,
           foreignTradeRegistration: testData.foreignTradeRegistration,
           customsImportExportReceipt: testData.customsImportExportReceipt,
-          applicationReason: testData.applicationReason,
-          expectedCardQuantity: testData.expectedCardQuantity || 1,
+          bankAccountNumber: "62001234567890123456",
+          bankName: "中国银行深圳分行",
+          
+          // 预约现场核验 - 默认值
+          appointmentDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 一周后
+          appointmentTime: "10:00-11:00",
+          appointmentLocation: "深圳海关",
+          attendeeName: testData.operatorName,
+          attendeeIdCard: testData.operatorIdCard,
+          attendeePhone: testData.contactPhone,
+          
+          // 缴费与制卡
+          paymentMethod: "网上银行",
+          paymentConfirmed: false,
+          
+          // 领卡与激活
+          pickupConfirmed: false,
+          activationConfirmed: false,
+          
+          // 最终声明确认
           dataAccuracy: false, // 需要用户手动确认
           legalResponsibility: false // 需要用户手动确认
         });
@@ -158,23 +256,31 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
   ];
 
   const steps = [
-    { id: 1, title: "新企业入网申请", description: "中国电子口岸数据中心平台入网" },
-    { id: 2, title: "操作员信息填写", description: "IC卡操作员身份信息" },
-    { id: 3, title: "海关备案证明", description: "提交相关备案证明编号" },
-    { id: 4, title: "上传申请材料", description: "营业执照等必需文件" },
-    { id: 5, title: "确认提交申请", description: "核对信息并提交IC卡申请" },
-    { id: 6, title: "申请提交成功", description: "IC卡办理申请已成功提交" }
+    { id: 1, title: "申请条件与材料清单", description: "了解电子口岸IC卡申请的前置条件和所需材料" },
+    { id: 2, title: "入网资格自检", description: "检查企业是否满足电子口岸入网的基本条件" },
+    { id: 3, title: "企业基本信息", description: "填写企业入网申请基本信息" },
+    { id: 4, title: "经办人信息与授权", description: "填写IC卡操作员信息和企业授权说明" },
+    { id: 5, title: "备案编号关联校验", description: "填写各类备案证明编号，系统将进行关联校验" },
+    { id: 6, title: "材料上传", description: "按照清单要求上传申请材料，确保文件清晰完整" },
+    { id: 7, title: "预约现场核验", description: "选择合适的时间和地点进行现场核验预约" },
+    { id: 8, title: "缴费与制卡", description: "完成IC卡费用缴纳和制卡申请" },
+    { id: 9, title: "领卡与激活", description: "完成IC卡领取和初始化激活" },
+    { id: 10, title: "申请完成", description: "IC卡申请流程已全部完成" }
   ];
 
   const getStepProgress = () => ((currentStep - 1) / (steps.length - 1)) * 100;
 
   const validateCurrentStep = async () => {
     const stepFields: Record<number, (keyof IcCardFormData)[]> = {
-      1: ["companyName", "unifiedCreditCode", "registeredAddress", "legalRepresentative", "businessLicense", "registeredCapital"],
-      2: ["contactPerson", "contactPhone", "contactEmail", "businessScope", "operatorName", "operatorIdCard"],
-      3: ["customsDeclarantCertificate", "foreignTradeRegistration", "customsImportExportReceipt", "applicationReason", "expectedCardQuantity"],
-      4: [], // 文件上传验证
-      5: ["dataAccuracy", "legalResponsibility"]
+      1: [], // 申请条件介绍，无需验证
+      2: ["hasCustomsRegistration", "hasForeignTradeRegistration", "hasBankAccount", "hasDesignatedOperator", "hasValidLicense"],
+      3: ["companyName", "unifiedCreditCode", "registeredAddress", "legalRepresentative", "businessLicense", "registeredCapital", "contactPerson", "contactPhone", "contactEmail", "businessScope"],
+      4: ["operatorName", "operatorIdCard", "operatorPosition", "authorizationScope", "applicationReason", "expectedCardQuantity"],
+      5: ["customsDeclarantCertificate", "foreignTradeRegistration", "customsImportExportReceipt", "bankAccountNumber", "bankName"],
+      6: [], // 文件上传验证
+      7: ["appointmentDate", "appointmentTime", "appointmentLocation", "attendeeName", "attendeeIdCard", "attendeePhone"],
+      8: ["paymentMethod", "paymentConfirmed"],
+      9: ["pickupConfirmed", "activationConfirmed", "dataAccuracy", "legalResponsibility"]
     };
 
     const fieldsToValidate = stepFields[currentStep];
@@ -183,11 +289,11 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
       return result;
     }
 
-    if (currentStep === 4) {
-      if (uploadedFiles.length === 0) {
+    if (currentStep === 6) {
+      if (uploadedFiles.length < 8) {
         toast({
-          title: "请上传申请材料",
-          description: "营业执照副本等材料是必需的",
+          title: "请上传所有必需材料",
+          description: "必须上传8个文件：营业执照、身份证、各类备案证明等",
           variant: "destructive"
         });
         return false;
@@ -588,11 +694,14 @@ export function IcCardApplicationForm({ onComplete, onCancel }: IcCardApplicatio
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100">必需材料清单</h3>
               </div>
               <ul className="text-blue-700 dark:text-blue-300 text-sm space-y-1">
-                <li>• 营业执照副本复印件（加盖企业公章）</li>
-                <li>• 操作员身份证原件复印件</li>
-                <li>• 海关签发的《报关人员备案证明》</li>
-                <li>• 《对外贸易经营者备案登记表》原件</li>
-                <li>• 海关进出口货物收发人备案回执</li>
+                <li>1. 营业执照副本复印件（加盖企业公章）</li>
+                <li>2. 法定代表人身份证复印件</li>
+                <li>3. 操作员身份证复印件</li>
+                <li>4. 报关人员备案证明</li>
+                <li>5. 对外贸易经营者备案登记表</li>
+                <li>6. 海关进出口货物收发人备案回执</li>
+                <li>7. 银行账户证明</li>
+                <li>8. 企业授权委托书（加盖公章）</li>
               </ul>
             </div>
 
