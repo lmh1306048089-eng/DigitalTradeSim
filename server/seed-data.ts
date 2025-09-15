@@ -268,6 +268,114 @@ export async function seedBasicData() {
         ],
         order: 2,
         isActive: true
+      },
+      {
+        id: 'ec901234-5678-9012-3456-789abcdef012',
+        name: '电商企业资质备案',
+        description: '跨境电商企业完成线上对电商企业资质备案的填报工作，提交营业执照、产品认证等完整资质材料',
+        category: 'preparation',
+        steps: [
+          {
+            id: 'step_1',
+            title: '企业基本信息填写',
+            description: '填写企业名称、统一社会信用代码、法定代表人、注册地址等基本信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'companyName', label: '企业名称', type: 'text', required: true },
+              { name: 'unifiedCreditCode', label: '统一社会信用代码', type: 'text', required: true },
+              { name: 'legalRepresentative', label: '法定代表人', type: 'text', required: true },
+              { name: 'legalRepresentativeIdCard', label: '法定代表人身份证号', type: 'text', required: true },
+              { name: 'registeredAddress', label: '企业注册地址', type: 'text', required: true },
+              { name: 'businessAddress', label: '企业经营地址', type: 'text', required: true },
+              { name: 'registeredCapital', label: '注册资本（万元）', type: 'number', required: true },
+              { name: 'contactPerson', label: '联系人', type: 'text', required: true },
+              { name: 'contactPhone', label: '联系电话', type: 'tel', required: true },
+              { name: 'contactEmail', label: '联系邮箱', type: 'email', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_2',
+            title: '经营资质信息',
+            description: '填写营业执照、对外贸易经营者备案、跨境电商海关备案号等经营资质信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'businessLicense', label: '营业执照注册号', type: 'text', required: true },
+              { name: 'businessScope', label: '经营范围', type: 'textarea', required: true },
+              { name: 'foreignTradeRecord', label: '对外贸易经营者备案登记表编号', type: 'text', required: true },
+              { name: 'customsEcommerceRecord', label: '跨境电商海关备案号', type: 'text', required: true },
+              { name: 'establishmentDate', label: '企业成立日期', type: 'date', required: true },
+              { name: 'businessValidityPeriod', label: '营业期限', type: 'text', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_3',
+            title: '产品与生产信息',
+            description: '填写主要经营产品、生产能力、产品认证等信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'mainProducts', label: '主要经营产品', type: 'textarea', required: true },
+              { name: 'productionCapacity', label: '年生产能力', type: 'textarea', required: true },
+              { name: 'productCertification', label: '产品认证证书编号', type: 'text', required: true },
+              { name: 'qualityManagementSystem', label: '质量管理体系认证', type: 'text', required: false },
+              { name: 'brandAuthorization', label: '品牌授权情况', type: 'textarea', required: false },
+              { name: 'supplierInformation', label: '主要供应商信息', type: 'textarea', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_4',
+            title: '财务与税务信息',
+            description: '填写外汇结算账户、税务备案等财务相关信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'foreignExchangeAccount', label: '外汇结算账户开户银行', type: 'text', required: true },
+              { name: 'foreignExchangeAccountNumber', label: '外汇结算账户号', type: 'text', required: true },
+              { name: 'taxRegistrationNumber', label: '税务登记证号', type: 'text', required: true },
+              { name: 'taxpayerType', label: '纳税人类型', type: 'select', options: ['一般纳税人', '小规模纳税人'], required: true },
+              { name: 'annualTurnover', label: '上年度营业额（万元）', type: 'number', required: true },
+              { name: 'exportVolume', label: '上年度出口额（万美元）', type: 'number', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_5',
+            title: '上传资质材料',
+            description: '上传营业执照、产品认证文件、企业地址证明等必需资质材料',
+            type: 'upload',
+            required: true,
+            uploadConfig: {
+              acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
+              maxSize: 10,
+              maxFiles: 10,
+              description: '请依次上传：1.营业执照副本 2.对外贸易经营者备案登记表 3.法定代表人身份证 4.企业地址证明 5.产品认证文件 6.生产能力证明 7.跨境电商海关备案回执 8.外汇结算账户开户许可证 9.税务登记证 10.其他相关资质文件（支持PDF、JPG、PNG格式，单个文件不超过10MB）'
+            },
+            estimatedTime: 20
+          },
+          {
+            id: 'step_6',
+            title: '确认提交申请',
+            description: '核对所有信息和上传材料，确认数据准确性并承担法律责任，提交电商企业资质备案申请',
+            type: 'submit',
+            required: true,
+            submitAction: 'ecommerce_qualification_submit',
+            estimatedTime: 5
+          }
+        ],
+        requirements: [
+          '企业已取得营业执照并具有合法经营资质',
+          '企业已完成对外贸易经营者备案登记',
+          '企业已取得跨境电商海关备案号',
+          '企业具有外汇结算账户和税务登记',
+          '准备好完整的企业资质材料和产品认证文件'
+        ],
+        order: 3,
+        isActive: true
       }
     ];
 
@@ -303,6 +411,7 @@ export async function seedBasicData() {
     console.log('创建海关企业资质备案测试数据...');
     const customsTestDatasets = [
       {
+        id: 'custom-test-default-001',
         dataSetName: '默认测试企业',
         companyName: '深圳市跨境通电子商务有限公司',
         unifiedCreditCode: '91440300MA5DA1234X',
@@ -318,6 +427,7 @@ export async function seedBasicData() {
         isActive: true
       },
       {
+        id: 'custom-test-example-002',
         dataSetName: '示例电商企业',
         companyName: '上海全球购贸易股份有限公司',
         unifiedCreditCode: '91310000567890123Y',
@@ -347,6 +457,7 @@ export async function seedBasicData() {
     console.log('创建电子口岸IC卡申请测试数据...');
     const icCardTestDatasets = [
       {
+        id: 'iccard-test-default-001',
         dataSetName: '默认测试企业',
         companyName: '深圳市跨境通电子商务有限公司',
         unifiedCreditCode: '91440300MA5DA1234X',
@@ -368,6 +479,7 @@ export async function seedBasicData() {
         isActive: true
       },
       {
+        id: 'iccard-test-example-002',
         dataSetName: '示例电商企业',
         companyName: '上海全球购贸易股份有限公司',
         unifiedCreditCode: '91310000567890123Y',
@@ -399,6 +511,86 @@ export async function seedBasicData() {
       }
     }
 
+    // 9. 创建电商企业资质备案测试数据
+    console.log('创建电商企业资质备案测试数据...');
+    const ecommerceQualificationTestDatasets = [
+      {
+        id: 'ecom-qual-test-default-001',
+        dataSetName: '默认测试企业',
+        companyName: '深圳市跨境通电子商务有限公司',
+        unifiedCreditCode: '91440300MA5DA1234X',
+        legalRepresentative: '张三',
+        legalRepresentativeIdCard: '440300197001011234',
+        registeredAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        businessAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        registeredCapital: 1000,
+        contactPerson: '李四',
+        contactPhone: '13800138001',
+        contactEmail: 'contact@crossborder.com',
+        businessLicense: 'GL440300123456789012345',
+        businessScope: '跨境电商零售进出口；一般贸易进出口；技术进出口；货物进出口；电子产品销售；计算机软硬件及配件销售；互联网销售',
+        foreignTradeRecord: 'FT440300202400001',
+        customsEcommerceRecord: 'EC440300202400001',
+        establishmentDate: '2020-01-15',
+        businessValidityPeriod: '2020-01-15至长期',
+        mainProducts: '电子产品、数码配件、智能穿戴设备、家居用品、服装鞋帽、美妆护肤品等消费类商品',
+        productionCapacity: '年销售额5000万元，年出口量1000万美元，具备完整的供应链管理和质量控制体系',
+        productCertification: 'CCC20240001, CE20240002, FCC20240003',
+        qualityManagementSystem: 'ISO9001:2015质量管理体系认证',
+        brandAuthorization: '拥有自主品牌"跨境通"商标注册证，同时获得苹果、三星、华为等品牌授权销售许可',
+        supplierInformation: '主要供应商：深圳富士康科技集团、东莞华贝电子有限公司、广州美的集团股份有限公司',
+        foreignExchangeAccount: '中国银行深圳分行',
+        foreignExchangeAccountNumber: '756892345678901234',
+        taxRegistrationNumber: '914403001234567890',
+        taxpayerType: '一般纳税人',
+        annualTurnover: 5000,
+        exportVolume: 1000,
+        isActive: true
+      },
+      {
+        id: 'ecom-qual-test-example-002',
+        dataSetName: '示例电商企业',
+        companyName: '上海全球购贸易股份有限公司',
+        unifiedCreditCode: '91310000567890123Y',
+        legalRepresentative: '王五',
+        legalRepresentativeIdCard: '310000197502022345',
+        registeredAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        businessAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36-38楼',
+        registeredCapital: 5000,
+        contactPerson: '赵六',
+        contactPhone: '13900139002',
+        contactEmail: 'service@globalmarket.com',
+        businessLicense: 'GL310000567890123456789',
+        businessScope: '跨境电商零售进出口；保税区仓储服务；供应链管理服务；国际贸易；电子商务信息咨询；物流信息咨询',
+        foreignTradeRecord: 'FT310000202400002',
+        customsEcommerceRecord: 'EC310000202400002',
+        establishmentDate: '2018-06-20',
+        businessValidityPeriod: '2018-06-20至2048-06-19',
+        mainProducts: '进口食品、保健品、母婴用品、化妆品、奢侈品、电子产品等高端消费品',
+        productionCapacity: '年销售额2亿元，年进口量5000万美元，拥有保税仓储面积5000平方米',
+        productCertification: 'HACCP20240004, GMP20240005, FDA20240006',
+        qualityManagementSystem: 'ISO22000:2018食品安全管理体系认证，ISO14001:2015环境管理体系认证',
+        brandAuthorization: '获得雅诗兰黛、欧莱雅、雀巢、美赞臣等知名品牌中国区独家代理授权',
+        supplierInformation: '海外供应商：美国雅诗兰黛集团、法国欧莱雅集团、瑞士雀巢集团、荷兰皇家菲仕兰',
+        foreignExchangeAccount: '工商银行上海分行',
+        foreignExchangeAccountNumber: '623456789012345678',
+        taxRegistrationNumber: '913100005678901234',
+        taxpayerType: '一般纳税人',
+        annualTurnover: 20000,
+        exportVolume: 5000,
+        isActive: true
+      }
+    ];
+
+    for (const testData of ecommerceQualificationTestDatasets) {
+      try {
+        await db.insert(schema.ecommerceQualificationTestData).values(testData);
+        console.log(`✅ 电商企业资质备案测试数据集创建成功: ${testData.dataSetName}`);
+      } catch (error) {
+        console.error(`❌ 电商企业资质备案测试数据集创建失败: ${testData.dataSetName}`, error);
+      }
+    }
+
     console.log('基础数据初始化完成！');
 
     // 返回插入的数据用于验证
@@ -407,7 +599,8 @@ export async function seedBasicData() {
       roles: businessRoles.length,
       experiments: experiments.length,
       testDatasets: customsTestDatasets.length,
-      icCardTestDatasets: icCardTestDatasets.length
+      icCardTestDatasets: icCardTestDatasets.length,
+      ecommerceQualificationTestDatasets: ecommerceQualificationTestDatasets.length
     };
 
   } catch (error) {
@@ -424,12 +617,14 @@ export async function seedTestData() {
     // 创建测试用户（如果不存在）
     const testUsers = [
       {
+        id: 'test-user-001',
         phone: '13800000001',
         password: '$2a$10$8K1p/a0dUrziIWlgIm4Vx.A/c0T8EjkqOt.w2x1QJ5eLRGxkQjP9C', // password: 123456
         username: '测试企业操作员',
         role: 'student'
       },
       {
+        id: 'test-user-002',
         phone: '13800000002',
         password: '$2a$10$8K1p/a0dUrziIWlgIm4Vx.A/c0T8EjkqOt.w2x1QJ5eLRGxkQjP9C', // password: 123456
         username: '测试海关审核员',

@@ -1,22 +1,22 @@
 import { sql } from "drizzle-orm";
 import { 
-  mysqlTable, 
+  pgTable, 
   varchar, 
   text, 
   timestamp, 
-  int, 
-  json, 
+  integer, 
+  jsonb, 
   boolean,
-  decimal
-} from "drizzle-orm/mysql-core";
+  numeric
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
 // 产品用户角色表（第一层角色：决定系统基础权限）
 // 保持现有结构兼容性，role字段对应产品用户角色
-export const users = mysqlTable("users", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const users = pgTable("users", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   phone: varchar("phone", { length: 11 }).notNull().unique(),
   password: text("password").notNull(),
   username: varchar("username", { length: 50 }).notNull(),
@@ -28,20 +28,20 @@ export const users = mysqlTable("users", {
 });
 
 // 实训业务角色表（第二层角色：决定实训操作范围，仅对学生开放）
-export const businessRoles = mysqlTable("business_roles", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const businessRoles = pgTable("business_roles", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   roleCode: varchar("role_code", { length: 50 }).notNull().unique(),
   roleName: varchar("role_name", { length: 100 }).notNull(),
   description: text("description"),
-  availableScenes: json("available_scenes").$type<string[]>(), // 可进入的场景ID列表
-  availableOperations: json("available_operations").$type<string[]>(), // 可执行的操作列表
+  availableScenes: jsonb("available_scenes").$type<string[]>(), // 可进入的场景ID列表
+  availableOperations: jsonb("available_operations").$type<string[]>(), // 可执行的操作列表
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 用户-业务角色关联表（记录学生在实训任务中选择的业务角色）
-export const userBusinessRoles = mysqlTable("user_business_roles", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const userBusinessRoles = pgTable("user_business_roles", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
   businessRoleId: varchar("business_role_id", { length: 36 }).notNull().references(() => businessRoles.id, { onDelete: "cascade" }),
   taskId: varchar("task_id", { length: 36 }).references(() => trainingTasks.id), // 关联到具体实训任务
@@ -50,84 +50,84 @@ export const userBusinessRoles = mysqlTable("user_business_roles", {
 });
 
 // 5大实训场景配置（物理空间/操作载体）
-export const virtualScenes = mysqlTable("virtual_scenes", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const virtualScenes = pgTable("virtual_scenes", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   imageUrl: text("image_url"),
   // 基于业务角色的操作入口配置
-  operationPoints: json("operation_points").$type<{
+  operationPoints: jsonb("operation_points").$type<{
     businessRoleCode: string;
     entryName: string;
     entryDescription: string;
     allowedOperations: string[];
   }[]>(),
-  interactiveElements: json("interactive_elements").$type<string[]>(),
+  interactiveElements: jsonb("interactive_elements").$type<string[]>(),
   status: varchar("status", { length: 20 }).notNull().default("active"),
-  order: int("order").notNull().default(0),
+  order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Experiment workflows
-export const experiments = mysqlTable("experiments", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const experiments = pgTable("experiments", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
   category: varchar("category", { length: 50 }).notNull(), // preparation, declaration, inspection, etc.
-  steps: json("steps").$type<any[]>(),
-  requirements: json("requirements").$type<string[]>(),
-  order: int("order").notNull().default(0),
+  steps: jsonb("steps").$type<any[]>(),
+  requirements: jsonb("requirements").$type<string[]>(),
+  order: integer("order").notNull().default(0),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 学生进度跟踪（基于业务角色的操作记录）
-export const studentProgress = mysqlTable("student_progress", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const studentProgress = pgTable("student_progress", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
   experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
   businessRoleId: varchar("business_role_id", { length: 36 }).references(() => businessRoles.id), // 当前扮演的业务角色
   sceneId: varchar("scene_id", { length: 36 }).references(() => virtualScenes.id),
   status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, in_progress, completed
-  progress: int("progress").notNull().default(0), // 0-100
-  currentStep: int("current_step").default(0),
+  progress: integer("progress").notNull().default(0), // 0-100
+  currentStep: integer("current_step").default(0),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
-  timeSpent: int("time_spent").default(0), // in minutes
+  timeSpent: integer("time_spent").default(0), // in minutes
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // 业务协作数据表（记录角色间的数据流转）
-export const collaborationData = mysqlTable("collaboration_data", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const collaborationData = pgTable("collaboration_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   taskId: varchar("task_id", { length: 36 }).notNull().references(() => trainingTasks.id, { onDelete: "cascade" }),
   fromUserId: varchar("from_user_id", { length: 36 }).notNull().references(() => users.id),
   fromRoleCode: varchar("from_role_code", { length: 50 }).notNull(), // 发起方业务角色
   toUserId: varchar("to_user_id", { length: 36 }).references(() => users.id), // 接收方用户（可为空，如系统自动处理）
   toRoleCode: varchar("to_role_code", { length: 50 }).notNull(), // 接收方业务角色
   dataType: varchar("data_type", { length: 100 }).notNull(), // 数据类型：backup_application, customs_declaration, etc.
-  data: json("data").$type<any>(), // 协作数据内容
+  data: jsonb("data").$type<any>(), // 协作数据内容
   status: varchar("status", { length: 20 }).default("pending"), // pending, processed, completed
   processedAt: timestamp("processed_at"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
 // 实训任务表（教师分配，支持业务角色分工）
-export const trainingTasks = mysqlTable("training_tasks", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const trainingTasks = pgTable("training_tasks", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   title: varchar("title", { length: 200 }).notNull(),
   description: text("description"),
   teacherId: varchar("teacher_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
   experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
   // 任务需要的业务角色配置
-  requiredBusinessRoles: json("required_business_roles").$type<string[]>(), // 必需的业务角色代码列表
+  requiredBusinessRoles: jsonb("required_business_roles").$type<string[]>(), // 必需的业务角色代码列表
   // 学生-业务角色分配
-  roleAssignments: json("role_assignments").$type<{
+  roleAssignments: jsonb("role_assignments").$type<{
     studentId: string;
     businessRoleCode: string;
   }[]>(),
-  assignedStudents: json("assigned_students").$type<string[]>(),
+  assignedStudents: jsonb("assigned_students").$type<string[]>(),
   taskType: varchar("task_type", { length: 20 }).default("individual"), // individual（单人实训）, group（小组实训）
   dueDate: timestamp("due_date"),
   isActive: boolean("is_active").notNull().default(true),
@@ -135,13 +135,13 @@ export const trainingTasks = mysqlTable("training_tasks", {
 });
 
 // Student submissions and evaluation results
-export const experimentResults = mysqlTable("experiment_results", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const experimentResults = pgTable("experiment_results", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
   experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
   taskId: varchar("task_id", { length: 36 }).references(() => trainingTasks.id),
-  submissionData: json("submission_data").$type<any>(),
-  score: decimal("score", { precision: 5, scale: 2 }),
+  submissionData: jsonb("submission_data").$type<any>(),
+  score: numeric("score", { precision: 5, scale: 2 }),
   feedback: text("feedback"),
   evaluatedBy: varchar("evaluated_by", { length: 36 }).references(() => users.id),
   evaluatedAt: timestamp("evaluated_at"),
@@ -149,12 +149,12 @@ export const experimentResults = mysqlTable("experiment_results", {
 });
 
 // File uploads for training materials
-export const uploadedFiles = mysqlTable("uploaded_files", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const uploadedFiles = pgTable("uploaded_files", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   filename: varchar("filename", { length: 255 }).notNull(),
   originalName: varchar("original_name", { length: 255 }).notNull(),
   mimeType: varchar("mime_type", { length: 100 }),
-  size: int("size"),
+  size: integer("size"),
   path: text("path").notNull(),
   uploadedBy: varchar("uploaded_by", { length: 36 }).notNull().references(() => users.id),
   experimentId: varchar("experiment_id", { length: 36 }).references(() => experiments.id),
@@ -351,29 +351,29 @@ export const WORKFLOWS = {
 } as const;
 
 // 工作流程实例表
-export const workflowInstances = mysqlTable("workflow_instances", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const workflowInstances = pgTable("workflow_instances", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   workflowCode: varchar("workflow_code", { length: 50 }).notNull(),
   businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
   initiatorUserId: varchar("initiator_user_id", { length: 36 }).notNull(),
-  currentStep: int("current_step").notNull().default(1),
+  currentStep: integer("current_step").notNull().default(1),
   status: varchar("status", { length: 20 }).notNull().default("active"), // active, completed, paused, failed
-  stepData: json("step_data"), // 存储各步骤的数据
-  collaborators: json("collaborators"), // 参与的其他角色用户
+  stepData: jsonb("step_data"), // 存储各步骤的数据
+  collaborators: jsonb("collaborators"), // 参与的其他角色用户
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // 工作流程步骤执行记录表
-export const workflowStepExecutions = mysqlTable("workflow_step_executions", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const workflowStepExecutions = pgTable("workflow_step_executions", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   workflowInstanceId: varchar("workflow_instance_id", { length: 36 }).notNull(),
-  stepNumber: int("step_number").notNull(),
+  stepNumber: integer("step_number").notNull(),
   executorUserId: varchar("executor_user_id", { length: 36 }).notNull(),
   businessRoleCode: varchar("business_role_code", { length: 50 }).notNull(),
   action: varchar("action", { length: 100 }).notNull(),
-  inputData: json("input_data"),
-  outputData: json("output_data"),
+  inputData: jsonb("input_data"),
+  outputData: jsonb("output_data"),
   status: varchar("status", { length: 20 }).notNull().default("completed"), // completed, failed
   executedAt: timestamp("executed_at").defaultNow(),
 });
@@ -397,8 +397,8 @@ export type WorkflowStepExecution = typeof workflowStepExecutions.$inferSelect;
 export type InsertWorkflowStepExecution = z.infer<typeof insertWorkflowStepExecutionSchema>;
 
 // 海关企业资质备案测试数据表
-export const customsTestData = mysqlTable("customs_test_data", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const customsTestData = pgTable("customs_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
   companyName: varchar("company_name", { length: 200 }).notNull(),
   unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
@@ -408,9 +408,9 @@ export const customsTestData = mysqlTable("customs_test_data", {
   contactPerson: varchar("contact_person", { length: 50 }).notNull(),
   contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
   contactEmail: varchar("contact_email", { length: 100 }).notNull(),
-  businessScope: json("business_scope").$type<string[]>().notNull(),
+  businessScope: jsonb("business_scope").$type<string[]>().notNull(),
   importExportLicense: varchar("import_export_license", { length: 30 }),
-  registeredCapital: decimal("registered_capital", { precision: 15, scale: 2 }).notNull(),
+  registeredCapital: numeric("registered_capital", { precision: 15, scale: 2 }).notNull(),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -425,19 +425,19 @@ export type CustomsTestData = typeof customsTestData.$inferSelect;
 export type InsertCustomsTestData = z.infer<typeof insertCustomsTestDataSchema>;
 
 // 电子口岸IC卡申请测试数据表
-export const icCardTestData = mysqlTable("ic_card_test_data", {
-  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+export const icCardTestData = pgTable("ic_card_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
   dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
   companyName: varchar("company_name", { length: 200 }).notNull(),
   unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
   registeredAddress: text("registered_address").notNull(),
   legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
   businessLicense: varchar("business_license", { length: 30 }).notNull(),
-  registeredCapital: decimal("registered_capital", { precision: 15, scale: 2 }).notNull(),
+  registeredCapital: numeric("registered_capital", { precision: 15, scale: 2 }).notNull(),
   contactPerson: varchar("contact_person", { length: 50 }).notNull(),
   contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
   contactEmail: varchar("contact_email", { length: 100 }).notNull(),
-  businessScope: json("business_scope").$type<string[]>().notNull(),
+  businessScope: jsonb("business_scope").$type<string[]>().notNull(),
   // IC卡申请特有字段
   operatorName: varchar("operator_name", { length: 50 }).notNull(), // 操作员姓名
   operatorIdCard: varchar("operator_id_card", { length: 18 }).notNull(), // 操作员身份证号
@@ -445,7 +445,7 @@ export const icCardTestData = mysqlTable("ic_card_test_data", {
   foreignTradeRegistration: varchar("foreign_trade_registration", { length: 30 }).notNull(), // 对外贸易经营者备案登记表编号
   customsImportExportReceipt: varchar("customs_import_export_receipt", { length: 30 }).notNull(), // 海关进出口货物收发人备案回执编号
   applicationReason: text("application_reason").notNull(), // 申请原因
-  expectedCardQuantity: int("expected_card_quantity").notNull().default(1), // 预期申请卡片数量
+  expectedCardQuantity: integer("expected_card_quantity").notNull().default(1), // 预期申请卡片数量
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -458,3 +458,52 @@ export const insertIcCardTestDataSchema = createInsertSchema(icCardTestData).omi
 
 export type IcCardTestData = typeof icCardTestData.$inferSelect;
 export type InsertIcCardTestData = z.infer<typeof insertIcCardTestDataSchema>;
+
+// 电商企业资质备案测试数据表
+export const ecommerceQualificationTestData = pgTable("ecommerce_qualification_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  // 企业基本信息
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  legalRepresentativeIdCard: varchar("legal_representative_id_card", { length: 18 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  businessAddress: text("business_address").notNull(),
+  registeredCapital: integer("registered_capital").notNull(), // 注册资本（万元）
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  // 经营资质信息
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  businessScope: text("business_scope").notNull(),
+  foreignTradeRecord: varchar("foreign_trade_record", { length: 30 }).notNull(), // 对外贸易经营者备案登记表编号
+  customsEcommerceRecord: varchar("customs_ecommerce_record", { length: 30 }).notNull(), // 跨境电商海关备案号
+  establishmentDate: varchar("establishment_date", { length: 20 }).notNull(), // 企业成立日期
+  businessValidityPeriod: varchar("business_validity_period", { length: 100 }).notNull(), // 营业期限
+  // 产品与生产信息
+  mainProducts: text("main_products").notNull(), // 主要经营产品
+  productionCapacity: text("production_capacity").notNull(), // 年生产能力
+  productCertification: varchar("product_certification", { length: 200 }).notNull(), // 产品认证证书编号
+  qualityManagementSystem: varchar("quality_management_system", { length: 200 }), // 质量管理体系认证
+  brandAuthorization: text("brand_authorization"), // 品牌授权情况
+  supplierInformation: text("supplier_information").notNull(), // 主要供应商信息
+  // 财务与税务信息
+  foreignExchangeAccount: varchar("foreign_exchange_account", { length: 100 }).notNull(), // 外汇结算账户开户银行
+  foreignExchangeAccountNumber: varchar("foreign_exchange_account_number", { length: 30 }).notNull(), // 外汇结算账户号
+  taxRegistrationNumber: varchar("tax_registration_number", { length: 30 }).notNull(), // 税务登记证号
+  taxpayerType: varchar("taxpayer_type", { length: 20 }).notNull(), // 纳税人类型
+  annualTurnover: integer("annual_turnover").notNull(), // 上年度营业额（万元）
+  exportVolume: integer("export_volume").notNull(), // 上年度出口额（万美元）
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 电商企业资质备案测试数据相关 schema
+export const insertEcommerceQualificationTestDataSchema = createInsertSchema(ecommerceQualificationTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type EcommerceQualificationTestData = typeof ecommerceQualificationTestData.$inferSelect;
+export type InsertEcommerceQualificationTestData = z.infer<typeof insertEcommerceQualificationTestDataSchema>;
