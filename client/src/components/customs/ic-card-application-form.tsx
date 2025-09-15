@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Building2, FileText, Upload, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, CreditCard } from "lucide-react";
+import { Building2, FileText, Upload, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, CreditCard, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
