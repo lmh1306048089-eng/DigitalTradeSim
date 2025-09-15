@@ -320,7 +320,7 @@ export default function SimplifiedStudentDashboard() {
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
-                  setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+                  setLocation("/experiments/b2e8f3c1-1234-4567-8901-234567890abc");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
