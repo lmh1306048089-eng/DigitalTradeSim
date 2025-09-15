@@ -13,6 +13,7 @@ import {
   workflowStepExecutions,
   customsTestData,
   icCardTestData,
+  ecommerceQualificationTestData,
   type User,
   type InsertUser,
   type VirtualScene,
@@ -41,6 +42,8 @@ import {
   type InsertCustomsTestData,
   type IcCardTestData,
   type InsertIcCardTestData,
+  type EcommerceQualificationTestData,
+  type InsertEcommerceQualificationTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -647,6 +650,49 @@ export class DatabaseStorage implements IStorage {
     const data = await db.select().from(icCardTestData).where(eq(icCardTestData.id, id));
     if (!data[0]) throw new Error("Failed to update IC card test data");
     return data[0];
+  }
+
+  // E-commerce qualification test data operations
+  async getEcommerceQualificationTestData(): Promise<EcommerceQualificationTestData[]> {
+    return db.select().from(ecommerceQualificationTestData).where(eq(ecommerceQualificationTestData.isActive, true));
+  }
+
+  async getEcommerceQualificationTestDataByName(dataSetName: string): Promise<EcommerceQualificationTestData | undefined> {
+    const [testData] = await db.select().from(ecommerceQualificationTestData)
+      .where(and(eq(ecommerceQualificationTestData.dataSetName, dataSetName), eq(ecommerceQualificationTestData.isActive, true)));
+    return testData;
+  }
+
+  async createEcommerceQualificationTestData(testDataInput: InsertEcommerceQualificationTestData): Promise<EcommerceQualificationTestData> {
+    await db.insert(ecommerceQualificationTestData).values([{
+      dataSetName: testDataInput.dataSetName,
+      companyName: testDataInput.companyName,
+      unifiedCreditCode: testDataInput.unifiedCreditCode,
+      businessLicenseNumber: testDataInput.businessLicenseNumber,
+      legalRepresentative: testDataInput.legalRepresentative,
+      legalRepIdCard: testDataInput.legalRepIdCard,
+      legalRepPhone: testDataInput.legalRepPhone,
+      registeredAddress: testDataInput.registeredAddress,
+      businessAddress: testDataInput.businessAddress,
+      contactPerson: testDataInput.contactPerson,
+      contactPhone: testDataInput.contactPhone,
+      contactEmail: testDataInput.contactEmail,
+      tradeLicenseNumber: testDataInput.tradeLicenseNumber,
+      tradeScope: testDataInput.tradeScope,
+      customsRecordNumber: testDataInput.customsRecordNumber,
+      bankName: testDataInput.bankName,
+      accountNumber: testDataInput.accountNumber,
+      accountName: testDataInput.accountName,
+      taxRegistrationNumber: testDataInput.taxRegistrationNumber,
+      vatNumber: testDataInput.vatNumber,
+      productionCapacity: testDataInput.productionCapacity,
+      qualityCertification: testDataInput.qualityCertification,
+      isActive: testDataInput.isActive ?? true
+    }]);
+    const [insertedData] = await db.select().from(ecommerceQualificationTestData)
+      .where(eq(ecommerceQualificationTestData.dataSetName, testDataInput.dataSetName));
+    if (!insertedData) throw new Error("Failed to create e-commerce qualification test data");
+    return insertedData;
   }
 }
 

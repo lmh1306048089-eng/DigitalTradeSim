@@ -247,6 +247,66 @@ export const loginSchema = z.object({
   role: z.enum(["student", "teacher", "admin"]),
 });
 
+// E-commerce qualification form submission schema
+export const ecommerceQualificationSubmissionSchema = z.object({
+  // 基本企业信息
+  companyName: z.string().min(2, "企业名称至少2个字符"),
+  unifiedCreditCode: z.string().regex(/^[0-9A-HJ-NPQRTUWXY]{2}\d{6}[0-9A-HJ-NPQRTUWXY]{10}$/, "请输入正确的统一社会信用代码"),
+  businessLicenseNumber: z.string().min(15, "营业执照注册号不能少于15位"),
+  
+  // 法定代表人信息
+  legalRepresentative: z.string().min(2, "法定代表人姓名至少2个字符"),
+  legalRepIdCard: z.string().regex(/^[1-9]\d{5}(18|19|20)\d{2}((0[1-9])|(1[0-2]))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$/, "请输入有效的身份证号码"),
+  legalRepPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号"),
+  
+  // 企业地址信息
+  registeredAddress: z.string().min(10, "注册地址信息不完整"),
+  businessAddress: z.string().min(10, "经营地址信息不完整"),
+  
+  // 联系信息
+  contactPerson: z.string().min(2, "联系人姓名至少2个字符"),
+  contactPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号"),
+  contactEmail: z.string().email("请输入有效的邮箱地址"),
+  
+  // 对外贸易经营者备案信息
+  tradeLicenseNumber: z.string().min(10, "对外贸易经营者备案登记表编号不能少于10位"),
+  tradeScope: z.string().or(z.array(z.string())).transform(val => 
+    typeof val === 'string' ? val.split(',') : val
+  ),
+  
+  // 跨境电商海关备案号
+  customsRecordNumber: z.string().min(10, "海关备案号不能少于10位"),
+  
+  // 外汇结算账户信息
+  bankName: z.string().min(2, "开户银行名称不能少于2个字符"),
+  accountNumber: z.string().min(10, "银行账号不能少于10位"),
+  accountName: z.string().min(2, "账户名称不能少于2个字符"),
+  
+  // 税务备案信息
+  taxRegistrationNumber: z.string().min(15, "税务登记证号不能少于15位"),
+  vatNumber: z.string().optional(),
+  
+  // 生产能力信息
+  productionCapacity: z.string().min(10, "请详细描述生产能力"),
+  qualityCertification: z.string().or(z.array(z.string())).optional().transform(val => 
+    typeof val === 'string' ? val.split(',') : val
+  ),
+  
+  // 声明确认
+  dataAccuracy: z.string().or(z.boolean()).transform(val => val === 'true' || val === true),
+  legalResponsibility: z.string().or(z.boolean()).transform(val => val === 'true' || val === true),
+  submitConsent: z.string().or(z.boolean()).transform(val => val === 'true' || val === true)
+}).refine(data => data.dataAccuracy === true, {
+  message: "必须确认数据真实性",
+  path: ["dataAccuracy"]
+}).refine(data => data.legalResponsibility === true, {
+  message: "必须承诺承担法律责任", 
+  path: ["legalResponsibility"]
+}).refine(data => data.submitConsent === true, {
+  message: "必须同意提交申请",
+  path: ["submitConsent"]
+});
+
 export const insertBusinessRoleSchema = createInsertSchema(businessRoles).omit({
   id: true,
   createdAt: true,

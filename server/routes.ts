@@ -25,7 +25,9 @@ import {
   insertBusinessRoleSchema,
   insertUserBusinessRoleSchema,
   insertCustomsTestDataSchema,
-  insertIcCardTestDataSchema
+  insertIcCardTestDataSchema,
+  insertEcommerceQualificationTestDataSchema,
+  ecommerceQualificationSubmissionSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 
@@ -902,6 +904,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message || "获取场景操作信息失败" });
+    }
+  });
+
+  // E-commerce qualification test data routes
+  app.get("/api/test-data/ecommerce-qualification", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getEcommerceQualificationTestData();
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取电商企业资质测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/test-data/ecommerce-qualification/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getEcommerceQualificationTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          success: false,
+          message: "测试数据集不存在"
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取电商企业资质测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  // E-commerce qualification filing submission
+  app.post("/api/experiments/ecommerce-qualification-filing", 
+    authenticateToken, 
+    upload.array('files', 10), 
+    async (req, res) => {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user!.id;
+      
+      // Validate request body with Zod
+      const validationResult = ecommerceQualificationSubmissionSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: "数据验证失败",
+          errors: validationResult.error.errors.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        });
+      }
+      
+      const formData = validationResult.data;
+      
+      // Handle uploaded files
+      const uploadedFiles = req.files as Express.Multer.File[] || [];
+      const fileData = uploadedFiles.map(file => ({
+        originalName: file.originalname,
+        filename: file.filename,
+        path: file.path,
+        mimetype: file.mimetype,
+        size: file.size
+      }));
+      
+      // Create experiment result record
+      const experimentResult = await storage.createExperimentResult({
+        userId,
+        experimentId: 'experiment-003', // E-commerce qualification filing
+        submissionData: [{
+          ...formData,
+          uploadedFiles: fileData
+        }]
+      });
+
+      res.json({
+        success: true,
+        message: "电商企业资质备案申请已成功提交",
+        data: {
+          resultId: experimentResult.id,
+          applicationNumber: `EQ${Date.now()}`,
+          submittedAt: new Date().toISOString()
+        }
+      });
+    } catch (error: any) {
+      console.error("提交电商企业资质备案失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "提交失败，请稍后重试" 
+      });
     }
   });
 

@@ -121,8 +121,8 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
 
   // 自动预填充测试数据（无感知）
   useEffect(() => {
-    if (testData && testData.length > 0) {
-      const firstDataSet = testData[0];
+    if (testData && testData.data && Array.isArray(testData.data) && testData.data.length > 0) {
+      const firstDataSet = testData.data[0];
       // 静默预填充表单数据
       form.reset({
         companyName: firstDataSet.companyName || "",
@@ -998,7 +998,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
               ) : (
                 <Button 
                   type="button" 
-                  onClick={() => onComplete?.({ uploadedFiles })}
+                  onClick={() => onComplete?.(form.getValues() as EnterpriseQualificationData & { uploadedFiles: any[] })}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   返回任务列表
