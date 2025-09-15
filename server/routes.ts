@@ -24,7 +24,8 @@ import {
   insertExperimentResultSchema,
   insertBusinessRoleSchema,
   insertUserBusinessRoleSchema,
-  insertCustomsTestDataSchema
+  insertCustomsTestDataSchema,
+  insertIcCardTestDataSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 
@@ -666,6 +667,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("创建海关测试数据失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "创建测试数据失败" 
+      });
+    }
+  });
+
+  // IC Card test data routes
+  app.get("/api/ic-card-test-data", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getIcCardTestData();
+      res.json(testData);
+    } catch (error: any) {
+      console.error("获取IC卡测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/ic-card-test-data/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getIcCardTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          success: false,
+          message: "测试数据集不存在"
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取IC卡测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.post("/api/ic-card-test-data", authenticateToken, requireRole(["admin", "teacher"]), async (req, res) => {
+    try {
+      const testData = insertIcCardTestDataSchema.parse(req.body);
+      const result = await storage.createIcCardTestData(testData);
+      
+      res.json({
+        success: true,
+        message: "IC卡测试数据创建成功",
+        data: result
+      });
+    } catch (error: any) {
+      console.error("创建IC卡测试数据失败:", error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({

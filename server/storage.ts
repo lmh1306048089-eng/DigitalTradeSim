@@ -12,6 +12,7 @@ import {
   workflowInstances,
   workflowStepExecutions,
   customsTestData,
+  icCardTestData,
   type User,
   type InsertUser,
   type VirtualScene,
@@ -38,6 +39,8 @@ import {
   type InsertWorkflowStepExecution,
   type CustomsTestData,
   type InsertCustomsTestData,
+  type IcCardTestData,
+  type InsertIcCardTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -111,6 +114,12 @@ export interface IStorage {
   getCustomsTestDataByName(dataSetName: string): Promise<CustomsTestData | undefined>;
   createCustomsTestData(testData: InsertCustomsTestData): Promise<CustomsTestData>;
   updateCustomsTestData(id: string, updates: Partial<CustomsTestData>): Promise<CustomsTestData>;
+  
+  // IC card test data operations
+  getIcCardTestData(): Promise<IcCardTestData[]>;
+  getIcCardTestDataByName(dataSetName: string): Promise<IcCardTestData | undefined>;
+  createIcCardTestData(testData: InsertIcCardTestData): Promise<IcCardTestData>;
+  updateIcCardTestData(id: string, updates: Partial<IcCardTestData>): Promise<IcCardTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -588,6 +597,55 @@ export class DatabaseStorage implements IStorage {
       .where(eq(customsTestData.id, id));
     const data = await db.select().from(customsTestData).where(eq(customsTestData.id, id));
     if (!data[0]) throw new Error("Failed to update customs test data");
+    return data[0];
+  }
+
+  // IC card test data operations
+  async getIcCardTestData(): Promise<IcCardTestData[]> {
+    return db.select().from(icCardTestData).where(eq(icCardTestData.isActive, true));
+  }
+
+  async getIcCardTestDataByName(dataSetName: string): Promise<IcCardTestData | undefined> {
+    const [testData] = await db.select().from(icCardTestData)
+      .where(and(eq(icCardTestData.dataSetName, dataSetName), eq(icCardTestData.isActive, true)));
+    return testData;
+  }
+
+  async createIcCardTestData(testDataInput: InsertIcCardTestData): Promise<IcCardTestData> {
+    await db.insert(icCardTestData).values([{
+      dataSetName: testDataInput.dataSetName,
+      companyName: testDataInput.companyName,
+      unifiedCreditCode: testDataInput.unifiedCreditCode,
+      registeredAddress: testDataInput.registeredAddress,
+      legalRepresentative: testDataInput.legalRepresentative,
+      businessLicense: testDataInput.businessLicense,
+      registeredCapital: testDataInput.registeredCapital,
+      contactPerson: testDataInput.contactPerson,
+      contactPhone: testDataInput.contactPhone,
+      contactEmail: testDataInput.contactEmail,
+      businessScope: testDataInput.businessScope ? JSON.parse(JSON.stringify(testDataInput.businessScope)) : [],
+      operatorName: testDataInput.operatorName,
+      operatorIdCard: testDataInput.operatorIdCard,
+      customsDeclarantCertificate: testDataInput.customsDeclarantCertificate,
+      foreignTradeRegistration: testDataInput.foreignTradeRegistration,
+      customsImportExportReceipt: testDataInput.customsImportExportReceipt,
+      applicationReason: testDataInput.applicationReason,
+      expectedCardQuantity: testDataInput.expectedCardQuantity,
+      isActive: testDataInput.isActive ?? true
+    }]);
+    const [insertedData] = await db.select().from(icCardTestData)
+      .where(eq(icCardTestData.dataSetName, testDataInput.dataSetName));
+    if (!insertedData) throw new Error("Failed to create IC card test data");
+    return insertedData;
+  }
+
+  async updateIcCardTestData(id: string, updates: Partial<IcCardTestData>): Promise<IcCardTestData> {
+    await db
+      .update(icCardTestData)
+      .set(updates)
+      .where(eq(icCardTestData.id, id));
+    const data = await db.select().from(icCardTestData).where(eq(icCardTestData.id, id));
+    if (!data[0]) throw new Error("Failed to update IC card test data");
     return data[0];
   }
 }
