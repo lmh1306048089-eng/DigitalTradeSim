@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Header } from "@/components/layout/header";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
-import { EportIcCardForm } from "@/components/eport/eport-ic-card-form";
+import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import type { Experiment, StudentProgress } from "../types/index";
@@ -216,7 +216,7 @@ export default function ExperimentDetailPage() {
           </Button>
         </Header>
         <div className="container mx-auto py-6">
-          <EportIcCardForm
+          <IcCardApplicationForm
             onComplete={handleExperimentComplete}
             onCancel={() => setShowEportForm(false)}
           />
