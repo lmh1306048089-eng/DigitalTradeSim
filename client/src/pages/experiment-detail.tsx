@@ -177,6 +177,162 @@ export default function ExperimentDetailPage() {
     setLocation(getBackToSceneUrl());
   };
 
+  // 根据实验名称获取步骤配置
+  const getExperimentSteps = (experimentName: string) => {
+    if (experimentName === "电子口岸IC卡申请") {
+      return [
+        {
+          id: 1,
+          title: "入网资格自检",
+          description: "检查企业是否满足电子口岸入网的基本条件，确认具备申请资格",
+          icon: "🔍",
+          iconText: "资格检查",
+          bgColor: "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
+          borderColor: "border-blue-200 dark:border-blue-700",
+          textColor: "text-blue-800 dark:text-blue-100",
+          descColor: "text-blue-700 dark:text-blue-200",
+          iconBgColor: "from-blue-500 to-blue-600"
+        },
+        {
+          id: 2,
+          title: "企业信息填写",
+          description: "填写企业基本信息、法定代表人信息、IC卡操作员信息等",
+          icon: "📋",
+          iconText: "信息填写",
+          bgColor: "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
+          borderColor: "border-green-200 dark:border-green-700",
+          textColor: "text-green-800 dark:text-green-100",
+          descColor: "text-green-700 dark:text-green-200",
+          iconBgColor: "from-green-500 to-green-600"
+        },
+        {
+          id: 3,
+          title: "材料上传提交",
+          description: "上传营业执照、身份证、各类备案证明等必需材料并在线提交申请",
+          icon: "📤",
+          iconText: "材料提交",
+          bgColor: "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
+          borderColor: "border-purple-200 dark:border-purple-700",
+          textColor: "text-purple-800 dark:text-purple-100",
+          descColor: "text-purple-700 dark:text-purple-200",
+          iconBgColor: "from-purple-500 to-purple-600"
+        },
+        {
+          id: 4,
+          title: "预约现场核验",
+          description: "选择合适的时间和地点，预约到海关进行现场核验",
+          icon: "📅",
+          iconText: "预约核验",
+          bgColor: "from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30",
+          borderColor: "border-orange-200 dark:border-orange-700",
+          textColor: "text-orange-800 dark:text-orange-100",
+          descColor: "text-orange-700 dark:text-orange-200",
+          iconBgColor: "from-orange-500 to-orange-600"
+        },
+        {
+          id: 5,
+          title: "现场核验审核",
+          description: "携带原件到指定地点进行现场核验，海关工作人员审核材料",
+          icon: "🏛️",
+          iconText: "现场核验",
+          bgColor: "from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30",
+          borderColor: "border-teal-200 dark:border-teal-700",
+          textColor: "text-teal-800 dark:text-teal-100",
+          descColor: "text-teal-700 dark:text-teal-200",
+          iconBgColor: "from-teal-500 to-teal-600"
+        },
+        {
+          id: 6,
+          title: "缴费与制卡",
+          description: "审核通过后缴纳IC卡工本费，启动制卡流程",
+          icon: "💳",
+          iconText: "缴费制卡",
+          bgColor: "from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/30",
+          borderColor: "border-rose-200 dark:border-rose-700",
+          textColor: "text-rose-800 dark:text-rose-100",
+          descColor: "text-rose-700 dark:text-rose-200",
+          iconBgColor: "from-rose-500 to-rose-600"
+        },
+        {
+          id: 7,
+          title: "IC卡领取",
+          description: "制卡完成后到指定地点领取IC卡，验证身份并签收",
+          icon: "🎫",
+          iconText: "领取IC卡",
+          bgColor: "from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/30",
+          borderColor: "border-indigo-200 dark:border-indigo-700",
+          textColor: "text-indigo-800 dark:text-indigo-100",
+          descColor: "text-indigo-700 dark:text-indigo-200",
+          iconBgColor: "from-indigo-500 to-indigo-600"
+        },
+        {
+          id: 8,
+          title: "激活与权限开通",
+          description: "激活IC卡并开通相应的业务权限，完成电子口岸入网",
+          icon: "🔓",
+          iconText: "激活开通",
+          bgColor: "from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30",
+          borderColor: "border-emerald-200 dark:border-emerald-700",
+          textColor: "text-emerald-800 dark:text-emerald-100",
+          descColor: "text-emerald-700 dark:text-emerald-200",
+          iconBgColor: "from-emerald-500 to-emerald-600"
+        }
+      ];
+    } else {
+      // 默认为海关企业资质备案步骤
+      return [
+        {
+          id: 1,
+          title: "企业基本信息填写",
+          description: "填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息",
+          icon: "📋",
+          iconText: "企业信息",
+          bgColor: "from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50",
+          borderColor: "border-slate-200 dark:border-slate-700",
+          textColor: "text-slate-800 dark:text-slate-100",
+          descColor: "text-slate-600 dark:text-slate-300",
+          iconBgColor: "from-blue-500 to-blue-600"
+        },
+        {
+          id: 2,
+          title: "企业经营资质",
+          description: "提供企业营业执照、税务登记证、组织机构代码证相关资质证明",
+          icon: "📄",
+          iconText: "资质证明",
+          bgColor: "from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30",
+          borderColor: "border-emerald-200 dark:border-emerald-700",
+          textColor: "text-emerald-800 dark:text-emerald-100",
+          descColor: "text-emerald-700 dark:text-emerald-200",
+          iconBgColor: "from-emerald-500 to-emerald-600"
+        },
+        {
+          id: 3,
+          title: "上传备案材料",
+          description: "提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等",
+          icon: "📤",
+          iconText: "文件上传",
+          bgColor: "from-violet-50 to-violet-100 dark:from-violet-900/30 dark:to-violet-800/30",
+          borderColor: "border-violet-200 dark:border-violet-700",
+          textColor: "text-violet-800 dark:text-violet-100",
+          descColor: "text-violet-700 dark:text-violet-200",
+          iconBgColor: "from-violet-500 to-violet-600"
+        },
+        {
+          id: 4,
+          title: "确认提交申请",
+          description: "核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请",
+          icon: "✅",
+          iconText: "备案提交",
+          bgColor: "from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30",
+          borderColor: "border-amber-200 dark:border-amber-700",
+          textColor: "text-amber-800 dark:text-amber-100",
+          descColor: "text-amber-700 dark:text-amber-200",
+          iconBgColor: "from-amber-500 to-amber-600"
+        }
+      ];
+    }
+  };
+
   // 如果正在显示海关备案表单，直接渲染表单
   if (showCustomsForm && experiment?.name === "海关企业资质备案") {
     return (
@@ -363,91 +519,40 @@ export default function ExperimentDetailPage() {
             {/* 说明文字 */}
             <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-700/50">
               <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
-                🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。
+                {experiment?.name === "电子口岸IC卡申请" ? (
+                  "🎯 按照真实中国电子口岸数据中心平台IC卡申请流程设计的实验，包含预约现场核验、缴费、制卡、领取与激活等关键环节，通过模拟真实场景，让您掌握电子口岸IC卡申请的完整流程。"
+                ) : (
+                  "🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。"
+                )}
               </p>
             </div>
 
             {/* 实验步骤卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* 第1步：企业基本信息填写 */}
-              <div className="h-48 p-4 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border border-slate-200 dark:border-slate-700 flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-md">
-                    <span className="text-lg font-bold text-white">1</span>
+            <div className={`grid grid-cols-1 ${getExperimentSteps(experiment.name).length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6 mb-8`}>
+              {getExperimentSteps(experiment.name).map((step) => (
+                <div 
+                  key={step.id}
+                  className={`min-h-[12rem] p-4 rounded-xl bg-gradient-to-br ${step.bgColor} border ${step.borderColor} flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+                  data-testid={`step-iccard-${step.title}`}
+                >
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br ${step.iconBgColor} flex items-center justify-center shadow-md`}>
+                      <span className="text-lg font-bold text-white">{step.id}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-bold text-lg ${step.textColor} mb-2`}>{step.title}</h4>
+                      <p className={`${step.descColor} text-sm leading-relaxed`}>
+                        {step.description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-slate-800 dark:text-slate-100 mb-2">企业基本信息填写</h4>
-                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
-                      填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-auto pt-3 border-t border-slate-200 dark:border-slate-700">
-                  <div className="text-center text-sm text-slate-700 dark:text-slate-300 font-medium">
-                    📋 企业信息
-                  </div>
-                </div>
-              </div>
-
-              {/* 第2步：企业经营资质 */}
-              <div className="h-48 p-4 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 border border-emerald-200 dark:border-emerald-700 flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-md">
-                    <span className="text-lg font-bold text-white">2</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-emerald-800 dark:text-emerald-100 mb-2">企业经营资质</h4>
-                    <p className="text-emerald-700 dark:text-emerald-200 text-sm leading-relaxed">
-                      提供企业营业执照、税务登记证、组织机构代码证相关资质证明
-                    </p>
+                  <div className={`mt-auto pt-3 border-t ${step.borderColor}`}>
+                    <div className={`text-center text-sm ${step.descColor} font-medium`}>
+                      {step.icon} {step.iconText}
+                    </div>
                   </div>
                 </div>
-                <div className="mt-auto pt-3 border-t border-emerald-200 dark:border-emerald-700">
-                  <div className="text-center text-sm text-emerald-700 dark:text-emerald-300 font-medium">
-                    📄 资质证明
-                  </div>
-                </div>
-              </div>
-
-              {/* 第3步：上传备案材料 */}
-              <div className="h-48 p-4 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/30 dark:to-violet-800/30 border border-violet-200 dark:border-violet-700 flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-md">
-                    <span className="text-lg font-bold text-white">3</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-violet-800 dark:text-violet-100 mb-2">上传备案材料</h4>
-                    <p className="text-violet-700 dark:text-violet-200 text-sm leading-relaxed">
-                      提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-auto pt-3 border-t border-violet-200 dark:border-violet-700">
-                  <div className="text-center text-sm text-violet-700 dark:text-violet-300 font-medium">
-                    📤 文件上传
-                  </div>
-                </div>
-              </div>
-
-              {/* 第4步：确认提交申请 */}
-              <div className="h-48 p-4 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30 border border-amber-200 dark:border-amber-700 flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer">
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md">
-                    <span className="text-lg font-bold text-white">4</span>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-bold text-lg text-amber-800 dark:text-amber-100 mb-2">确认提交申请</h4>
-                    <p className="text-amber-700 dark:text-amber-200 text-sm leading-relaxed">
-                      核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-auto pt-3 border-t border-amber-200 dark:border-amber-700">
-                  <div className="text-center text-sm text-amber-700 dark:text-amber-300 font-medium">
-                    ✅ 备案提交
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
               
             {/* 开始实验按钮 - 自然融入设计 */}
