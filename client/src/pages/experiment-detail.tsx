@@ -25,7 +25,7 @@ export default function ExperimentDetailPage() {
   const getSceneFromExperimentId = (experimentId: string): string => {
     const experimentSceneMap: Record<string, string> = {
       '873e1fe1-0430-4f47-9db2-c4f00e2b048f': 'enterprise_scene', // 海关企业资质备案
-      'b6566249-2b05-497a-9517-b09f2b7eaa97': 'enterprise_scene', // 电子口岸IC卡申请
+      'b2e8f3c1-1234-4567-8901-234567890abc': 'enterprise_scene', // 电子口岸IC卡申请
       'enterprise-qualification-exp': 'enterprise_scene', // 电商企业资质备案
       'transport-id-application-exp': 'enterprise_scene', // 传输ID申请
     };

@@ -5,10 +5,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ProfileModal } from "@/components/modals/profile-modal";
 import { useAuth } from "@/hooks/useAuth";
 import { formatPhoneNumber } from "@/lib/auth";
-import type { UserState } from "@/types";
+import type { User as UserType } from "@/types";
 
 interface UserMenuProps {
-  user: UserState;
+  user: UserType;
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -77,7 +77,7 @@ export function UserMenu({ user }: UserMenuProps) {
       <ProfileModal 
         open={showProfile} 
         onOpenChange={setShowProfile} 
-        user={user} 
+        user={user as any} 
       />
     </>
   );
