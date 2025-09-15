@@ -183,10 +183,10 @@ export default function ExperimentDetailPage() {
       return [
         {
           id: 1,
-          title: "入网资格自检",
-          description: "检查企业是否满足电子口岸入网的基本条件，确认具备申请资格",
-          icon: "🔍",
-          iconText: "资格检查",
+          title: "访问电子口岸平台",
+          description: "登录中国电子口岸数据中心平台，进入电子口岸入网模块",
+          icon: "🌐",
+          iconText: "平台登录",
           bgColor: "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
           borderColor: "border-blue-200 dark:border-blue-700",
           textColor: "text-blue-800 dark:text-blue-100",
@@ -195,10 +195,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 2,
-          title: "企业信息填写",
-          description: "填写企业基本信息、法定代表人信息、IC卡操作员信息等",
-          icon: "📋",
-          iconText: "信息填写",
+          title: "新企业申请入网",
+          description: "在电子口岸入网模块中启动新企业申请入网操作流程",
+          icon: "🏢",
+          iconText: "入网申请",
           bgColor: "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
           borderColor: "border-green-200 dark:border-green-700",
           textColor: "text-green-800 dark:text-green-100",
@@ -207,10 +207,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 3,
-          title: "材料上传提交",
-          description: "上传营业执照、身份证、各类备案证明等必需材料并在线提交申请",
-          icon: "📤",
-          iconText: "材料提交",
+          title: "填写企业基本信息",
+          description: "完整填写企业名称、统一社会信用代码、注册地址、法定代表人等基本信息",
+          icon: "📋",
+          iconText: "信息填写",
           bgColor: "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
           borderColor: "border-purple-200 dark:border-purple-700",
           textColor: "text-purple-800 dark:text-purple-100",
@@ -219,10 +219,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 4,
-          title: "预约现场核验",
-          description: "选择合适的时间和地点，预约到海关进行现场核验",
-          icon: "📅",
-          iconText: "预约核验",
+          title: "提交营业执照",
+          description: "上传企业营业执照副本复印件（加盖企业公章）",
+          icon: "📄",
+          iconText: "营业执照",
           bgColor: "from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30",
           borderColor: "border-orange-200 dark:border-orange-700",
           textColor: "text-orange-800 dark:text-orange-100",
@@ -231,10 +231,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 5,
-          title: "现场核验审核",
-          description: "携带原件到指定地点进行现场核验，海关工作人员审核材料",
-          icon: "🏛️",
-          iconText: "现场核验",
+          title: "提交操作员身份证",
+          description: "上传IC卡操作员身份证原件复印件",
+          icon: "🆔",
+          iconText: "身份证明",
           bgColor: "from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30",
           borderColor: "border-teal-200 dark:border-teal-700",
           textColor: "text-teal-800 dark:text-teal-100",
@@ -243,10 +243,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 6,
-          title: "缴费与制卡",
-          description: "审核通过后缴纳IC卡工本费，启动制卡流程",
-          icon: "💳",
-          iconText: "缴费制卡",
+          title: "提交备案证明材料",
+          description: "上传海关签发的《报关人员备案证明》、《对外贸易经营者备案登记表》原件",
+          icon: "📑",
+          iconText: "备案证明",
           bgColor: "from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/30",
           borderColor: "border-rose-200 dark:border-rose-700",
           textColor: "text-rose-800 dark:text-rose-100",
@@ -255,10 +255,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 7,
-          title: "IC卡领取",
-          description: "制卡完成后到指定地点领取IC卡，验证身份并签收",
-          icon: "🎫",
-          iconText: "领取IC卡",
+          title: "提交备案回执",
+          description: "上传海关进出口货物收发人备案回执等相关文件",
+          icon: "📋",
+          iconText: "备案回执",
           bgColor: "from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/30",
           borderColor: "border-indigo-200 dark:border-indigo-700",
           textColor: "text-indigo-800 dark:text-indigo-100",
@@ -267,10 +267,10 @@ export default function ExperimentDetailPage() {
         },
         {
           id: 8,
-          title: "激活与权限开通",
-          description: "激活IC卡并开通相应的业务权限，完成电子口岸入网",
-          icon: "🔓",
-          iconText: "激活开通",
+          title: "完成IC卡申请办理",
+          description: "确认所有材料无误后提交申请，完成电子口岸IC卡申请办理流程",
+          icon: "✅",
+          iconText: "申请完成",
           bgColor: "from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30",
           borderColor: "border-emerald-200 dark:border-emerald-700",
           textColor: "text-emerald-800 dark:text-emerald-100",
@@ -520,7 +520,7 @@ export default function ExperimentDetailPage() {
             <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-700/50">
               <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                 {experiment?.name === "电子口岸IC卡申请" ? (
-                  "🎯 按照真实中国电子口岸数据中心平台IC卡申请流程设计的实验，包含预约现场核验、缴费、制卡、领取与激活等关键环节，通过模拟真实场景，让您掌握电子口岸IC卡申请的完整流程。"
+                  "🎯 用户在电商企业场景中，依照任务要求，模拟前往中国电子口岸数据中心平台办理IC卡。通过在电子口岸入网模块中进行新企业申请入网操作，提交营业执照、操作员身份证、报关人员备案证明、对外贸易经营者备案登记表及海关进出口货物收发人备案回执等文件，完成IC卡的申请办理。"
                 ) : (
                   "🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。"
                 )}
