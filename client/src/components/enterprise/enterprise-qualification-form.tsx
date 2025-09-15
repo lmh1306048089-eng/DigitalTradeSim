@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/experiments/file-upload";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 // 表单验证模式
 const enterpriseQualificationSchema = z.object({
@@ -82,6 +83,12 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
   } | null>(null);
   const { toast } = useToast();
 
+  // 获取测试数据用于自动预填充
+  const { data: testData } = useQuery({
+    queryKey: ['/api/test-data/ecommerce-qualification'],
+    enabled: true
+  });
+
   const form = useForm<EnterpriseQualificationData>({
     resolver: zodResolver(enterpriseQualificationSchema),
     defaultValues: {
@@ -111,6 +118,44 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
       submitConsent: false
     }
   });
+
+  // 自动预填充测试数据（无感知）
+  useEffect(() => {
+    if (testData && testData.length > 0) {
+      const firstDataSet = testData[0];
+      // 静默预填充表单数据
+      form.reset({
+        companyName: firstDataSet.companyName || "",
+        unifiedCreditCode: firstDataSet.unifiedCreditCode || "",
+        businessLicenseNumber: firstDataSet.businessLicenseNumber || "",
+        legalRepresentative: firstDataSet.legalRepresentative || "",
+        legalRepIdCard: firstDataSet.legalRepIdCard || "",
+        legalRepPhone: firstDataSet.legalRepPhone || "",
+        registeredAddress: firstDataSet.registeredAddress || "",
+        businessAddress: firstDataSet.businessAddress || "",
+        contactPerson: firstDataSet.contactPerson || "",
+        contactPhone: firstDataSet.contactPhone || "",
+        contactEmail: firstDataSet.contactEmail || "",
+        tradeLicenseNumber: firstDataSet.tradeLicenseNumber || "",
+        tradeScope: typeof firstDataSet.tradeScope === 'string' 
+          ? firstDataSet.tradeScope.split(',') 
+          : firstDataSet.tradeScope || [],
+        customsRecordNumber: firstDataSet.customsRecordNumber || "",
+        bankName: firstDataSet.bankName || "",
+        accountNumber: firstDataSet.accountNumber || "",
+        accountName: firstDataSet.accountName || "",
+        taxRegistrationNumber: firstDataSet.taxRegistrationNumber || "",
+        vatNumber: firstDataSet.vatNumber || "",
+        productionCapacity: firstDataSet.productionCapacity || "",
+        qualityCertification: typeof firstDataSet.qualityCertification === 'string'
+          ? firstDataSet.qualityCertification.split(',')
+          : firstDataSet.qualityCertification || [],
+        dataAccuracy: false,
+        legalResponsibility: false,
+        submitConsent: false
+      });
+    }
+  }, [testData, form]);
 
   const tradeScopeOptions = [
     "服装纺织品",
