@@ -201,31 +201,8 @@ export async function seedBasicData() {
         steps: [
           {
             id: 'step_1',
-            title: '申请条件与材料清单',
-            description: '了解电子口岸IC卡申请的前置条件和所需材料',
-            type: 'instruction',
-            content: '根据《中国电子口岸数据中心管理办法》，申请IC卡前企业需满足以下条件：1）已完成海关进出口货物收发货人备案；2）已取得对外贸易经营者备案登记；3）在海关总署指定银行开立保证金账户；4）指定专人作为IC卡操作员。所需材料包括：营业执照副本、法人身份证、操作员身份证、各类备案证明、银行账户证明等。',
-            estimatedTime: 8
-          },
-          {
-            id: 'step_2',
-            title: '入网资格自检',
-            description: '检查企业是否满足电子口岸入网的基本条件',
-            type: 'form',
-            required: true,
-            formFields: [
-              { name: 'hasCustomsRegistration', label: '是否已完成海关进出口货物收发货人备案', type: 'checkbox', required: true },
-              { name: 'hasForeignTradeRegistration', label: '是否已取得对外贸易经营者备案登记', type: 'checkbox', required: true },
-              { name: 'hasBankAccount', label: '是否在海关总署指定银行开立保证金账户', type: 'checkbox', required: true },
-              { name: 'hasDesignatedOperator', label: '是否已指定IC卡操作员', type: 'checkbox', required: true },
-              { name: 'hasValidLicense', label: '营业执照是否在有效期内', type: 'checkbox', required: true }
-            ],
-            estimatedTime: 5
-          },
-          {
-            id: 'step_3',
-            title: '企业基本信息',
-            description: '填写企业入网申请基本信息',
+            title: '企业基本信息填写',
+            description: '填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息',
             type: 'form',
             required: true,
             formFields: [
@@ -233,8 +210,6 @@ export async function seedBasicData() {
               { name: 'unifiedCreditCode', label: '统一社会信用代码', type: 'text', required: true },
               { name: 'legalRepresentative', label: '法定代表人', type: 'text', required: true },
               { name: 'registeredAddress', label: '注册地址', type: 'text', required: true },
-              { name: 'businessLicense', label: '营业执照注册号', type: 'text', required: true },
-              { name: 'registeredCapital', label: '注册资本（万元）', type: 'number', required: true },
               { name: 'contactPerson', label: '联系人', type: 'text', required: true },
               { name: 'contactPhone', label: '联系电话', type: 'tel', required: true },
               { name: 'contactEmail', label: '联系邮箱', type: 'email', required: true },
@@ -243,100 +218,46 @@ export async function seedBasicData() {
             estimatedTime: 15
           },
           {
-            id: 'step_4',
-            title: '经办人信息与授权',
-            description: '填写IC卡操作员信息和企业授权说明',
+            id: 'step_2',
+            title: '企业经营资质',
+            description: '提供企业营业执照、税务登记证、组织机构代码证相关资质证明',
             type: 'form',
             required: true,
             formFields: [
-              { name: 'operatorName', label: '操作员姓名', type: 'text', required: true },
+              { name: 'businessLicense', label: '营业执照注册号', type: 'text', required: true },
+              { name: 'registeredCapital', label: '注册资本（万元）', type: 'number', required: true },
+              { name: 'operatorName', label: 'IC卡操作员姓名', type: 'text', required: true },
               { name: 'operatorIdCard', label: '操作员身份证号', type: 'text', required: true },
-              { name: 'operatorPosition', label: '操作员职务', type: 'text', required: true },
-              { name: 'authorizationScope', label: '授权范围', type: 'text', required: true },
-              { name: 'applicationReason', label: '申请原因', type: 'textarea', required: true },
-              { name: 'expectedCardQuantity', label: '申请IC卡数量', type: 'number', required: true }
-            ],
-            estimatedTime: 10
-          },
-          {
-            id: 'step_5',
-            title: '备案编号关联校验',
-            description: '填写各类备案证明编号，系统将进行关联校验',
-            type: 'form',
-            required: true,
-            formFields: [
               { name: 'customsDeclarantCertificate', label: '报关人员备案证明编号', type: 'text', required: true },
               { name: 'foreignTradeRegistration', label: '对外贸易经营者备案登记表编号', type: 'text', required: true },
               { name: 'customsImportExportReceipt', label: '海关进出口货物收发货人备案回执编号', type: 'text', required: true },
-              { name: 'bankAccountNumber', label: '保证金账户账号', type: 'text', required: true },
-              { name: 'bankName', label: '开户银行', type: 'text', required: true }
+              { name: 'applicationReason', label: '申请原因', type: 'textarea', required: true },
+              { name: 'expectedCardQuantity', label: '申请IC卡数量', type: 'number', required: true }
             ],
-            estimatedTime: 8
+            estimatedTime: 15
           },
           {
-            id: 'step_6',
-            title: '材料上传',
-            description: '按照清单要求上传申请材料，确保文件清晰完整',
+            id: 'step_3',
+            title: '上传备案材料',
+            description: '提交相关证明文件，包括报关单位备案表、营业执照副本、法定代表人身份证等',
             type: 'upload',
             required: true,
             uploadConfig: {
               acceptedTypes: ['.pdf', '.jpg', '.jpeg', '.png'],
               maxSize: 10,
-              maxFiles: 8,
-              description: '必需材料清单：1.营业执照副本（加盖公章）2.法定代表人身份证 3.操作员身份证 4.报关人员备案证明 5.对外贸易经营者备案登记表 6.海关进出口货物收发货人备案回执 7.银行账户证明 8.企业授权委托书（支持PDF、JPG、PNG格式，单个文件不超过10MB）'
+              maxFiles: 5,
+              description: '请依次上传：1.企业营业执照副本 2.法定代表人身份证 3.操作员身份证 4.报关人员备案证明 5.对外贸易经营者备案登记表（支持PDF、JPG、PNG格式，单个文件不超过10MB）'
             },
-            estimatedTime: 20
+            estimatedTime: 15
           },
           {
-            id: 'step_7',
-            title: '预约现场核验',
-            description: '选择合适的时间和地点进行现场核验预约',
-            type: 'form',
-            required: true,
-            formFields: [
-              { name: 'appointmentDate', label: '预约日期', type: 'date', required: true },
-              { name: 'appointmentTime', label: '预约时间段', type: 'select', required: true, options: ['09:00-10:00', '10:00-11:00', '14:00-15:00', '15:00-16:00'] },
-              { name: 'appointmentLocation', label: '核验地点', type: 'select', required: true, options: ['深圳海关', '广州海关', '东莞海关', '珠海海关'] },
-              { name: 'attendeeName', label: '现场核验人员', type: 'text', required: true },
-              { name: 'attendeeIdCard', label: '核验人员身份证号', type: 'text', required: true },
-              { name: 'attendeePhone', label: '核验人员联系电话', type: 'tel', required: true }
-            ],
-            estimatedTime: 5
-          },
-          {
-            id: 'step_8',
-            title: '缴费与制卡',
-            description: '完成IC卡费用缴纳和制卡申请',
-            type: 'action',
-            required: true,
-            actionConfig: {
-              type: 'payment',
-              amount: 200,
-              description: 'IC卡工本费及制卡费用（200元/张）',
-              paymentMethods: ['银行转账', '网上银行', '支付宝', '微信支付'],
-              remarks: '缴费成功后系统将自动启动制卡流程，预计3-5个工作日完成制卡'
-            },
-            estimatedTime: 10
-          },
-          {
-            id: 'step_9',
-            title: '领卡与激活',
-            description: '完成IC卡领取和初始化激活',
+            id: 'step_4',
+            title: '确认提交申请',
+            description: '核对所有信息核实上传材料，确认数据准确性并承担法律责任，最终提交备案申请',
             type: 'submit',
             required: true,
-            submitAction: 'ic_card_complete',
-            completionConfig: {
-              generateCardNumber: true,
-              generatePinCode: true,
-              activationSteps: [
-                '持本人身份证和预约单到指定地点领取IC卡',
-                '现场验证身份并设置6位数字PIN码',
-                '完成指纹录入和人像采集',
-                '测试IC卡功能确认正常使用',
-                '签收IC卡领用回执单'
-              ]
-            },
-            estimatedTime: 30
+            submitAction: 'ic_card_application_submit',
+            estimatedTime: 5
           }
         ],
         requirements: [
