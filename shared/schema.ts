@@ -423,3 +423,38 @@ export const insertCustomsTestDataSchema = createInsertSchema(customsTestData).o
 
 export type CustomsTestData = typeof customsTestData.$inferSelect;
 export type InsertCustomsTestData = z.infer<typeof insertCustomsTestDataSchema>;
+
+// 电子口岸IC卡申请测试数据表
+export const icCardTestData = mysqlTable("ic_card_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey().default(sql`(UUID())`),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  registeredCapital: decimal("registered_capital", { precision: 15, scale: 2 }).notNull(),
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  businessScope: json("business_scope").$type<string[]>().notNull(),
+  // IC卡申请特有字段
+  operatorName: varchar("operator_name", { length: 50 }).notNull(), // 操作员姓名
+  operatorIdCard: varchar("operator_id_card", { length: 18 }).notNull(), // 操作员身份证号
+  customsDeclarantCertificate: varchar("customs_declarant_certificate", { length: 30 }).notNull(), // 报关人员备案证明编号
+  foreignTradeRegistration: varchar("foreign_trade_registration", { length: 30 }).notNull(), // 对外贸易经营者备案登记表编号
+  customsImportExportReceipt: varchar("customs_import_export_receipt", { length: 30 }).notNull(), // 海关进出口货物收发人备案回执编号
+  applicationReason: text("application_reason").notNull(), // 申请原因
+  expectedCardQuantity: int("expected_card_quantity").notNull().default(1), // 预期申请卡片数量
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// IC卡测试数据相关 schema
+export const insertIcCardTestDataSchema = createInsertSchema(icCardTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type IcCardTestData = typeof icCardTestData.$inferSelect;
+export type InsertIcCardTestData = z.infer<typeof insertIcCardTestDataSchema>;
