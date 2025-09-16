@@ -576,7 +576,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomsTestData(testDataInput: InsertCustomsTestData): Promise<CustomsTestData> {
+    const testDataId = randomUUID();
     await db.insert(customsTestData).values([{
+      id: testDataId,
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
@@ -619,7 +621,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createIcCardTestData(testDataInput: InsertIcCardTestData): Promise<IcCardTestData> {
+    const testDataId = randomUUID();
     await db.insert(icCardTestData).values([{
+      id: testDataId,
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
@@ -668,33 +672,42 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createEcommerceQualificationTestData(testDataInput: InsertEcommerceQualificationTestData): Promise<EcommerceQualificationTestData> {
+    const testDataId = randomUUID();
     await db.insert(ecommerceQualificationTestData).values([{
+      id: testDataId,
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
-      businessLicenseNumber: testDataInput.businessLicenseNumber,
       legalRepresentative: testDataInput.legalRepresentative,
-      legalRepIdCard: testDataInput.legalRepIdCard,
-      legalRepPhone: testDataInput.legalRepPhone,
+      legalRepresentativeIdCard: testDataInput.legalRepresentativeIdCard,
       registeredAddress: testDataInput.registeredAddress,
       businessAddress: testDataInput.businessAddress,
+      registeredCapital: testDataInput.registeredCapital,
       contactPerson: testDataInput.contactPerson,
       contactPhone: testDataInput.contactPhone,
       contactEmail: testDataInput.contactEmail,
-      tradeLicenseNumber: testDataInput.tradeLicenseNumber,
-      tradeScope: testDataInput.tradeScope,
-      customsRecordNumber: testDataInput.customsRecordNumber,
-      bankName: testDataInput.bankName,
-      accountNumber: testDataInput.accountNumber,
-      accountName: testDataInput.accountName,
-      taxRegistrationNumber: testDataInput.taxRegistrationNumber,
-      vatNumber: testDataInput.vatNumber,
+      businessLicense: testDataInput.businessLicense,
+      businessScope: testDataInput.businessScope,
+      foreignTradeRecord: testDataInput.foreignTradeRecord,
+      customsEcommerceRecord: testDataInput.customsEcommerceRecord,
+      establishmentDate: testDataInput.establishmentDate,
+      businessValidityPeriod: testDataInput.businessValidityPeriod,
+      mainProducts: testDataInput.mainProducts,
       productionCapacity: testDataInput.productionCapacity,
-      qualityCertification: testDataInput.qualityCertification,
+      productCertification: testDataInput.productCertification,
+      qualityManagementSystem: testDataInput.qualityManagementSystem,
+      brandAuthorization: testDataInput.brandAuthorization,
+      supplierInformation: testDataInput.supplierInformation,
+      foreignExchangeAccount: testDataInput.foreignExchangeAccount,
+      foreignExchangeAccountNumber: testDataInput.foreignExchangeAccountNumber,
+      taxRegistrationNumber: testDataInput.taxRegistrationNumber,
+      taxpayerType: testDataInput.taxpayerType,
+      annualTurnover: testDataInput.annualTurnover,
+      exportVolume: testDataInput.exportVolume,
       isActive: testDataInput.isActive ?? true
     }]);
     const [insertedData] = await db.select().from(ecommerceQualificationTestData)
-      .where(eq(ecommerceQualificationTestData.dataSetName, testDataInput.dataSetName));
+      .where(eq(ecommerceQualificationTestData.id, testDataId));
     if (!insertedData) throw new Error("Failed to create e-commerce qualification test data");
     return insertedData;
   }
