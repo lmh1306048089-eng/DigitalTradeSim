@@ -47,6 +47,9 @@ import {
   transmissionIdTestData,
   type TransmissionIdTestData,
   type InsertTransmissionIdTestData,
+  overseasWarehouseTestData,
+  type OverseasWarehouseTestData,
+  type InsertOverseasWarehouseTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -137,6 +140,11 @@ export interface IStorage {
   getTransmissionIdTestData(): Promise<TransmissionIdTestData[]>;
   getTransmissionIdTestDataByName(dataSetName: string): Promise<TransmissionIdTestData | undefined>;
   createTransmissionIdTestData(testData: InsertTransmissionIdTestData): Promise<TransmissionIdTestData>;
+  
+  // Overseas warehouse test data operations
+  getOverseasWarehouseTestData(): Promise<OverseasWarehouseTestData[]>;
+  getOverseasWarehouseTestDataByName(dataSetName: string): Promise<OverseasWarehouseTestData | undefined>;
+  createOverseasWarehouseTestData(testData: InsertOverseasWarehouseTestData): Promise<OverseasWarehouseTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -769,6 +777,67 @@ export class DatabaseStorage implements IStorage {
     const [insertedData] = await db.select().from(transmissionIdTestData)
       .where(eq(transmissionIdTestData.id, testDataId));
     if (!insertedData) throw new Error("Failed to create transmission ID test data");
+    return insertedData;
+  }
+
+  // Overseas warehouse test data operations
+  async getOverseasWarehouseTestData(): Promise<OverseasWarehouseTestData[]> {
+    return db.select().from(overseasWarehouseTestData).where(eq(overseasWarehouseTestData.isActive, true));
+  }
+
+  async getOverseasWarehouseTestDataByName(dataSetName: string): Promise<OverseasWarehouseTestData | undefined> {
+    const [testData] = await db.select().from(overseasWarehouseTestData)
+      .where(eq(overseasWarehouseTestData.dataSetName, dataSetName));
+    return testData;
+  }
+
+  async createOverseasWarehouseTestData(testDataInput: InsertOverseasWarehouseTestData): Promise<OverseasWarehouseTestData> {
+    const testDataId = randomUUID();
+    await db.insert(overseasWarehouseTestData).values([{
+      id: testDataId,
+      dataSetName: testDataInput.dataSetName,
+      companyName: testDataInput.companyName,
+      unifiedCreditCode: testDataInput.unifiedCreditCode,
+      legalRepresentative: testDataInput.legalRepresentative,
+      registeredAddress: testDataInput.registeredAddress,
+      businessAddress: testDataInput.businessAddress,
+      contactPerson: testDataInput.contactPerson,
+      contactPhone: testDataInput.contactPhone,
+      contactEmail: testDataInput.contactEmail,
+      businessLicense: testDataInput.businessLicense,
+      businessScope: testDataInput.businessScope,
+      registeredCapital: testDataInput.registeredCapital,
+      exportBusinessScope: testDataInput.exportBusinessScope,
+      overseasWarehouseCountry: testDataInput.overseasWarehouseCountry,
+      overseasWarehouseAddress: testDataInput.overseasWarehouseAddress,
+      warehouseOperatingModel: testDataInput.warehouseOperatingModel,
+      expectedAnnualExportVolume: testDataInput.expectedAnnualExportVolume,
+      mainExportProducts: testDataInput.mainExportProducts,
+      targetMarkets: testDataInput.targetMarkets,
+      warehouseName: testDataInput.warehouseName,
+      warehouseCode: testDataInput.warehouseCode,
+      warehouseArea: testDataInput.warehouseArea,
+      storageCapacity: testDataInput.storageCapacity,
+      warehouseType: testDataInput.warehouseType,
+      operatingLicense: testDataInput.operatingLicense,
+      warehouseContactPerson: testDataInput.warehouseContactPerson,
+      warehouseContactPhone: testDataInput.warehouseContactPhone,
+      warehouseManagementSystem: testDataInput.warehouseManagementSystem,
+      ownershipType: testDataInput.ownershipType,
+      leaseAgreementNumber: testDataInput.leaseAgreementNumber,
+      leaseStartDate: testDataInput.leaseStartDate,
+      leaseEndDate: testDataInput.leaseEndDate,
+      lessorInformation: testDataInput.lessorInformation,
+      customsSupervisionCode: testDataInput.customsSupervisionCode,
+      bonded_area_code: testDataInput.bonded_area_code,
+      warehouseRegistrationNumber: testDataInput.warehouseRegistrationNumber,
+      insuranceInformation: testDataInput.insuranceInformation,
+      emergencyContactInfo: testDataInput.emergencyContactInfo,
+      isActive: testDataInput.isActive ?? true
+    }]);
+    const [insertedData] = await db.select().from(overseasWarehouseTestData)
+      .where(eq(overseasWarehouseTestData.id, testDataId));
+    if (!insertedData) throw new Error("Failed to create overseas warehouse test data");
     return insertedData;
   }
 }
