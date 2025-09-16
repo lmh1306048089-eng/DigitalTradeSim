@@ -14,6 +14,9 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import ExperimentDetailPage from "@/pages/experiment-detail";
 import NotFound from "@/pages/not-found";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
+import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
+import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
+import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -67,6 +70,15 @@ function Router() {
           <Route path="/experiments/:id" component={ExperimentDetailPage} />
           <Route path="/customs-qualification">
             <CustomsQualificationForm />
+          </Route>
+          <Route path="/enterprise-qualification">
+            <EnterpriseQualificationForm />
+          </Route>
+          <Route path="/ic-card-application">
+            <IcCardApplicationForm />
+          </Route>
+          <Route path="/transport-id-application">
+            <TransportIdForm />
           </Route>
         </>
       )}

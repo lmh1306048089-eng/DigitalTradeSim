@@ -376,6 +376,77 @@ export async function seedBasicData() {
         ],
         order: 3,
         isActive: true
+      },
+      {
+        id: 'trans8901-2345-6789-0123-456789abcdef',
+        name: '传输ID申请',
+        description: '企业向海关申请数据传输标识号，用于EDI报文传输和系统对接',
+        category: 'preparation',
+        steps: [
+          {
+            id: 'step_1',
+            title: '企业基本信息及传输设置',
+            description: '填写企业基础信息，选择申请模式（报关单/清单），配置数据传输参数',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'companyName', label: '企业名称', type: 'text', required: true },
+              { name: 'unifiedCreditCode', label: '统一社会信用代码', type: 'text', required: true },
+              { name: 'legalRepresentative', label: '法定代表人', type: 'text', required: true },
+              { name: 'contactPerson', label: '联系人', type: 'text', required: true },
+              { name: 'contactPhone', label: '联系电话', type: 'tel', required: true },
+              { name: 'applicationMode', label: '申请模式', type: 'select', required: true },
+              { name: 'systemName', label: '系统名称', type: 'text', required: true },
+              { name: 'systemVersion', label: '系统版本', type: 'text', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_2',
+            title: '技术参数配置',
+            description: '配置数据接口参数、传输频率、技术联系人等技术规格信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'technicalContact', label: '技术联系人', type: 'text', required: true },
+              { name: 'technicalPhone', label: '技术联系电话', type: 'tel', required: true },
+              { name: 'dataTransmissionFreq', label: '数据传输频率', type: 'select', required: true },
+              { name: 'systemIntegrationMethod', label: '系统对接方式', type: 'select', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_3',
+            title: '上传申请材料',
+            description: '上传营业执照、系统技术说明、接口文档等必要材料',
+            type: 'upload',
+            required: true,
+            uploadConfig: {
+              acceptedTypes: ['.pdf', '.doc', '.docx', '.jpg', '.png'],
+              maxSize: 10,
+              maxFiles: 8,
+              description: '请依次上传：1.营业执照副本 2.海关备案回执 3.系统技术说明文档 4.数据接口规格说明 5.法定代表人身份证 6.技术联系人身份证 7.系统截图 8.其他相关材料（支持PDF、DOC、JPG、PNG格式，单个文件不超过10MB）'
+            },
+            estimatedTime: 15
+          },
+          {
+            id: 'step_4',
+            title: '确认提交申请',
+            description: '核对所有信息和材料，确认数据准确性并提交传输ID申请',
+            type: 'submit',
+            required: true,
+            submitAction: 'transmission_id_submit',
+            estimatedTime: 5
+          }
+        ],
+        requirements: [
+          '企业已完成海关进出口货物收发货人备案',
+          '企业已建立EDI系统或委托第三方系统',
+          '具备数据传输技术能力和安全保障',
+          '准备好系统技术文档和接口说明'
+        ],
+        order: 4,
+        isActive: true
       }
     ];
 
@@ -591,6 +662,76 @@ export async function seedBasicData() {
       }
     }
 
+    // 10. 创建传输ID申请测试数据
+    console.log('创建传输ID申请测试数据...');
+    const transmissionIdTestDatasets = [
+      {
+        id: 'trans-id-test-default-001',
+        dataSetName: '默认测试企业',
+        companyName: '深圳市跨境通电子商务有限公司',
+        unifiedCreditCode: '91440300MA5DA1234X',
+        legalRepresentative: '张三',
+        registeredAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        businessAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        contactPerson: '李四',
+        contactPhone: '13800138001',
+        contactEmail: 'contact@crossborder.com',
+        businessLicense: 'GL440300123456789012345',
+        businessScope: '跨境电商零售进出口；一般贸易进出口；技术进出口；货物进出口；电子商务信息咨询；软件开发',
+        applicationMode: 'declaration',
+        applicantName: '李四',
+        applicantIdCard: '440300198801010001',
+        applicantPosition: '技术总监',
+        applicantPhone: '13800138001',
+        customsRegistrationNumber: '4403960001',
+        enterpriseType: '跨境电商企业',
+        businessCategory: '进出口贸易',
+        expectedUsage: '用于报关单数据传输，实现EDI系统与海关系统的数据交换，提高通关效率',
+        systemIntegrationMethod: 'webservice',
+        technicalContactPerson: '王五',
+        technicalContactPhone: '13900139001',
+        dataInterfaceRequirement: '支持XML格式数据传输，遵循海关总署EDI报文标准，具备数据加密和数字签名功能',
+        isActive: true
+      },
+      {
+        id: 'trans-id-test-example-002',
+        dataSetName: '示例物流企业',
+        companyName: '广州环球物流科技有限公司',
+        unifiedCreditCode: '91440101567890123Z',
+        legalRepresentative: '赵六',
+        registeredAddress: '广州市天河区珠江新城花城大道85号高德置地广场A座2201室',
+        businessAddress: '广州市天河区珠江新城花城大道85号高德置地广场A座22层',
+        contactPerson: '孙七',
+        contactPhone: '13700137002',
+        contactEmail: 'tech@globallogistics.com',
+        businessLicense: 'GL440101567890123456789',
+        businessScope: '国际货运代理；国内货运代理；仓储服务；物流信息咨询；供应链管理；电子商务平台服务',
+        applicationMode: 'manifest',
+        applicantName: '孙七',
+        applicantIdCard: '440101198712120002',
+        applicantPosition: '系统架构师',
+        applicantPhone: '13700137002',
+        customsRegistrationNumber: '4401960002',
+        enterpriseType: '物流企业',
+        businessCategory: '货运代理',
+        expectedUsage: '用于清单数据传输，实现物流信息系统与海关监管系统的实时对接，支持货物跟踪和监管',
+        systemIntegrationMethod: 'api',
+        technicalContactPerson: '周八',
+        technicalContactPhone: '13600136003',
+        dataInterfaceRequirement: '支持JSON/XML双格式，提供RESTful API接口，具备高并发处理能力和故障自动恢复机制',
+        isActive: true
+      }
+    ];
+
+    for (const testData of transmissionIdTestDatasets) {
+      try {
+        await db.insert(schema.transmissionIdTestData).values(testData);
+        console.log(`✅ 传输ID申请测试数据集创建成功: ${testData.dataSetName}`);
+      } catch (error) {
+        console.error(`❌ 传输ID申请测试数据集创建失败: ${testData.dataSetName}`, error);
+      }
+    }
+
     console.log('基础数据初始化完成！');
 
     // 返回插入的数据用于验证
@@ -600,7 +741,8 @@ export async function seedBasicData() {
       experiments: experiments.length,
       testDatasets: customsTestDatasets.length,
       icCardTestDatasets: icCardTestDatasets.length,
-      ecommerceQualificationTestDatasets: ecommerceQualificationTestDatasets.length
+      ecommerceQualificationTestDatasets: ecommerceQualificationTestDatasets.length,
+      transmissionIdTestDatasets: transmissionIdTestDatasets.length
     };
 
   } catch (error) {

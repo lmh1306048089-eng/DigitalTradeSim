@@ -44,6 +44,9 @@ import {
   type InsertIcCardTestData,
   type EcommerceQualificationTestData,
   type InsertEcommerceQualificationTestData,
+  transmissionIdTestData,
+  type TransmissionIdTestData,
+  type InsertTransmissionIdTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -124,6 +127,16 @@ export interface IStorage {
   getIcCardTestDataByName(dataSetName: string): Promise<IcCardTestData | undefined>;
   createIcCardTestData(testData: InsertIcCardTestData): Promise<IcCardTestData>;
   updateIcCardTestData(id: string, updates: Partial<IcCardTestData>): Promise<IcCardTestData>;
+  
+  // E-commerce qualification test data operations
+  getEcommerceQualificationTestData(): Promise<EcommerceQualificationTestData[]>;
+  getEcommerceQualificationTestDataByName(dataSetName: string): Promise<EcommerceQualificationTestData | undefined>;
+  createEcommerceQualificationTestData(testData: InsertEcommerceQualificationTestData): Promise<EcommerceQualificationTestData>;
+  
+  // Transmission ID test data operations
+  getTransmissionIdTestData(): Promise<TransmissionIdTestData[]>;
+  getTransmissionIdTestDataByName(dataSetName: string): Promise<TransmissionIdTestData | undefined>;
+  createTransmissionIdTestData(testData: InsertTransmissionIdTestData): Promise<TransmissionIdTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -709,6 +722,53 @@ export class DatabaseStorage implements IStorage {
     const [insertedData] = await db.select().from(ecommerceQualificationTestData)
       .where(eq(ecommerceQualificationTestData.id, testDataId));
     if (!insertedData) throw new Error("Failed to create e-commerce qualification test data");
+    return insertedData;
+  }
+
+  // Transmission ID test data operations
+  async getTransmissionIdTestData(): Promise<TransmissionIdTestData[]> {
+    return db.select().from(transmissionIdTestData).where(eq(transmissionIdTestData.isActive, true));
+  }
+
+  async getTransmissionIdTestDataByName(dataSetName: string): Promise<TransmissionIdTestData | undefined> {
+    const [testData] = await db.select().from(transmissionIdTestData)
+      .where(eq(transmissionIdTestData.dataSetName, dataSetName));
+    return testData;
+  }
+
+  async createTransmissionIdTestData(testDataInput: InsertTransmissionIdTestData): Promise<TransmissionIdTestData> {
+    const testDataId = randomUUID();
+    await db.insert(transmissionIdTestData).values([{
+      id: testDataId,
+      dataSetName: testDataInput.dataSetName,
+      companyName: testDataInput.companyName,
+      unifiedCreditCode: testDataInput.unifiedCreditCode,
+      legalRepresentative: testDataInput.legalRepresentative,
+      registeredAddress: testDataInput.registeredAddress,
+      businessAddress: testDataInput.businessAddress,
+      contactPerson: testDataInput.contactPerson,
+      contactPhone: testDataInput.contactPhone,
+      contactEmail: testDataInput.contactEmail,
+      businessLicense: testDataInput.businessLicense,
+      businessScope: testDataInput.businessScope,
+      applicationMode: testDataInput.applicationMode,
+      applicantName: testDataInput.applicantName,
+      applicantIdCard: testDataInput.applicantIdCard,
+      applicantPosition: testDataInput.applicantPosition,
+      applicantPhone: testDataInput.applicantPhone,
+      customsRegistrationNumber: testDataInput.customsRegistrationNumber,
+      enterpriseType: testDataInput.enterpriseType,
+      businessCategory: testDataInput.businessCategory,
+      expectedUsage: testDataInput.expectedUsage,
+      systemIntegrationMethod: testDataInput.systemIntegrationMethod,
+      technicalContactPerson: testDataInput.technicalContactPerson,
+      technicalContactPhone: testDataInput.technicalContactPhone,
+      dataInterfaceRequirement: testDataInput.dataInterfaceRequirement,
+      isActive: testDataInput.isActive ?? true
+    }]);
+    const [insertedData] = await db.select().from(transmissionIdTestData)
+      .where(eq(transmissionIdTestData.id, testDataId));
+    if (!insertedData) throw new Error("Failed to create transmission ID test data");
     return insertedData;
   }
 }

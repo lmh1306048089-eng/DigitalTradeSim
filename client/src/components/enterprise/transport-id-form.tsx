@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/experiments/file-upload";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
 
 // 基础字段验证
 const baseFields = {
@@ -95,6 +96,12 @@ export function TransportIdForm({ onComplete, onCancel }: TransportIdFormProps) 
   } | null>(null);
   const { toast } = useToast();
 
+  // 获取测试数据（自动预填）
+  const { data: testData } = useQuery({
+    queryKey: ['/api/test-data/transmission-id'],
+    enabled: true,
+  });
+
   // 动态创建表单验证schema
   const form = useForm({
     resolver: zodResolver(createTransportIdSchema(selectedMode)),
@@ -130,6 +137,48 @@ export function TransportIdForm({ onComplete, onCancel }: TransportIdFormProps) 
       dataTransmissionFreq: "",
     }
   });
+
+  // 自动预填充测试数据（无感知）
+  useEffect(() => {
+    // 正确处理API返回的数据格式 {success: true, data: [...]}
+    const dataArray = (testData as any)?.success && (testData as any)?.data ? (testData as any).data : testData;
+    
+    if (dataArray && Array.isArray(dataArray) && dataArray.length > 0) {
+      const firstDataSet = dataArray[0];
+      // 静默预填充表单数据（正确映射数据库字段）
+      form.reset({
+        companyName: firstDataSet.companyName || "",
+        unifiedCreditCode: firstDataSet.unifiedCreditCode || "",
+        legalRepresentative: firstDataSet.legalRepresentative || "",
+        contactPerson: firstDataSet.contactPerson || "",
+        contactPhone: firstDataSet.contactPhone || "",
+        contactEmail: firstDataSet.contactEmail || "",
+        applicationMode: firstDataSet.applicationMode || undefined,
+        systemName: "企业贸易管理系统",
+        systemVersion: "v2.0",
+        technicalContact: firstDataSet.technicalContactPerson || "",
+        technicalPhone: firstDataSet.technicalContactPhone || "",
+        // 报关单模式字段
+        customsCode: "4403",
+        declarationEntCode: firstDataSet.customsRegistrationNumber || "",
+        tradeMode: "1210",
+        exemptionType: "101",
+        importExportType: "进出口",
+        businessScope: firstDataSet.businessScope || "",
+        // 清单模式字段
+        ecommerceCode: "EC440300001",
+        supervisoryLocationCode: "4403",
+        paymentEntCode: "PAY440300001",
+        logisticsEntCode: "LOG440300001",
+        warehouseCode: "WH440300001",
+        businessModel: "BBC",
+        dataTransmissionFreq: "realtime",
+        dataAccuracy: false,
+        legalResponsibility: false,
+        submitConsent: false
+      });
+    }
+  }, [testData, form]);
 
   // 当模式改变时重新创建表单验证
   useEffect(() => {
