@@ -78,7 +78,17 @@ function Router() {
             <IcCardApplicationForm />
           </Route>
           <Route path="/transport-id-application">
-            <TransportIdForm />
+            <TransportIdForm 
+              onComplete={(data) => {
+                console.log("传输ID申请完成:", data);
+                // 返回主页
+                window.location.href = "/";
+              }}
+              onCancel={() => {
+                // 返回主页
+                window.location.href = "/";
+              }}
+            />
           </Route>
         </>
       )}

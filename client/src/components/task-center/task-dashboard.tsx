@@ -347,8 +347,8 @@ export function TaskDashboard() {
       // 直接跳转到电商企业资质备案实验详情页
       setLocation("/experiments/ec901234-5678-9012-3456-789abcdef012");
     } else if (task.id === "transmission-id-application") {
-      // 直接跳转到传输ID申请实验详情页
-      setLocation("/experiments/transmission-id-application");
+      // 直接跳转到传输ID申请表单页面，绕过实验详情页
+      setLocation("/transport-id-application");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);
