@@ -122,7 +122,7 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
   // 自动预填充测试数据（无感知）
   useEffect(() => {
     // 正确处理API返回的数据格式 {success: true, data: [...]}
-    const dataArray = testData?.success && testData?.data ? testData.data : testData;
+    const dataArray = (testData as any)?.success && (testData as any)?.data ? (testData as any).data : testData;
     
     if (dataArray && Array.isArray(dataArray) && dataArray.length > 0) {
       const firstDataSet = dataArray[0];
