@@ -447,6 +447,96 @@ export async function seedBasicData() {
         ],
         order: 4,
         isActive: true
+      },
+      {
+        id: 'overseas-warehouse-registration',
+        name: '海外仓业务模式备案',
+        description: '跨境电商企业在海关进行海外仓业务模式备案登记，提交备案材料并等待审核',
+        category: 'preparation',
+        steps: [
+          {
+            id: 'step_1',
+            title: '企业基本信息',
+            description: '填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'companyName', label: '企业名称', type: 'text', required: true },
+              { name: 'unifiedCreditCode', label: '统一社会信用代码', type: 'text', required: true },
+              { name: 'legalRepresentative', label: '法定代表人', type: 'text', required: true },
+              { name: 'registeredAddress', label: '注册地址', type: 'text', required: true },
+              { name: 'businessAddress', label: '经营地址', type: 'text', required: true },
+              { name: 'contactPerson', label: '联系人', type: 'text', required: true },
+              { name: 'contactPhone', label: '联系电话', type: 'tel', required: true },
+              { name: 'contactEmail', label: '联系邮箱', type: 'email', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_2',
+            title: '海外仓出口企业备案',
+            description: '填写出口经营范围、海外仓信息、运营模式等关键信息',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'exportBusinessScope', label: '出口经营范围', type: 'textarea', required: true },
+              { name: 'overseasWarehouseCountry', label: '海外仓所在国家', type: 'select', required: true },
+              { name: 'overseasWarehouseAddress', label: '海外仓地址', type: 'textarea', required: true },
+              { name: 'warehouseOperatingModel', label: '仓库运营模式', type: 'select', required: true },
+              { name: 'expectedAnnualExportVolume', label: '预计年出口量（万美元）', type: 'number', required: true },
+              { name: 'mainExportProducts', label: '主要出口商品', type: 'textarea', required: true },
+              { name: 'targetMarkets', label: '目标市场', type: 'textarea', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_3',
+            title: '海外仓信息登记',
+            description: '填写海外仓基本信息、仓库类型、所有权信息等详细资料',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'warehouseName', label: '海外仓名称', type: 'text', required: true },
+              { name: 'warehouseCode', label: '海外仓编码', type: 'text', required: true },
+              { name: 'warehouseArea', label: '仓库面积（平方米）', type: 'number', required: true },
+              { name: 'storageCapacity', label: '储存能力（立方米）', type: 'number', required: true },
+              { name: 'warehouseType', label: '仓库类型', type: 'select', required: true },
+              { name: 'ownershipType', label: '所有权类型', type: 'radio', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_4',
+            title: '上传备案材料',
+            description: '上传出口企业备案登记表、海外仓信息登记表、所有权文件等材料',
+            type: 'upload',
+            required: true,
+            uploadConfig: {
+              acceptedTypes: ['.pdf', '.doc', '.docx', '.jpg', '.png'],
+              maxSize: 10,
+              maxFiles: 10,
+              description: '请依次上传：1.跨境电商海外仓出口企业备案登记表 2.跨境电商海外仓信息登记表 3.海外仓所有权文件 4.企业营业执照 5.其他相关材料（支持PDF、DOC、JPG、PNG格式，单个文件不超过10MB）'
+            },
+            estimatedTime: 15
+          },
+          {
+            id: 'step_5',
+            title: '确认提交申请',
+            description: '核对所有信息和材料，确认数据准确性并提交海外仓业务模式备案申请',
+            type: 'submit',
+            required: true,
+            submitAction: 'overseas_warehouse_submit',
+            estimatedTime: 5
+          }
+        ],
+        requirements: [
+          '企业已完成海关进出口货物收发货人备案',
+          '具备海外仓运营资质和能力',
+          '海外仓已取得当地合法经营许可',
+          '建立完善的海外仓管理制度'
+        ],
+        order: 5,
+        isActive: true
       }
     ];
 
