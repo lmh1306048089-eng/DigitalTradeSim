@@ -351,7 +351,7 @@ export function TaskDashboard() {
 
   const handleStartTask = (task: BusinessTask) => {
     console.log("🚀 启动任务:", task.title, "ID:", task.id);
-    // 根据任务类型，跳转到相应的实验详情页面
+    // 根据任务类型，跳转到相应的实验详情页面或直接到表单
     if (task.id === "customs-qualification") {
       // 直接跳转到海关企业资质备案实验详情页
       setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
@@ -360,10 +360,10 @@ export function TaskDashboard() {
       setLocation("/experiments/b2e8f3c1-1234-4567-8901-234567890abc");
     } else if (task.id === "enterprise-qualification") {
       // 直接跳转到电商企业资质备案实验详情页
-      setLocation("/experiments/ec901234-5678-9012-3456-789abcdef012");
+      setLocation("/experiments/enterprise-qualification-exp");
     } else if (task.id === "transmission-id-application") {
-      // 直接跳转到传输ID申请表单页面，绕过实验详情页
-      setLocation("/transport-id-application");
+      // 跳转到传输ID申请实验详情页（现在数据库中有了对应记录）
+      setLocation("/experiments/transmission-id-application-exp");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);
