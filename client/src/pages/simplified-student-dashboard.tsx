@@ -373,6 +373,21 @@ export default function SimplifiedStudentDashboard() {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"海关审核员"角色后重试。`);
                 }
               }
+            },
+            {
+              id: 'overseas-warehouse-registration',
+              title: '海外仓业务模式备案',
+              description: '跨境电商企业在海关进行海外仓业务模式备案登记，提交备案材料并等待审核',
+              icon: <Warehouse className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'enterprise_operator') {
+                  setLocation("/experiments/overseas-warehouse-registration-exp");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
             }
           ];
         case SCENES.CUSTOMS_SUPERVISION:
