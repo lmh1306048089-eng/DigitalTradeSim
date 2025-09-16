@@ -184,7 +184,7 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       retry: (failureCount, error) => {
         // Never retry 401 errors
-        if (error instanceof Error && error.message.includes("401")) {
+        if ((error as any)?.status === 401) {
           return false;
         }
         return failureCount < 1;

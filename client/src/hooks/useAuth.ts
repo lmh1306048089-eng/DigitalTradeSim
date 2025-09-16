@@ -20,10 +20,12 @@ export function useAuth() {
     enabled: hasValidToken,
   });
 
-  // Clear tokens immediately on 401 error
-  if (error && error.message.includes("401")) {
+  // Handle 401 error more gracefully
+  if (error && (error as any)?.status === 401) {
+    console.warn('Authentication failed, clearing tokens');
     clearAuthTokens();
-    window.location.reload(); // Force a page reload to reset state
+    queryClient.clear();
+    // Don't force reload immediately, let the app handle the redirect
   }
 
   const loginMutation = useMutation({
