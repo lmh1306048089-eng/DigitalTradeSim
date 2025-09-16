@@ -299,10 +299,10 @@ export default function ExperimentDetailPage() {
     // 优先使用数据库中的实验步骤元数据
     if (experiment?.steps && Array.isArray(experiment.steps)) {
       return experiment.steps.map((step, index) => ({
-        id: index + 1,
+        id: step.id || index + 1,
         title: step.title || `步骤 ${index + 1}`,
         description: step.description || "",
-        icon: getStepIcon(step.type),
+        icon: getStepIcon(step.type || step.action),
         iconText: step.title?.slice(0, 4) || `步骤${index + 1}`,
         bgColor: getStepBgColor(index),
         borderColor: getStepBorderColor(index),

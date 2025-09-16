@@ -555,7 +555,10 @@ export function OverseasWarehouseForm({ onComplete, onCancel }: OverseasWarehous
                     <Textarea 
                       data-testid="input-export-business-scope"
                       placeholder="请输入详细的出口经营范围" 
-                      {...field} 
+                      value={field.value || ""}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
                     />
                   </FormControl>
                   <FormMessage />
