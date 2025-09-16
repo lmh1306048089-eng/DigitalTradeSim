@@ -218,9 +218,97 @@ export default function ExperimentDetailPage() {
     setLocation(getBackToSceneUrl());
   };
 
-  // 根据实验名称获取步骤配置
-  const getExperimentSteps = (experimentName: string) => {
-    if (experimentName === "电子口岸IC卡申请") {
+  // 步骤图标辅助函数
+  const getStepIcon = (type: string) => {
+    switch (type) {
+      case 'form': return "📋";
+      case 'upload': return "📄";
+      case 'submit': return "✅";
+      case 'instruction': return "📖";
+      default: return "🔷";
+    }
+  };
+
+  const getStepBgColor = (index: number) => {
+    const colors = [
+      "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
+      "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
+      "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
+      "from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30",
+      "from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30",
+      "from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/30"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepBorderColor = (index: number) => {
+    const colors = [
+      "border-blue-200 dark:border-blue-700",
+      "border-green-200 dark:border-green-700",
+      "border-purple-200 dark:border-purple-700",
+      "border-orange-200 dark:border-orange-700",
+      "border-teal-200 dark:border-teal-700",
+      "border-rose-200 dark:border-rose-700"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepTextColor = (index: number) => {
+    const colors = [
+      "text-blue-800 dark:text-blue-100",
+      "text-green-800 dark:text-green-100",
+      "text-purple-800 dark:text-purple-100",
+      "text-orange-800 dark:text-orange-100",
+      "text-teal-800 dark:text-teal-100",
+      "text-rose-800 dark:text-rose-100"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepDescColor = (index: number) => {
+    const colors = [
+      "text-blue-700 dark:text-blue-200",
+      "text-green-700 dark:text-green-200",
+      "text-purple-700 dark:text-purple-200",
+      "text-orange-700 dark:text-orange-200",
+      "text-teal-700 dark:text-teal-200",
+      "text-rose-700 dark:text-rose-200"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepIconBgColor = (index: number) => {
+    const colors = [
+      "from-blue-500 to-blue-600",
+      "from-green-500 to-green-600",
+      "from-purple-500 to-purple-600",
+      "from-orange-500 to-orange-600",
+      "from-teal-500 to-teal-600",
+      "from-rose-500 to-rose-600"
+    ];
+    return colors[index % colors.length];
+  };
+
+  // 从实验元数据获取步骤配置
+  const getExperimentSteps = () => {
+    // 优先使用数据库中的实验步骤元数据
+    if (experiment?.steps && Array.isArray(experiment.steps)) {
+      return experiment.steps.map((step, index) => ({
+        id: index + 1,
+        title: step.title || `步骤 ${index + 1}`,
+        description: step.description || "",
+        icon: getStepIcon(step.type),
+        iconText: step.title?.slice(0, 4) || `步骤${index + 1}`,
+        bgColor: getStepBgColor(index),
+        borderColor: getStepBorderColor(index),
+        textColor: getStepTextColor(index),
+        descColor: getStepDescColor(index),
+        iconBgColor: getStepIconBgColor(index)
+      }));
+    }
+    
+    // 仅作为备用的硬编码步骤
+    if (experiment?.name === "电子口岸IC卡申请") {
       return [
         {
           id: 1,
@@ -593,8 +681,8 @@ export default function ExperimentDetailPage() {
             </div>
 
             {/* 实验步骤卡片 */}
-            <div className={`grid grid-cols-1 ${getExperimentSteps(experiment.name).length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6 mb-8`}>
-              {getExperimentSteps(experiment.name).map((step) => (
+            <div className={`grid grid-cols-1 ${getExperimentSteps().length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6 mb-8`}>
+              {getExperimentSteps().map((step) => (
                 <div 
                   key={step.id}
                   className={`min-h-[12rem] p-4 rounded-xl bg-gradient-to-br ${step.bgColor} border ${step.borderColor} flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
