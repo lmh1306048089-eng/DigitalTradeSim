@@ -291,7 +291,7 @@ export function TaskDashboard() {
       setLocation("/experiments/ec901234-5678-9012-3456-789abcdef012");
     } else if (task.id === "transmission-id-application") {
       // 直接跳转到传输ID申请实验详情页
-      setLocation("/experiments/trans8901-2345-6789-0123-456789abcdef");
+      setLocation("/experiments/transmission-id-application");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);
