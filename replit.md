@@ -39,6 +39,36 @@ The platform supports role-based access control with three user types: students 
   - No UI indicators showing auto-fill status
   - Silent background data population on component mount
 
+## 实验开发标准 (Experiment Development Standards)
+
+### 强制自动预填要求 (Mandatory Auto-prefill Requirements)
+- **完全静默**: 所有实验任务表单必须在组件挂载时自动预填测试数据，无任何用户通知或UI指示器
+- **数据库驱动**: 测试数据存储在数据库中，通过API端点 `/api/test-data/<实验key>` 获取
+- **默认数据集**: 总是使用"默认测试企业"数据集进行静默预填
+- **同意复选框**: 预填时保持所有同意复选框为false（未选中）状态
+- **可选切换**: 提供可选的数据集切换功能（如需要）
+- **零用户交互**: 预填过程完全在后台进行，不显示toast通知或选择器
+
+### 实验元数据标准 (Experiment Metadata Standards)
+- **核心流程**: 每个实验必须在数据库中定义准确的coreFlow（核心步骤）
+- **步骤展示**: 实验详情页根据元数据动态显示实验流程步骤
+- **进度同步**: 通过 `/api/progress` 端点同步学生进度状态
+- **6步流程**: 电商企业资质备案遵循6步核心流程设计
+
+### UX一致性要求 (UX Consistency Requirements)
+- **表单技术栈**: 使用shadcn + react-hook-form + zodResolver
+- **查询管理**: TanStack Query v5，分层queryKeys，变更后缓存失效
+- **加载状态**: 显示加载/骨架状态，优雅处理401错误
+- **图标标准**: 使用lucide-react图标库
+- **测试标识**: 所有交互元素和关键显示元素添加data-testid属性
+- **文件上传**: 使用共享的FileUpload组件
+
+### 导航和流程标准 (Navigation and Flow Standards)
+- **详情优先**: 用户首先看到实验详情页，然后主动启动表单
+- **返回场景**: 标准的返回到场景导航
+- **进度追踪**: 一致的按钮标签、图标和步骤器
+- **认证处理**: 优雅的认证错误处理，显示重新登录提示
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
