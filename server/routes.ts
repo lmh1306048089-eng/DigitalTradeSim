@@ -30,6 +30,7 @@ import {
   ecommerceQualificationSubmissionSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
+import { seedBasicData } from "./seed-data";
 
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "attached_assets", "uploads");
@@ -61,6 +62,14 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  
+  // Initialize database with seed data on startup
+  try {
+    await seedBasicData();
+    console.log("✅ 基础数据初始化完成");
+  } catch (error) {
+    console.error("⚠️ 基础数据初始化失败，使用内存存储:", error);
+  }
   
   // Handle HEAD /api requests - likely from Sentry monitoring
   app.head("/api", (req, res) => {
