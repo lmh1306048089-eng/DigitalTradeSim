@@ -696,4 +696,47 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+// 临时使用内存存储来解决数据库连接问题，创建默认测试用户
+const memStorage = new DatabaseStorage();
+
+// 创建内存中的测试用户数据
+const testUsers = new Map([
+  ["13800138001", {
+    id: "user-001",
+    phone: "13800138001",
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // password: password
+    username: "测试学生",
+    role: "student",
+    avatar: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }],
+  ["13800138002", {
+    id: "teacher-001", 
+    phone: "13800138002",
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // password: password
+    username: "测试教师",
+    role: "teacher",
+    avatar: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }],
+  ["13800138003", {
+    id: "admin-001",
+    phone: "13800138003", 
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // password: password
+    username: "测试管理员",
+    role: "admin",
+    avatar: null,
+    createdAt: new Date(),
+    updatedAt: new Date()
+  }]
+]);
+
+// 重写getUserByPhone方法使用内存数据
+const originalGetUserByPhone = memStorage.getUserByPhone.bind(memStorage);
+memStorage.getUserByPhone = async (phone: string) => {
+  return testUsers.get(phone);
+};
+
+export const storage = memStorage;

@@ -9,10 +9,18 @@ if (!DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
 }
 
-export const connection = new Pool({
+let connectionConfig: any = {
   connectionString: DATABASE_URL,
   max: 10,
-  ssl: { rejectUnauthorized: false }
-});
+};
+
+// Configure SSL based on environment
+if (DATABASE_URL?.includes('ssl=true') || process.env.NODE_ENV === 'production') {
+  connectionConfig.ssl = { rejectUnauthorized: false };
+} else if (process.env.NODE_ENV === 'development') {
+  connectionConfig.ssl = false;
+}
+
+export const connection = new Pool(connectionConfig);
 
 export const db = drizzle(connection, { schema });
