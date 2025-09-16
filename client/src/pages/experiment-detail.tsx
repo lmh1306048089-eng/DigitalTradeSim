@@ -54,8 +54,19 @@ export default function ExperimentDetailPage() {
 
   // 移除自动显示表单的逻辑，让用户先看到实验详情页
 
-  // 检查认证错误
-  const hasAuthError = experimentsError && experimentsError.message.includes('401');
+  // 检查认证错误 - 更健壮的错误检测
+  const isAuthError = (error: any): boolean => {
+    if (!error) return false;
+    
+    // Check for status code
+    if (error.status === 401) return true;
+    
+    // Check for auth-related messages
+    const message = error.message || '';
+    return /访问令牌|未授权|刷新令牌|token|401/i.test(message);
+  };
+
+  const hasAuthError = isAuthError(experimentsError) || isAuthError(progressError);
   
   if (hasAuthError) {
     return (
@@ -108,7 +119,8 @@ export default function ExperimentDetailPage() {
     );
   }
 
-  if (!experiment) {
+  // 只有在没有加载中、没有认证错误且确实找不到实验时才显示"实验未找到"
+  if (!experimentsLoading && !progressLoading && !hasAuthError && !experiment) {
     return (
       <div className="min-h-screen bg-muted">
         <Header title="实验详情">
@@ -127,6 +139,34 @@ export default function ExperimentDetailPage() {
             <p className="text-muted-foreground mb-6">请检查实验ID是否正确</p>
             <Button onClick={() => setLocation(getBackToSceneUrl())}>
               返回场景
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 处理非认证错误
+  if ((experimentsError && !isAuthError(experimentsError)) || (progressError && !isAuthError(progressError))) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回场景
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-4">加载失败</h2>
+            <p className="text-muted-foreground mb-6">数据加载时发生错误，请刷新页面重试</p>
+            <Button onClick={() => window.location.reload()}>
+              刷新页面
             </Button>
           </div>
         </div>
@@ -424,6 +464,30 @@ export default function ExperimentDetailPage() {
             onComplete={handleExperimentComplete}
             onCancel={() => setShowTransportIdForm(false)}
           />
+        </div>
+      </div>
+    );
+  }
+
+  // 确保experiment存在才渲染主要内容
+  if (!experiment) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回场景
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">加载中...</p>
+          </div>
         </div>
       </div>
     );
