@@ -47,6 +47,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 export interface IStorage {
   // User operations
@@ -138,8 +139,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    await db.insert(users).values(userData);
-    const user = await this.getUserByPhone(userData.phone);
+    const userId = randomUUID();
+    await db.insert(users).values({
+      id: userId,
+      ...userData
+    });
+    const user = await this.getUser(userId);
     if (!user) throw new Error("Failed to create user");
     return user;
   }
@@ -431,14 +436,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUploadedFile(fileData: InsertUploadedFile): Promise<UploadedFile> {
-    await db.insert(uploadedFiles).values([fileData]);
+    const fileId = randomUUID();
+    await db.insert(uploadedFiles).values([{
+      id: fileId,
+      ...fileData
+    }]);
     const [file] = await db.select().from(uploadedFiles)
-      .where(and(
-        eq(uploadedFiles.uploadedBy, fileData.uploadedBy),
-        eq(uploadedFiles.filename, fileData.filename)
-      ))
-      .orderBy(desc(uploadedFiles.createdAt))
-      .limit(1);
+      .where(eq(uploadedFiles.id, fileId));
     if (!file) throw new Error("Failed to create uploaded file");
     return file;
   }
