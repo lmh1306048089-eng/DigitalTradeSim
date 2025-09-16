@@ -126,33 +126,33 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
     
     if (dataArray && Array.isArray(dataArray) && dataArray.length > 0) {
       const firstDataSet = dataArray[0];
-      // 静默预填充表单数据
+      // 静默预填充表单数据（正确映射数据库字段）
       form.reset({
         companyName: firstDataSet.companyName || "",
         unifiedCreditCode: firstDataSet.unifiedCreditCode || "",
-        businessLicenseNumber: firstDataSet.businessLicenseNumber || "",
+        businessLicenseNumber: firstDataSet.businessLicense || "",
         legalRepresentative: firstDataSet.legalRepresentative || "",
-        legalRepIdCard: firstDataSet.legalRepIdCard || "",
-        legalRepPhone: firstDataSet.legalRepPhone || "",
+        legalRepIdCard: firstDataSet.legalRepresentativeIdCard || "",
+        legalRepPhone: firstDataSet.contactPhone || "", // 使用联系电话作为法人电话
         registeredAddress: firstDataSet.registeredAddress || "",
         businessAddress: firstDataSet.businessAddress || "",
         contactPerson: firstDataSet.contactPerson || "",
         contactPhone: firstDataSet.contactPhone || "",
         contactEmail: firstDataSet.contactEmail || "",
-        tradeLicenseNumber: firstDataSet.tradeLicenseNumber || "",
-        tradeScope: typeof firstDataSet.tradeScope === 'string' 
-          ? firstDataSet.tradeScope.split(',') 
-          : firstDataSet.tradeScope || [],
-        customsRecordNumber: firstDataSet.customsRecordNumber || "",
-        bankName: firstDataSet.bankName || "",
-        accountNumber: firstDataSet.accountNumber || "",
-        accountName: firstDataSet.accountName || "",
+        tradeLicenseNumber: firstDataSet.foreignTradeRecord || "",
+        tradeScope: typeof firstDataSet.businessScope === 'string' 
+          ? firstDataSet.businessScope.split('；') 
+          : firstDataSet.businessScope ? [firstDataSet.businessScope] : [],
+        customsRecordNumber: firstDataSet.customsEcommerceRecord || "",
+        bankName: firstDataSet.foreignExchangeAccount || "",
+        accountNumber: firstDataSet.foreignExchangeAccountNumber || "",
+        accountName: firstDataSet.companyName || "", // 使用公司名作为账户名
         taxRegistrationNumber: firstDataSet.taxRegistrationNumber || "",
-        vatNumber: firstDataSet.vatNumber || "",
+        vatNumber: firstDataSet.taxpayerType || "",
         productionCapacity: firstDataSet.productionCapacity || "",
-        qualityCertification: typeof firstDataSet.qualityCertification === 'string'
-          ? firstDataSet.qualityCertification.split(',')
-          : firstDataSet.qualityCertification || [],
+        qualityCertification: typeof firstDataSet.productCertification === 'string'
+          ? firstDataSet.productCertification.split(', ')
+          : firstDataSet.productCertification ? [firstDataSet.productCertification] : [],
         dataAccuracy: false,
         legalResponsibility: false,
         submitConsent: false
