@@ -121,8 +121,11 @@ export function EnterpriseQualificationForm({ onComplete, onCancel }: Enterprise
 
   // 自动预填充测试数据（无感知）
   useEffect(() => {
-    if (testData && Array.isArray(testData) && testData.length > 0) {
-      const firstDataSet = testData[0];
+    // 正确处理API返回的数据格式 {success: true, data: [...]}
+    const dataArray = testData?.success && testData?.data ? testData.data : testData;
+    
+    if (dataArray && Array.isArray(dataArray) && dataArray.length > 0) {
+      const firstDataSet = dataArray[0];
       // 静默预填充表单数据
       form.reset({
         companyName: firstDataSet.companyName || "",
