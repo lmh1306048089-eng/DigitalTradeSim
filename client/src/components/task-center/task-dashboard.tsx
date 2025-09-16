@@ -58,6 +58,11 @@ export function TaskDashboard() {
 
   const currentRole = getCurrentRole();
 
+  // 调试信息
+  console.log("🔍 Task Dashboard Debug:");
+  console.log("- selectedRoleCode:", selectedRoleCode);
+  console.log("- currentRole:", currentRole);
+
   // 模拟任务数据 - 在实际项目中这些应该来自API
   const businessTasks: BusinessTask[] = [
     {
@@ -291,6 +296,16 @@ export function TaskDashboard() {
     !selectedRoleCode || task.requiredRole === selectedRoleCode
   );
 
+  // 调试信息 - 显示任务过滤结果
+  console.log("🎯 Task Filtering Debug:");
+  console.log("- Total businessTasks:", businessTasks.length);
+  console.log("- Business task IDs:", businessTasks.map(t => t.id));
+  console.log("- Has transmission-id-application:", businessTasks.some(t => t.id === "transmission-id-application"));
+  console.log("- Available tasks after filtering:", availableTasks.length);
+  console.log("- Available task IDs:", availableTasks.map(t => t.id));
+  console.log("- Filter condition (!selectedRoleCode || task.requiredRole === selectedRoleCode)");
+  console.log("- For transmission-id-application task:", businessTasks.find(t => t.id === "transmission-id-application"));
+
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
       case "completed": return "bg-green-100 text-green-800 border-green-200";
@@ -335,7 +350,7 @@ export function TaskDashboard() {
   };
 
   const handleStartTask = (task: BusinessTask) => {
-    console.log("启动任务:", task.title);
+    console.log("🚀 启动任务:", task.title, "ID:", task.id);
     // 根据任务类型，跳转到相应的实验详情页面
     if (task.id === "customs-qualification") {
       // 直接跳转到海关企业资质备案实验详情页
