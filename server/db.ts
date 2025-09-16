@@ -2,7 +2,8 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-// Use environment variable for PostgreSQL connection
+// 注意：当前环境提供MySQL数据库，但schema设计为PostgreSQL
+// 临时使用PostgreSQL连接配置，实际使用内存存储
 const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
