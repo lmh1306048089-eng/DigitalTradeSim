@@ -27,7 +27,8 @@ import {
   insertCustomsTestDataSchema,
   insertIcCardTestDataSchema,
   insertEcommerceQualificationTestDataSchema,
-  ecommerceQualificationSubmissionSchema
+  ecommerceQualificationSubmissionSchema,
+  insertOverseasWarehouseTestDataSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -996,6 +997,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "获取传输ID测试数据失败" 
+      });
+    }
+  });
+
+  // 海外仓业务模式备案测试数据端点
+  app.get("/api/test-data/overseas-warehouse", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getOverseasWarehouseTestData();
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取海外仓备案测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取海外仓备案测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/test-data/overseas-warehouse/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getOverseasWarehouseTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          success: false,
+          message: "海外仓备案测试数据集不存在"
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取海外仓备案测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取海外仓备案测试数据失败" 
       });
     }
   });
