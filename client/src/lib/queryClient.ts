@@ -4,17 +4,30 @@ async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     try {
       const text = await res.text();
+      let errorMessage: string;
       try {
         const errorData = JSON.parse(text);
-        throw new Error(errorData.message || res.statusText);
+        errorMessage = errorData.message || res.statusText;
       } catch {
-        throw new Error(text || res.statusText);
+        errorMessage = text || res.statusText;
       }
+      
+      // Create error with status property for better error handling
+      const error = new Error(errorMessage) as any;
+      error.status = res.status;
+      throw error;
     } catch (error) {
       if (error instanceof Error) {
-        throw error;
+        // Preserve the error but ensure it has status
+        const enrichedError = error as any;
+        if (!enrichedError.status) {
+          enrichedError.status = res.status;
+        }
+        throw enrichedError;
       }
-      throw new Error(res.statusText);
+      const fallbackError = new Error(res.statusText) as any;
+      fallbackError.status = res.status;
+      throw fallbackError;
     }
   }
 }
