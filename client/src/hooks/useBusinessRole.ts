@@ -35,8 +35,9 @@ export function useBusinessRole() {
     if (savedRole && BUSINESS_ROLE_CONFIGS[savedRole]) {
       setSelectedRoleCode(savedRole);
     } else {
-      // 如果没有保存的角色，确保状态为null
-      setSelectedRoleCode(null);
+      // 如果没有保存的角色，默认设置为企业操作员
+      setSelectedRoleCode("enterprise_operator");
+      localStorage.setItem(BUSINESS_ROLE_KEY, "enterprise_operator");
     }
     
     if (savedContext) {

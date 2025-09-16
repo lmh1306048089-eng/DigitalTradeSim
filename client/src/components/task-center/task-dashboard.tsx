@@ -52,7 +52,7 @@ interface BusinessTask {
 
 export function TaskDashboard() {
   const { user } = useAuth();
-  const { selectedRoleCode, getCurrentRole } = useBusinessRole();
+  const { selectedRoleCode, getCurrentRole, selectBusinessRole } = useBusinessRole();
   const [selectedTask, setSelectedTask] = useState<BusinessTask | null>(null);
   const [, setLocation] = useLocation();
 
@@ -515,11 +515,23 @@ export function TaskDashboard() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <CheckCircle className="h-12 w-12 mx-auto mb-4 text-green-500" />
-              <h3 className="text-lg font-semibold mb-2">所有任务已完成！</h3>
-              <p className="text-muted-foreground">
-                恭喜您完成了当前角色的所有实训任务
+              <AlertCircle className="h-12 w-12 mx-auto mb-4 text-amber-500" />
+              <h3 className="text-lg font-semibold mb-2">当前角色没有可用任务</h3>
+              <p className="text-muted-foreground mb-4">
+                {selectedRoleCode ? `当前角色"${currentRole?.roleName || selectedRoleCode}"没有可用的任务` : "请选择一个业务角色来查看相关任务"}
               </p>
+              {selectedRoleCode !== "enterprise_operator" && (
+                <Button 
+                  onClick={() => {
+                    selectBusinessRole("enterprise_operator");
+                    window.location.reload(); // 刷新页面以应用新角色
+                  }}
+                  className="mb-2"
+                  data-testid="button-switch-to-enterprise"
+                >
+                  切换到企业操作员角色
+                </Button>
+              )}
             </div>
           )}
         </TabsContent>
