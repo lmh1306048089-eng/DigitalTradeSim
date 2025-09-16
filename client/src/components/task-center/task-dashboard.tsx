@@ -161,6 +161,63 @@ export function TaskDashboard() {
       ]
     },
     {
+      id: "transmission-id-application",
+      title: "传输ID申请",
+      description: "企业在中国电子口岸数据中心申请传输ID，支持报关单模式或清单模式，完成企业数据对接",
+      category: "preparation",
+      status: "available",
+      progress: 0,
+      estimatedTime: "40分钟",
+      requiredRole: "enterprise_operator",
+      priority: "high",
+      nextAction: "填写企业基本信息",
+      steps: [
+        {
+          id: "step1",
+          title: "企业基本信息",
+          description: "填写企业基本信息和联系方式",
+          status: "current",
+          scene: "电商企业办公场景",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step2",
+          title: "申请模式选择",
+          description: "选择报关单模式或清单模式",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step3",
+          title: "申请人信息",
+          description: "填写申请人详细信息",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step4",
+          title: "资质材料上传",
+          description: "上传营业执照扫描件等资质材料",
+          status: "pending",
+          estimatedTime: "10分钟"
+        },
+        {
+          id: "step5",
+          title: "系统对接配置",
+          description: "配置企业数据系统对接参数",
+          status: "pending",
+          estimatedTime: "5分钟"
+        },
+        {
+          id: "step6",
+          title: "提交审核",
+          description: "确认信息并提交传输ID申请",
+          status: "pending",
+          estimatedTime: "5分钟"
+        }
+      ]
+    },
+    {
       id: "customs-declaration",
       title: "海关申报单填报",
       description: "根据订单信息填写海关申报单据，确保货物顺利通关",
