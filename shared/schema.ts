@@ -609,3 +609,62 @@ export const insertTransmissionIdTestDataSchema = createInsertSchema(transmissio
 
 export type TransmissionIdTestData = typeof transmissionIdTestData.$inferSelect;
 export type InsertTransmissionIdTestData = z.infer<typeof insertTransmissionIdTestDataSchema>;
+
+// 海外仓业务模式备案测试数据表
+export const overseasWarehouseTestData = pgTable("overseas_warehouse_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  // 企业基本信息
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  businessAddress: text("business_address").notNull(),
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  businessScope: text("business_scope").notNull(),
+  registeredCapital: integer("registered_capital").notNull(), // 注册资本（万元）
+  // 海外仓出口企业备案登记表字段
+  exportBusinessScope: text("export_business_scope").notNull(), // 出口经营范围
+  overseasWarehouseCountry: varchar("overseas_warehouse_country", { length: 50 }).notNull(), // 海外仓所在国家
+  overseasWarehouseAddress: text("overseas_warehouse_address").notNull(), // 海外仓地址
+  warehouseOperatingModel: varchar("warehouse_operating_model", { length: 50 }).notNull(), // 仓库运营模式：自营/第三方
+  expectedAnnualExportVolume: integer("expected_annual_export_volume").notNull(), // 预计年出口量（万美元）
+  mainExportProducts: text("main_export_products").notNull(), // 主要出口商品
+  targetMarkets: text("target_markets").notNull(), // 目标市场
+  // 海外仓信息登记表字段
+  warehouseName: varchar("warehouse_name", { length: 200 }).notNull(), // 海外仓名称
+  warehouseCode: varchar("warehouse_code", { length: 50 }).notNull(), // 海外仓编码
+  warehouseArea: numeric("warehouse_area", { precision: 10, scale: 2 }).notNull(), // 仓库面积（平方米）
+  storageCapacity: integer("storage_capacity").notNull(), // 储存能力（立方米）
+  warehouseType: varchar("warehouse_type", { length: 50 }).notNull(), // 仓库类型：保税仓/一般贸易仓
+  operatingLicense: varchar("operating_license", { length: 100 }), // 运营许可证号
+  warehouseContactPerson: varchar("warehouse_contact_person", { length: 50 }).notNull(), // 仓库联系人
+  warehouseContactPhone: varchar("warehouse_contact_phone", { length: 20 }).notNull(), // 仓库联系电话
+  warehouseManagementSystem: varchar("warehouse_management_system", { length: 100 }), // 仓库管理系统
+  // 海外仓所有权信息
+  ownershipType: varchar("ownership_type", { length: 50 }).notNull(), // 所有权类型：自有/租赁/委托管理
+  leaseAgreementNumber: varchar("lease_agreement_number", { length: 50 }), // 租赁协议编号
+  leaseStartDate: varchar("lease_start_date", { length: 20 }), // 租赁开始日期
+  leaseEndDate: varchar("lease_end_date", { length: 20 }), // 租赁结束日期
+  lessorInformation: text("lessor_information"), // 出租方信息
+  // 海关相关信息
+  customsSupervisionCode: varchar("customs_supervision_code", { length: 50 }), // 海关监管代码
+  bonded_area_code: varchar("bonded_area_code", { length: 50 }), // 保税区域代码
+  warehouseRegistrationNumber: varchar("warehouse_registration_number", { length: 50 }), // 仓库注册编号
+  insuranceInformation: text("insurance_information"), // 保险信息
+  emergencyContactInfo: text("emergency_contact_info"), // 应急联系信息
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 海外仓备案测试数据相关 schema
+export const insertOverseasWarehouseTestDataSchema = createInsertSchema(overseasWarehouseTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type OverseasWarehouseTestData = typeof overseasWarehouseTestData.$inferSelect;
+export type InsertOverseasWarehouseTestData = z.infer<typeof insertOverseasWarehouseTestDataSchema>;
