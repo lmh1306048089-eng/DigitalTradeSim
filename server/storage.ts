@@ -47,7 +47,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
-import { randomUUID } from 'crypto';
 
 export interface IStorage {
   // User operations
@@ -139,8 +138,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(userData: InsertUser): Promise<User> {
-    const userWithId = { id: randomUUID(), ...userData };
-    const [user] = await db.insert(users).values(userWithId).returning();
+    await db.insert(users).values(userData);
+    const user = await this.getUserByPhone(userData.phone);
+    if (!user) throw new Error("Failed to create user");
     return user;
   }
 
@@ -166,7 +166,6 @@ export class DatabaseStorage implements IStorage {
 
   async createBusinessRole(roleData: InsertBusinessRole): Promise<BusinessRole> {
     await db.insert(businessRoles).values([{
-      id: randomUUID(),
       roleCode: roleData.roleCode,
       roleName: roleData.roleName,
       description: roleData.description,
@@ -186,7 +185,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async assignUserBusinessRole(assignment: InsertUserBusinessRole): Promise<UserBusinessRole> {
-    await db.insert(userBusinessRoles).values([{ id: randomUUID(), ...assignment }]);
+    await db.insert(userBusinessRoles).values([assignment]);
     const [role] = await db.select().from(userBusinessRoles)
       .where(and(
         eq(userBusinessRoles.userId, assignment.userId),
@@ -216,7 +215,6 @@ export class DatabaseStorage implements IStorage {
 
   async createVirtualScene(sceneData: InsertVirtualScene): Promise<VirtualScene> {
     await db.insert(virtualScenes).values([{
-      id: randomUUID(),
       name: sceneData.name,
       description: sceneData.description,
       imageUrl: sceneData.imageUrl,
@@ -257,8 +255,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperiment(experimentData: InsertExperiment): Promise<Experiment> {
-    const [experiment] = await db.insert(experiments).values([{
-      id: randomUUID(),
+    await db.insert(experiments).values([{
       name: experimentData.name,
       category: experimentData.category,
       description: experimentData.description,
@@ -266,8 +263,10 @@ export class DatabaseStorage implements IStorage {
       isActive: experimentData.isActive ?? true,
       steps: experimentData.steps ? JSON.parse(JSON.stringify(experimentData.steps)) : [],
       requirements: experimentData.requirements ? JSON.parse(JSON.stringify(experimentData.requirements)) : []
-    }]).returning();
-    return experiment;
+    }]);
+    const [insertedExperiment] = await db.select().from(experiments).where(eq(experiments.name, experimentData.name));
+    if (!insertedExperiment) throw new Error("Failed to create experiment");
+    return insertedExperiment;
   }
 
   async updateExperiment(id: string, updates: Partial<Experiment>): Promise<Experiment> {
@@ -299,7 +298,7 @@ export class DatabaseStorage implements IStorage {
     if (existing) {
       return this.updateProgress(existing.id, progressData);
     } else {
-      await db.insert(studentProgress).values([{ id: randomUUID(), ...progressData }]);
+      await db.insert(studentProgress).values([progressData]);
       const [progress] = await db.select().from(studentProgress)
         .where(and(
           eq(studentProgress.userId, progressData.userId),
@@ -345,7 +344,6 @@ export class DatabaseStorage implements IStorage {
 
   async createTrainingTask(taskData: InsertTrainingTask): Promise<TrainingTask> {
     await db.insert(trainingTasks).values([{
-      id: randomUUID(),
       title: taskData.title,
       teacherId: taskData.teacherId,
       experimentId: taskData.experimentId,
@@ -394,7 +392,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExperimentResult(resultData: InsertExperimentResult): Promise<ExperimentResult> {
-    await db.insert(experimentResults).values([{ id: randomUUID(), ...resultData }]);
+    await db.insert(experimentResults).values([resultData]);
     const result = await db.select().from(experimentResults)
       .where(and(
         eq(experimentResults.userId, resultData.userId),
@@ -433,7 +431,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUploadedFile(fileData: InsertUploadedFile): Promise<UploadedFile> {
-    await db.insert(uploadedFiles).values([{ id: randomUUID(), ...fileData }]);
+    await db.insert(uploadedFiles).values([fileData]);
     const [file] = await db.select().from(uploadedFiles)
       .where(and(
         eq(uploadedFiles.uploadedBy, fileData.uploadedBy),
@@ -509,7 +507,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createWorkflowInstance(instanceData: InsertWorkflowInstance): Promise<WorkflowInstance> {
-    await db.insert(workflowInstances).values({ id: randomUUID(), ...instanceData });
+    await db.insert(workflowInstances).values(instanceData);
     // 获取最新创建的工作流实例
     const [workflow] = await db.select()
       .from(workflowInstances)
@@ -532,7 +530,6 @@ export class DatabaseStorage implements IStorage {
 
     // 记录步骤执行
     await db.insert(workflowStepExecutions).values({
-      id: randomUUID(),
       workflowInstanceId: workflowId,
       stepNumber: workflow.currentStep,
       executorUserId: userId,
@@ -576,7 +573,6 @@ export class DatabaseStorage implements IStorage {
 
   async createCustomsTestData(testDataInput: InsertCustomsTestData): Promise<CustomsTestData> {
     await db.insert(customsTestData).values([{
-      id: randomUUID(),
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
@@ -620,7 +616,6 @@ export class DatabaseStorage implements IStorage {
 
   async createIcCardTestData(testDataInput: InsertIcCardTestData): Promise<IcCardTestData> {
     await db.insert(icCardTestData).values([{
-      id: randomUUID(),
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
@@ -670,36 +665,28 @@ export class DatabaseStorage implements IStorage {
 
   async createEcommerceQualificationTestData(testDataInput: InsertEcommerceQualificationTestData): Promise<EcommerceQualificationTestData> {
     await db.insert(ecommerceQualificationTestData).values([{
-      id: randomUUID(),
       dataSetName: testDataInput.dataSetName,
       companyName: testDataInput.companyName,
       unifiedCreditCode: testDataInput.unifiedCreditCode,
-      businessLicense: testDataInput.businessLicense,
+      businessLicenseNumber: testDataInput.businessLicenseNumber,
       legalRepresentative: testDataInput.legalRepresentative,
-      legalRepresentativeIdCard: testDataInput.legalRepresentativeIdCard,
+      legalRepIdCard: testDataInput.legalRepIdCard,
+      legalRepPhone: testDataInput.legalRepPhone,
       registeredAddress: testDataInput.registeredAddress,
       businessAddress: testDataInput.businessAddress,
       contactPerson: testDataInput.contactPerson,
       contactPhone: testDataInput.contactPhone,
       contactEmail: testDataInput.contactEmail,
-      registeredCapital: testDataInput.registeredCapital ?? 100,
-      foreignTradeRecord: testDataInput.foreignTradeRecord,
-      businessScope: testDataInput.businessScope,
-      customsEcommerceRecord: testDataInput.customsEcommerceRecord,
-      establishmentDate: testDataInput.establishmentDate ?? "2020-01-01",
-      businessValidityPeriod: testDataInput.businessValidityPeriod ?? "长期",
-      mainProducts: testDataInput.mainProducts ?? "电子产品",
-      productionCapacity: testDataInput.productionCapacity,
-      productCertification: testDataInput.productCertification,
-      qualityManagementSystem: testDataInput.qualityManagementSystem,
-      brandAuthorization: testDataInput.brandAuthorization,
-      supplierInformation: testDataInput.supplierInformation ?? "主要供应商信息",
-      foreignExchangeAccount: testDataInput.foreignExchangeAccount,
-      foreignExchangeAccountNumber: testDataInput.foreignExchangeAccountNumber,
+      tradeLicenseNumber: testDataInput.tradeLicenseNumber,
+      tradeScope: testDataInput.tradeScope,
+      customsRecordNumber: testDataInput.customsRecordNumber,
+      bankName: testDataInput.bankName,
+      accountNumber: testDataInput.accountNumber,
+      accountName: testDataInput.accountName,
       taxRegistrationNumber: testDataInput.taxRegistrationNumber,
-      taxpayerType: testDataInput.taxpayerType ?? "一般纳税人",
-      annualTurnover: testDataInput.annualTurnover ?? 1000,
-      exportVolume: testDataInput.exportVolume ?? 500,
+      vatNumber: testDataInput.vatNumber,
+      productionCapacity: testDataInput.productionCapacity,
+      qualityCertification: testDataInput.qualityCertification,
       isActive: testDataInput.isActive ?? true
     }]);
     const [insertedData] = await db.select().from(ecommerceQualificationTestData)
@@ -709,5 +696,4 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// 使用PostgreSQL数据库存储
 export const storage = new DatabaseStorage();
