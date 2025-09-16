@@ -2,9 +2,8 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
 
-// 注意：当前环境提供MySQL数据库，但schema设计为PostgreSQL
-// 临时使用PostgreSQL连接配置，实际使用内存存储
-const DATABASE_URL = process.env.DATABASE_URL;
+// 使用PostgreSQL数据库连接，添加SSL参数确保正确连接
+const DATABASE_URL = process.env.DATABASE_URL || "postgresql://user_replit_____b74dee61:3e3c478213fe04d01d0fced510bbb23d@69.5.18.225:51821/replit__________postgresql_1757986692198_78878d0b?sslmode=require";
 
 if (!DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');
@@ -15,12 +14,10 @@ let connectionConfig: any = {
   max: 10,
 };
 
-// Configure SSL based on environment
-if (DATABASE_URL?.includes('ssl=true') || process.env.NODE_ENV === 'production') {
-  connectionConfig.ssl = { rejectUnauthorized: false };
-} else if (process.env.NODE_ENV === 'development') {
-  connectionConfig.ssl = false;
-}
+// Configure SSL based on hostname rather than environment
+const url = new URL(DATABASE_URL);
+const isLocal = ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+connectionConfig.ssl = isLocal ? false : { rejectUnauthorized: false };
 
 export const connection = new Pool(connectionConfig);
 

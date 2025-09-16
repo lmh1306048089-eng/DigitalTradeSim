@@ -696,7 +696,7 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// 临时使用内存存储来解决数据库连接问题，创建默认测试用户
+// 临时使用内存存储确保系统稳定运行，带预设测试用户
 const memStorage = new DatabaseStorage();
 
 // 创建内存中的测试用户数据
