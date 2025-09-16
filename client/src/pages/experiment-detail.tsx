@@ -11,6 +11,7 @@ import { CustomsQualificationForm } from "@/components/customs/customs-qualifica
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
+import { OverseasWarehouseForm } from "@/components/enterprise/overseas-warehouse-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
@@ -20,6 +21,7 @@ export default function ExperimentDetailPage() {
   const [showEportForm, setShowEportForm] = useState(false);
   const [showEnterpriseQualificationForm, setShowEnterpriseQualificationForm] = useState(false);
   const [showTransportIdForm, setShowTransportIdForm] = useState(false);
+  const [showOverseasWarehouseForm, setShowOverseasWarehouseForm] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
@@ -28,6 +30,7 @@ export default function ExperimentDetailPage() {
       'b2e8f3c1-1234-4567-8901-234567890abc': 'enterprise_scene', // 电子口岸IC卡申请
       'ec901234-5678-9012-3456-789abcdef012': 'enterprise_scene', // 电商企业资质备案
       'transmission-id-application': 'enterprise_scene', // 传输ID申请
+      'overseas-warehouse-registration': 'customs_scene', // 海外仓业务模式备案
     };
     return experimentSceneMap[experimentId] || 'overview';
   };
@@ -208,6 +211,8 @@ export default function ExperimentDetailPage() {
       setShowEnterpriseQualificationForm(true);
     } else if (experiment?.name === "传输ID申请") {
       setShowTransportIdForm(true);
+    } else if (experiment?.name === "海外仓业务模式备案") {
+      setShowOverseasWarehouseForm(true);
     }
   };
 
@@ -552,6 +557,30 @@ export default function ExperimentDetailPage() {
           <TransportIdForm
             onComplete={handleExperimentComplete}
             onCancel={() => setShowTransportIdForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示海外仓业务模式备案表单，直接渲染表单
+  if (showOverseasWarehouseForm && experiment?.name === "海外仓业务模式备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="海外仓业务模式备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowOverseasWarehouseForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <OverseasWarehouseForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowOverseasWarehouseForm(false)}
           />
         </div>
       </div>
