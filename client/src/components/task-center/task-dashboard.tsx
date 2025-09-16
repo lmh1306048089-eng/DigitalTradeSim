@@ -285,7 +285,13 @@ export function TaskDashboard() {
       setLocation("/experiments/873e1fe1-0430-4f47-9db2-c4f00e2b048f");
     } else if (task.id === "eport-ic-card") {
       // 直接跳转到电子口岸IC卡申请实验详情页
-      setLocation("/experiments/b6566249-2b05-497a-9517-b09f2b7eaa97");
+      setLocation("/experiments/b2e8f3c1-1234-4567-8901-234567890abc");
+    } else if (task.id === "enterprise-qualification") {
+      // 直接跳转到电商企业资质备案实验详情页
+      setLocation("/experiments/ec901234-5678-9012-3456-789abcdef012");
+    } else if (task.id === "transmission-id-application") {
+      // 直接跳转到传输ID申请实验详情页
+      setLocation("/experiments/trans8901-2345-6789-0123-456789abcdef");
     } else {
       // 其他任务的处理逻辑
       console.log("其他任务处理逻辑待实现:", task.title);
