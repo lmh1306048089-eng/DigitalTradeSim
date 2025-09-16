@@ -567,3 +567,45 @@ export const insertEcommerceQualificationTestDataSchema = createInsertSchema(eco
 
 export type EcommerceQualificationTestData = typeof ecommerceQualificationTestData.$inferSelect;
 export type InsertEcommerceQualificationTestData = z.infer<typeof insertEcommerceQualificationTestDataSchema>;
+
+// 传输ID申请测试数据表
+export const transmissionIdTestData = pgTable("transmission_id_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  // 企业基本信息
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  businessAddress: text("business_address").notNull(),
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  businessScope: text("business_scope").notNull(),
+  // 传输ID申请特有字段
+  applicationMode: varchar("application_mode", { length: 20 }).notNull(), // 申请模式：declaration（报关单模式）或manifest（清单模式）
+  applicantName: varchar("applicant_name", { length: 50 }).notNull(), // 申请人姓名
+  applicantIdCard: varchar("applicant_id_card", { length: 18 }).notNull(), // 申请人身份证号
+  applicantPosition: varchar("applicant_position", { length: 50 }).notNull(), // 申请人职务
+  applicantPhone: varchar("applicant_phone", { length: 11 }).notNull(), // 申请人联系电话
+  customsRegistrationNumber: varchar("customs_registration_number", { length: 30 }), // 海关注册编号
+  enterpriseType: varchar("enterprise_type", { length: 50 }).notNull(), // 企业类型
+  businessCategory: varchar("business_category", { length: 100 }).notNull(), // 经营类别
+  expectedUsage: text("expected_usage").notNull(), // 预计使用用途
+  systemIntegrationMethod: varchar("system_integration_method", { length: 100 }), // 系统对接方式
+  technicalContactPerson: varchar("technical_contact_person", { length: 50 }), // 技术对接联系人
+  technicalContactPhone: varchar("technical_contact_phone", { length: 11 }), // 技术联系电话
+  dataInterfaceRequirement: text("data_interface_requirement"), // 数据接口需求
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 传输ID申请测试数据相关 schema
+export const insertTransmissionIdTestDataSchema = createInsertSchema(transmissionIdTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type TransmissionIdTestData = typeof transmissionIdTestData.$inferSelect;
+export type InsertTransmissionIdTestData = z.infer<typeof insertTransmissionIdTestDataSchema>;
