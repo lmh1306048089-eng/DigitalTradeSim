@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Building2, FileText, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Package, Warehouse, Globe, MapPin } from "lucide-react";
+import { Building2, FileText, CheckCircle, AlertCircle, ArrowRight, ArrowLeft, Package, Warehouse, Globe, MapPin, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -231,8 +231,13 @@ export function OverseasWarehouseForm({ onComplete, onCancel }: OverseasWarehous
     }
   ];
 
-  const getCurrentStepProgress = () => {
-    return ((currentStep - 1) / (steps.length - 1)) * 100;
+  const totalSteps = steps.length;
+  
+  const getStepProgress = () => ((currentStep - 1) / (totalSteps - 1)) * 100;
+  
+  const getStepTitle = (stepNumber: number) => {
+    const step = steps[stepNumber - 1];
+    return step ? step.title : "";
   };
 
   const handleNextStep = async () => {
@@ -1274,46 +1279,19 @@ export function OverseasWarehouseForm({ onComplete, onCancel }: OverseasWarehous
         </p>
       </div>
 
-      {/* 步骤指示器 */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          {steps.map((step, index) => (
-            <div key={step.number} className="flex items-center">
-              <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                currentStep > step.number 
-                  ? 'bg-green-500 border-green-500 text-white' 
-                  : currentStep === step.number 
-                    ? 'bg-blue-500 border-blue-500 text-white' 
-                    : 'bg-gray-100 border-gray-300 text-gray-500'
-              }`}>
-                {currentStep > step.number ? (
-                  <CheckCircle className="h-6 w-6" />
-                ) : (
-                  step.icon
-                )}
-              </div>
-              {index < steps.length - 1 && (
-                <div className={`w-16 h-0.5 mx-2 ${
-                  currentStep > step.number ? 'bg-green-500' : 'bg-gray-300'
-                }`} />
-              )}
-            </div>
-          ))}
-        </div>
-        
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-gray-900 mb-1">
-            {steps[currentStep - 1]?.title}
-          </h2>
-          <p className="text-sm text-gray-600">
-            {steps[currentStep - 1]?.description}
-          </p>
-        </div>
-        
-        <div className="mt-4">
-          <Progress value={getCurrentStepProgress()} className="w-full" />
-        </div>
-      </div>
+      {/* 进度条 */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-green-900 dark:text-green-100">海外仓业务模式备案</h2>
+            <Badge variant="outline" className="bg-white dark:bg-gray-800">
+              第 {currentStep} 步 / 共 {totalSteps} 步
+            </Badge>
+          </div>
+          <Progress value={getStepProgress()} className="h-2" />
+          <p className="text-sm text-green-700 dark:text-green-300 mt-2">{getStepTitle(currentStep)}</p>
+        </CardContent>
+      </Card>
 
       {/* 表单内容 */}
       <Form {...form}>
