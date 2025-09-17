@@ -185,7 +185,14 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
     { id: 5, title: "提交成功", description: "备案申请已提交" }
   ];
 
-  const getStepProgress = () => ((currentStep - 1) / (steps.length - 1)) * 100;
+  const totalSteps = steps.length;
+  
+  const getStepProgress = () => ((currentStep - 1) / (totalSteps - 1)) * 100;
+  
+  const getStepTitle = (stepNumber: number) => {
+    const step = steps[stepNumber - 1];
+    return step ? step.title : "";
+  };
 
   const validateCurrentStep = async () => {
     const stepFields: Record<number, (keyof CustomsFormData)[]> = {
@@ -645,106 +652,81 @@ export function CustomsQualificationForm({ onComplete, onCancel }: CustomsQualif
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6" data-testid="customs-qualification-form">
-      {/* 进度指示器 */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">海关企业资质备案</h2>
-          <Badge variant="outline">
-            第 {currentStep} 步，共 {steps.length} 步
-          </Badge>
-        </div>
-
-        <Progress value={getStepProgress()} className="mb-4" />
-
-        <div className="flex justify-between text-sm">
-          {steps.map((step) => (
-            <div
-              key={step.id}
-              className={`flex-1 text-center ${
-                step.id === currentStep
-                  ? "text-primary font-medium"
-                  : step.id < currentStep
-                  ? "text-green-600"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <div className="font-medium">{step.title}</div>
-              <div className="text-xs">{step.description}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 表单内容 */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              {steps[currentStep - 1]?.title}
-            </CardTitle>
-            
-            {/* 测试数据已静默自动填充 - 无需UI提示 */}
+    <div className="max-w-4xl mx-auto space-y-6" data-testid="customs-qualification-form">
+      {/* 进度条 */}
+      <Card className="border-0 shadow-sm bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-orange-900 dark:text-orange-100">海关企业资质备案</h2>
+            <Badge variant="outline" className="bg-white dark:bg-gray-800">
+              第 {currentStep} 步 / 共 {totalSteps} 步
+            </Badge>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              {renderStepContent()}
-
-              {/* 操作按钮 */}
-              <div className="flex items-center justify-between pt-6 border-t">
-                <div>
-                  {currentStep > 1 && currentStep < 5 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handlePrevious}
-                      data-testid="button-previous"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      上一步
-                    </Button>
-                  )}
-                </div>
-
-                <div className="flex gap-3">
-                  {currentStep < 5 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={onCancel}
-                      data-testid="button-cancel"
-                    >
-                      取消
-                    </Button>
-                  )}
-                  
-                  {currentStep < 4 ? (
-                    <Button
-                      type="button"
-                      onClick={handleNext}
-                      data-testid="button-next"
-                    >
-                      下一步
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  ) : currentStep === 4 ? (
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      data-testid="button-submit"
-                    >
-                      {isSubmitting ? "提交中..." : "提交备案申请"}
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </form>
-          </Form>
+          <Progress value={getStepProgress()} className="h-2" />
+          <p className="text-sm text-orange-700 dark:text-orange-300 mt-2">{getStepTitle(currentStep)}</p>
         </CardContent>
       </Card>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <Card>
+            <CardContent className="p-6">
+              {renderStepContent()}
+            </CardContent>
+          </Card>
+
+          {/* 导航按钮 */}
+          <div className="flex justify-between">
+            <div>
+              {currentStep > 1 && currentStep < 5 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handlePrevious}
+                  data-testid="button-previous"
+                >
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  上一步
+                </Button>
+              )}
+            </div>
+
+            <div>
+              {currentStep < 5 && (
+                <Button
+                  type="button"
+                  onClick={handleNext}
+                  data-testid="button-next"
+                >
+                  下一步
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+              
+              {currentStep === 4 && (
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  data-testid="button-submit"
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      提交中...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      提交备案申请
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </form>
+      </Form>
     </div>
   );
 }

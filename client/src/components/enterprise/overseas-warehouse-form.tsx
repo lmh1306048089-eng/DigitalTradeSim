@@ -1271,14 +1271,7 @@ export function OverseasWarehouseForm({ onComplete, onCancel }: OverseasWarehous
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">海外仓业务模式备案</h1>
-        <p className="text-gray-600">
-          根据海关总署相关规定，开展海外仓业务的跨境电商企业需要完成业务模式备案登记
-        </p>
-      </div>
-
+    <div className="max-w-4xl mx-auto space-y-6">
       {/* 进度条 */}
       <Card className="border-0 shadow-sm bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30">
         <CardContent className="p-6">
@@ -1293,7 +1286,6 @@ export function OverseasWarehouseForm({ onComplete, onCancel }: OverseasWarehous
         </CardContent>
       </Card>
 
-      {/* 表单内容 */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           <Card>
