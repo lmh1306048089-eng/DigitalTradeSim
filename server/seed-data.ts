@@ -12,13 +12,13 @@ export async function seedBasicData() {
         id: 'enterprise_scene',
         name: '电商企业场景',
         description: '跨境电商企业操作环境，进行备案申报、单证制作等业务操作',
-        imageUrl: '/images/enterprise-scene.jpg',
+        imageUrl: '/attached_assets/generated_images/enterprise-office_b8f9c4d2.png',
         operationPoints: [
           {
             businessRoleCode: 'enterprise_operator',
-            entryName: '企业操作台',
-            entryDescription: '进行备案申报、单证制作、订单管理等操作',
-            allowedOperations: ['customs_filing', 'document_preparation', 'order_management']
+            entryName: '电脑操作端',
+            entryDescription: '备案系统、申报系统、退税系统入口',
+            allowedOperations: ['备案申报', '出口申报', '退税申报']
           }
         ],
         interactiveElements: ['filing_form', 'document_upload', 'status_monitor'],
