@@ -14,6 +14,7 @@ import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { OverseasWarehouseForm } from "@/components/enterprise/overseas-warehouse-form";
 import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
+import { CrossBorderEcommercePlatform } from "@/components/declaration/cross-border-ecommerce-platform";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
@@ -27,6 +28,7 @@ export default function ExperimentDetailPage() {
   const [showOverseasWarehouseForm, setShowOverseasWarehouseForm] = useState(false);
   const [showCustomsDeclarationForm, setShowCustomsDeclarationForm] = useState(false);
   const [showListDeclarationForm, setShowListDeclarationForm] = useState(false);
+  const [showCrossBorderPlatform, setShowCrossBorderPlatform] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
@@ -220,9 +222,8 @@ export default function ExperimentDetailPage() {
     } else if (experiment?.name === "海外仓业务模式备案") {
       setShowOverseasWarehouseForm(true);
     } else if (experiment?.name === "报关单模式出口申报") {
-      // 对于出口申报，我们需要显示模式选择而不是直接跳转
-      // 这里暂时显示对话框，后续可以改为在页面内显示选择界面
-      setShowCustomsDeclarationForm(true);
+      // 直接启动跨境电商综合服务平台
+      setShowCrossBorderPlatform(true);
     }
   };
 
@@ -597,6 +598,16 @@ export default function ExperimentDetailPage() {
     );
   }
 
+  // 如果正在显示跨境电商综合服务平台，直接渲染平台
+  if (showCrossBorderPlatform && experiment?.name === "报关单模式出口申报") {
+    return (
+      <CrossBorderEcommercePlatform
+        onComplete={handleExperimentComplete}
+        onCancel={() => setShowCrossBorderPlatform(false)}
+      />
+    );
+  }
+
   // 如果正在显示清单模式申报表单，直接渲染表单
   if (showListDeclarationForm && experiment?.name === "报关单模式出口申报") {
     return (
@@ -790,7 +801,7 @@ export default function ExperimentDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
                   {/* 报关单模式申报 */}
                   <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
-                       onClick={() => setShowCustomsDeclarationForm(true)}
+                       onClick={() => setShowCrossBorderPlatform(true)}
                        data-testid="mode-customs-declaration">
                     <div className="text-center space-y-4">
                       <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
