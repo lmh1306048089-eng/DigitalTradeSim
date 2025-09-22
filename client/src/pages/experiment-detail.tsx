@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, FlaskConical, CheckCircle, Clock, AlertCircle, Users, Play, Building } from "lucide-react";
+import { ArrowLeft, FlaskConical, CheckCircle, Clock, AlertCircle, Users, Play, Building, FileText, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { IcCardApplicationForm } from "@/components/customs/ic-card-application-
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { OverseasWarehouseForm } from "@/components/enterprise/overseas-warehouse-form";
+import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
@@ -22,6 +23,8 @@ export default function ExperimentDetailPage() {
   const [showEnterpriseQualificationForm, setShowEnterpriseQualificationForm] = useState(false);
   const [showTransportIdForm, setShowTransportIdForm] = useState(false);
   const [showOverseasWarehouseForm, setShowOverseasWarehouseForm] = useState(false);
+  const [showCustomsDeclarationForm, setShowCustomsDeclarationForm] = useState(false);
+  const [showListDeclarationForm, setShowListDeclarationForm] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
@@ -31,6 +34,7 @@ export default function ExperimentDetailPage() {
       'ec901234-5678-9012-3456-789abcdef012': 'enterprise_scene', // 电商企业资质备案
       'transmission-id-application': 'enterprise_scene', // 传输ID申请
       'overseas-warehouse-registration': 'customs_scene', // 海外仓业务模式备案
+      'df7e2bc1-4532-4f89-9db3-d5g11f3c159g': 'enterprise_scene', // 出口申报
     };
     return experimentSceneMap[experimentId] || 'overview';
   };
@@ -213,6 +217,10 @@ export default function ExperimentDetailPage() {
       setShowTransportIdForm(true);
     } else if (experiment?.name === "海外仓业务模式备案") {
       setShowOverseasWarehouseForm(true);
+    } else if (experiment?.name === "报关单模式出口申报") {
+      // 对于出口申报，我们需要显示模式选择而不是直接跳转
+      // 这里暂时显示对话框，后续可以改为在页面内显示选择界面
+      setShowCustomsDeclarationForm(true);
     }
   };
 
@@ -587,6 +595,65 @@ export default function ExperimentDetailPage() {
     );
   }
 
+  // 如果正在显示清单模式申报表单，直接渲染表单
+  if (showListDeclarationForm && experiment?.name === "报关单模式出口申报") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900">
+        <Header title="清单模式出口申报">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowListDeclarationForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl text-white font-bold">📋</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">清单模式出口申报</h2>
+              <p className="text-gray-600 dark:text-gray-400">适用于跨境电商零售出口的简化申报流程</p>
+            </div>
+            <div className="space-y-6">
+              <div className="p-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-700/50">
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4">清单申报特点</h3>
+                <ul className="space-y-2 text-green-700 dark:text-green-300">
+                  <li className="flex items-center"><span className="mr-2">✓</span>适用于B2C跨境电商零售出口</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>简化的申报流程和数据要求</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>支持批量清单汇总申报</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>实时数据推送和状态查询</li>
+                </ul>
+              </div>
+              <div className="text-center">
+                <Button 
+                  size="lg" 
+                  onClick={() => {
+                    toast({
+                      title: "功能开发中",
+                      description: "清单模式申报功能正在开发中，敬请期待。",
+                    });
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                  data-testid="button-start-list-declaration"
+                >
+                  <FileText className="mr-3 h-5 w-5" />
+                  开始清单申报
+                </Button>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                  预计完成时间：15-20分钟
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 确保experiment存在才渲染主要内容
   if (!experiment) {
     return (
@@ -703,15 +770,72 @@ export default function ExperimentDetailPage() {
               <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
                 {experiment?.name === "电子口岸IC卡申请" ? (
                   "🎯 用户在电商企业场景中，依照任务要求，模拟前往中国电子口岸数据中心平台办理IC卡。通过在电子口岸入网模块中进行新企业申请入网操作，提交营业执照、操作员身份证、报关人员备案证明、对外贸易经营者备案登记表及海关进出口货物收发人备案回执等文件，完成IC卡的申请办理。"
+                ) : experiment?.name === "报关单模式出口申报" ? (
+                  "🎯 选择申报模式完成出口货物申报流程。系统支持报关单模式和清单模式两种申报方式，请根据业务需求选择合适的申报模式。"
                 ) : (
                   "🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。"
                 )}
               </p>
             </div>
 
-            {/* 实验步骤卡片 */}
-            <div className={`grid grid-cols-1 ${getExperimentSteps().length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6 mb-8`}>
-              {getExperimentSteps().map((step) => (
+            {/* 对于出口申报实验，显示两种申报模式选择 */}
+            {experiment?.name === "报关单模式出口申报" ? (
+              <div className="space-y-6 mb-8">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">📝 选择申报模式</h3>
+                  <p className="text-gray-600 dark:text-gray-400">请选择您希望使用的申报模式进行出口申报实验</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {/* 报关单模式申报 */}
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+                       onClick={() => setShowCustomsDeclarationForm(true)}
+                       data-testid="mode-customs-declaration">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-2xl text-white font-bold">📜</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-blue-800 dark:text-blue-100 mb-2">报关单模式申报</h4>
+                        <p className="text-blue-700 dark:text-blue-200 text-sm leading-relaxed">
+                          适用于一般贸易出口申报，完整的报关单申报流程，包括订仓单推送、基础数据导入、数据申报管理等全部步骤。
+                        </p>
+                      </div>
+                      <div className="pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
+                        <span className="text-blue-600 dark:text-blue-300 text-sm font-medium group-hover:text-blue-800 dark:group-hover:text-blue-100 transition-colors">
+                          👉 点击开始申报
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 清单模式申报 */}
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border border-green-200/50 dark:border-green-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+                       onClick={() => setShowListDeclarationForm(true)}
+                       data-testid="mode-list-declaration">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-2xl text-white font-bold">📋</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-green-800 dark:text-green-100 mb-2">清单模式申报</h4>
+                        <p className="text-green-700 dark:text-green-200 text-sm leading-relaxed">
+                          适用于跨境电商零售出口，简化的清单申报流程，通过清单类型的申报方式完成跨境电商出口申报。
+                        </p>
+                      </div>
+                      <div className="pt-3 border-t border-green-200/50 dark:border-green-700/50">
+                        <span className="text-green-600 dark:text-green-300 text-sm font-medium group-hover:text-green-800 dark:group-hover:text-green-100 transition-colors">
+                          👉 点击开始申报
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* 其他实验的正常步骤显示 */
+              <div className="space-y-6 mb-8">
+                <div className={`grid grid-cols-1 ${getExperimentSteps().length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6`}>
+                  {getExperimentSteps().map((step) => (
                 <div 
                   key={step.id}
                   className={`min-h-[12rem] p-4 rounded-xl bg-gradient-to-br ${step.bgColor} border ${step.borderColor} flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
@@ -734,10 +858,10 @@ export default function ExperimentDetailPage() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-              
-            {/* 开始实验按钮 - 自然融入设计 */}
+                  ))}
+                </div>
+                
+                {/* 开始实验按钮 - 自然融入设计 */}
             <div className="mt-8 text-center">
               <Button 
                 size="lg" 
@@ -765,8 +889,10 @@ export default function ExperimentDetailPage() {
               </Button>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
                 预计完成时间：30-45分钟
-              </p>
-            </div>
+                </p>
+              </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

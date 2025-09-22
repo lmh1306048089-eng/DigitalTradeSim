@@ -21,16 +21,6 @@ import { insertCustomsDeclarationExportTestDataSchema, type CustomsDeclarationEx
 // 分步验证模式 - 每步只验证当前步骤字段
 const stepSchemas = {
   1: z.object({
-    arrivalReportNumber: z.string().min(1, "运抵报告编号不能为空"),
-    transportMode: z.string().min(1, "请选择运输方式"),
-    transportToolNumber: z.string().min(1, "运输工具编号不能为空"),
-    departurePort: z.string().min(1, "启运港不能为空"),
-    destinationPort: z.string().min(1, "目的港不能为空"),
-    expectedArrivalDate: z.string().min(1, "预计到达日期不能为空"),
-    actualArrivalDate: z.string().min(1, "实际到达日期不能为空"),
-    supervisoryArea: z.string().min(1, "请选择监管场所"),
-  }),
-  2: z.object({
     bookingOrderNumber: z.string().min(1, "订仓单号不能为空"),
     shippingCompany: z.string().min(1, "请选择船公司"),
     vesselName: z.string().min(1, "船名不能为空"),
@@ -39,7 +29,7 @@ const stepSchemas = {
     containerType: z.string().min(1, "请选择集装箱类型"),
     sealNumber: z.string().min(1, "封条号不能为空"),
   }),
-  3: z.object({
+  2: z.object({
     declarationTaskId: z.string().min(1, "申报任务ID不能为空"),
     declarationSystemType: z.string().min(1, "请选择申报系统类型"),
     goodsDescription: z.string().min(10, "货物描述至少10个字符"),
@@ -49,7 +39,7 @@ const stepSchemas = {
     totalValue: z.coerce.number().positive("总价值必须大于0"),
     currency: z.string().min(1, "请选择币制"),
   }),
-  4: z.object({
+  3: z.object({
     grossWeight: z.coerce.number().positive("毛重必须大于0"),
     netWeight: z.coerce.number().positive("净重必须大于0"),
     packageQuantity: z.coerce.number().int().positive("件数必须是正整数"),
@@ -57,7 +47,7 @@ const stepSchemas = {
     tradeMode: z.string().min(1, "请选择贸易方式"),
     exemptionMethod: z.string().min(1, "请选择征免性质"),
   }),
-  5: z.object({
+  4: z.object({
     customsDeclarationNumber: z.string().min(1, "报关单号不能为空"),
     singleWindowNumber: z.string().min(1, "单一窗口编号不能为空"),
     consignorName: z.string().min(1, "发货人名称不能为空"),
@@ -66,7 +56,7 @@ const stepSchemas = {
     consigneeAddress: z.string().min(1, "收货人地址不能为空"),
     consigneeCountry: z.string().min(1, "请选择收货人国家"),
   }),
-  6: z.object({
+  5: z.object({
     declarationStatus: z.string().default("draft"),
     dataAccuracy: z.boolean().refine(val => val === true, "必须确认数据真实性"),
     legalResponsibility: z.boolean().refine(val => val === true, "必须承诺承担法律责任"),
@@ -76,17 +66,7 @@ const stepSchemas = {
 
 // 完整表单数据类型
 type CustomsDeclarationExportData = {
-  // 步骤1: 货物运抵申报
-  arrivalReportNumber: string;
-  transportMode: string;
-  transportToolNumber: string;
-  departurePort: string;
-  destinationPort: string;
-  expectedArrivalDate: string;
-  actualArrivalDate: string;
-  supervisoryArea: string;
-  
-  // 步骤2: 订仓单推送
+  // 步骤1: 订仓单推送
   bookingOrderNumber: string;
   shippingCompany: string;
   vesselName: string;
@@ -169,14 +149,6 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
       netWeight: 0,
       packageQuantity: 0,
       // 字符串字段默认值
-      arrivalReportNumber: "",
-      transportMode: "",
-      transportToolNumber: "",
-      departurePort: "",
-      destinationPort: "",
-      expectedArrivalDate: "",
-      actualArrivalDate: "",
-      supervisoryArea: "",
       bookingOrderNumber: "",
       shippingCompany: "",
       vesselName: "",
@@ -209,17 +181,7 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
       
       // 静默预填所有字段
       form.reset({
-        // 步骤1: 货物运抵申报
-        arrivalReportNumber: defaultTestData.arrivalReportNumber || "",
-        transportMode: defaultTestData.transportMode || "",
-        transportToolNumber: defaultTestData.transportToolNumber || "",
-        departurePort: defaultTestData.departurePort || "",
-        destinationPort: defaultTestData.destinationPort || "",
-        expectedArrivalDate: defaultTestData.expectedArrivalDate || "",
-        actualArrivalDate: defaultTestData.actualArrivalDate || "",
-        supervisoryArea: defaultTestData.supervisoryArea || "",
-
-        // 步骤2: 订仓单推送
+        // 步骤1: 订仓单推送
         bookingOrderNumber: defaultTestData.bookingOrderNumber || "",
         shippingCompany: defaultTestData.shippingCompany || "",
         vesselName: defaultTestData.vesselName || "",
@@ -349,147 +311,6 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="arrivalReportNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>运抵报告编号</FormLabel>
-                    <FormControl>
-                      <Input placeholder="请输入运抵报告编号" {...field} data-testid="input-arrival-report-number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="transportMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>运输方式</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-transport-mode">
-                          <SelectValue placeholder="请选择运输方式" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="海运">海运</SelectItem>
-                        <SelectItem value="空运">空运</SelectItem>
-                        <SelectItem value="陆运">陆运</SelectItem>
-                        <SelectItem value="铁路运输">铁路运输</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="transportToolNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>运输工具编号</FormLabel>
-                    <FormControl>
-                      <Input placeholder="请输入运输工具编号" {...field} data-testid="input-transport-tool-number" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="supervisoryArea"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>监管场所</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-supervisory-area">
-                          <SelectValue placeholder="请选择监管场所" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="深圳前海保税区">深圳前海保税区</SelectItem>
-                        <SelectItem value="上海自贸区">上海自贸区</SelectItem>
-                        <SelectItem value="广州南沙保税区">广州南沙保税区</SelectItem>
-                        <SelectItem value="天津东疆保税区">天津东疆保税区</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="departurePort"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>启运港</FormLabel>
-                    <FormControl>
-                      <Input placeholder="请输入启运港" {...field} data-testid="input-departure-port" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="destinationPort"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>目的港</FormLabel>
-                    <FormControl>
-                      <Input placeholder="请输入目的港" {...field} data-testid="input-destination-port" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="expectedArrivalDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>预计到达日期</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-expected-arrival-date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="actualArrivalDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>实际到达日期</FormLabel>
-                    <FormControl>
-                      <Input type="date" {...field} data-testid="input-actual-arrival-date" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
                 name="bookingOrderNumber"
                 render={({ field }) => (
                   <FormItem>
@@ -610,7 +431,7 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
           </div>
         );
 
-      case 3:
+      case 2:
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -780,7 +601,7 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -925,7 +746,7 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
@@ -1044,7 +865,7 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="bg-blue-50 dark:bg-blue-950 p-6 rounded-lg border border-blue-200 dark:border-blue-800">
