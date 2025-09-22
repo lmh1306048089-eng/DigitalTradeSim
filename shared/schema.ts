@@ -751,3 +751,137 @@ export const insertCustomsDeclarationExportTestDataSchema = createInsertSchema(c
 
 export type CustomsDeclarationExportTestData = typeof customsDeclarationExportTestData.$inferSelect;
 export type InsertCustomsDeclarationExportTestData = z.infer<typeof insertCustomsDeclarationExportTestDataSchema>;
+
+// 出口申报相关数据表（支持报关单模式业务流程）
+
+// 出口申报任务表（主表）
+export const exportDeclarations = pgTable("export_declarations", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  declarationMode: varchar("declaration_mode", { length: 20 }).notNull().default("declaration"), // declaration（报关单模式）, manifest（清单模式）
+  title: varchar("title", { length: 200 }).notNull(),
+  status: varchar("status", { length: 30 }).notNull().default("draft"), // draft, booking_pushed, declaration_pushed, under_review, approved, rejected
+  
+  // 综合服务平台相关数据
+  templateDownloaded: boolean("template_downloaded").default(false),
+  dataImported: boolean("data_imported").default(false),
+  taskCreated: boolean("task_created").default(false),
+  dataGenerated: boolean("data_generated").default(false),
+  bookingOrderPushed: boolean("booking_order_pushed").default(false),
+  
+  // 出口统一版系统相关数据
+  goodsInfoFilled: boolean("goods_info_filled").default(false),
+  declarationPushed: boolean("declaration_pushed").default(false),
+  customsValidated: boolean("customs_validated").default(false),
+  
+  // 业务数据
+  importedData: jsonb("imported_data").$type<any>(), // 导入的基础数据
+  taskInfo: jsonb("task_info").$type<{
+    taskId: string;
+    taskName: string;
+    priority: string;
+  }>(), // 申报任务信息
+  generatedData: jsonb("generated_data").$type<any>(), // 生成的申报数据
+  goodsDeclaration: jsonb("goods_declaration").$type<any>(), // 货物申报信息
+  
+  // 时间戳
+  readyAt: timestamp("ready_at"), // 海关审核准备时间（用于模拟延迟）
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 订仓单表
+export const bookingOrders = pgTable("booking_orders", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationId: varchar("declaration_id", { length: 36 }).notNull().references(() => exportDeclarations.id, { onDelete: "cascade" }),
+  orderNumber: varchar("order_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("created"), // created, pushed, confirmed, failed
+  platform: varchar("platform", { length: 50 }).notNull().default("comprehensive_service"), // 跨境电商综合服务平台
+  
+  // 订仓单数据
+  orderData: jsonb("order_data").$type<{
+    shipper: any;
+    consignee: any;
+    goods: any[];
+    transport: any;
+  }>(),
+  
+  pushedAt: timestamp("pushed_at"),
+  confirmedAt: timestamp("confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 数据导入任务表
+export const importJobs = pgTable("import_jobs", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationId: varchar("declaration_id", { length: 36 }).notNull().references(() => exportDeclarations.id, { onDelete: "cascade" }),
+  filename: varchar("filename", { length: 255 }).notNull(),
+  originalName: varchar("original_name", { length: 255 }).notNull(),
+  filePath: text("file_path").notNull(),
+  
+  status: varchar("status", { length: 20 }).notNull().default("processing"), // processing, completed, failed
+  progress: integer("progress").default(0), // 0-100
+  
+  // 导入结果
+  importResult: jsonb("import_result").$type<{
+    recordCount: number;
+    successCount: number;
+    errorCount: number;
+    errors: string[];
+  }>(),
+  
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 提交历史记录表（记录各个推送步骤的历史）
+export const submissionHistory = pgTable("submission_history", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationId: varchar("declaration_id", { length: 36 }).notNull().references(() => exportDeclarations.id, { onDelete: "cascade" }),
+  
+  submissionType: varchar("submission_type", { length: 30 }).notNull(), // booking_order, declaration, customs_validation
+  platform: varchar("platform", { length: 50 }).notNull(), // comprehensive_service, unified_export, single_window
+  status: varchar("status", { length: 20 }).notNull(), // sent, processing, success, failed
+  
+  // 提交数据和响应
+  requestData: jsonb("request_data").$type<any>(),
+  responseData: jsonb("response_data").$type<any>(),
+  errorMessage: text("error_message"),
+  
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+});
+
+// 新增的插入和选择模式
+export const insertExportDeclarationSchema = createInsertSchema(exportDeclarations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBookingOrderSchema = createInsertSchema(bookingOrders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertImportJobSchema = createInsertSchema(importJobs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubmissionHistorySchema = createInsertSchema(submissionHistory).omit({
+  id: true,
+  submittedAt: true,
+});
+
+export type ExportDeclaration = typeof exportDeclarations.$inferSelect;
+export type InsertExportDeclaration = z.infer<typeof insertExportDeclarationSchema>;
+
+export type BookingOrder = typeof bookingOrders.$inferSelect;
+export type InsertBookingOrder = z.infer<typeof insertBookingOrderSchema>;
+
+export type ImportJob = typeof importJobs.$inferSelect;
+export type InsertImportJob = z.infer<typeof insertImportJobSchema>;
+
+export type SubmissionHistory = typeof submissionHistory.$inferSelect;
+export type InsertSubmissionHistory = z.infer<typeof insertSubmissionHistorySchema>;
