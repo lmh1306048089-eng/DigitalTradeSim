@@ -34,29 +34,16 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
 
   // 获取当前角色在这个场景中可以执行的操作
   const getAvailableOperations = () => {
-    console.log("Debug SceneModal:", {
-      selectedRoleCode,
-      sceneId: scene.id,
-      hasOperationPoints: !!scene.operationPoints,
-      operationPoints: scene.operationPoints
-    });
-    
     if (!selectedRoleCode || !scene.operationPoints) return [];
     
-    // 使用类型断言来处理operationPoints
-    const operationPoints = scene.operationPoints as OperationPoint[];
-    const operationPoint = operationPoints.find(
-      (point: OperationPoint) => point.businessRoleCode === selectedRoleCode
+    const operationPoint = scene.operationPoints.find(
+      (point) => point.businessRoleCode === selectedRoleCode
     );
-    
-    console.log("Found operation point:", operationPoint);
     
     return operationPoint?.allowedOperations || [];
   };
 
   const availableOperations = getAvailableOperations();
-  
-  console.log("Available operations:", availableOperations);
 
   const interactiveElements = [
     { id: "business", icon: Monitor, label: "业务系统", description: "进入业务系统操作界面" },

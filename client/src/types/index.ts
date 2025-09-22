@@ -26,6 +26,12 @@ export interface VirtualScene {
   interactiveElements?: string[];
   status: string;
   order: number;
+  operationPoints?: {
+    businessRoleCode: string;
+    entryName: string;
+    entryDescription: string;
+    allowedOperations: string[];
+  }[];
 }
 
 export interface Experiment {
