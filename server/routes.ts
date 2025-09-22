@@ -30,7 +30,14 @@ import {
   insertEcommerceQualificationTestDataSchema,
   ecommerceQualificationSubmissionSchema,
   insertOverseasWarehouseTestDataSchema,
-  insertCustomsDeclarationExportTestDataSchema
+  insertCustomsDeclarationExportTestDataSchema,
+  insertExportDeclarationSchema,
+  insertBookingOrderSchema,
+  insertImportJobSchema,
+  insertSubmissionHistorySchema,
+  updateExportDeclarationSchema,
+  updateBookingOrderSchema,
+  updateImportJobSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -1087,11 +1094,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const authReq = req as AuthRequest;
       const userId = authReq.user!.id;
       
-      // 查找实验ID
-      const experiment = await storage.getExperimentsByCategory("customs");
-      const customsExperiment = experiment.find(e => e.key === "customs-declaration-export");
+      // 查找实验ID - 使用稳定的category和name组合
+      const experiments = await storage.getExperimentsByCategory("customs");
+      const experiment = experiments.find(e => e.name === "报关单模式出口申报");
       
-      if (!customsExperiment) {
+      if (!experiment) {
         return res.status(404).json({ 
           message: "实验不存在" 
         });
@@ -1100,7 +1107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 验证实验结果数据
       const resultValidation = insertExperimentResultSchema.safeParse({
         userId: userId,
-        experimentId: customsExperiment.id,
+        experimentId: experiment.id,
         submissionData: req.body,
         feedback: null,
         evaluatedBy: null,
@@ -1118,7 +1125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 验证学生进度数据
       const progressValidation = insertStudentProgressSchema.safeParse({
         userId: userId,
-        experimentId: customsExperiment.id,
+        experimentId: experiment.id,
         status: "completed",
         completedAt: new Date(),
         businessRoleId: null,
@@ -1217,6 +1224,489 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "提交失败，请稍后重试" 
+      });
+    }
+  });
+
+  // ==========================================================================
+  // 跨境电商出口申报两阶段流程 API (Cross-border E-commerce Export Declaration)
+  // ==========================================================================
+
+  // 1. 获取用户的出口申报列表
+  app.get("/api/export-declarations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const declarations = await storage.getExportDeclarations(userId);
+      res.json(declarations);
+    } catch (error: any) {
+      console.error("获取出口申报列表失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取申报列表失败" 
+      });
+    }
+  });
+
+  // 2. 创建新的出口申报
+  app.post("/api/export-declarations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const declarationData = insertExportDeclarationSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const declaration = await storage.createExportDeclaration(declarationData);
+      res.status(201).json(declaration);
+    } catch (error: any) {
+      console.error("创建出口申报失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建申报失败" 
+      });
+    }
+  });
+
+  // 3. 获取特定申报详情
+  app.get("/api/export-declarations/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      
+      const declaration = await storage.getExportDeclaration(id, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      res.json(declaration);
+    } catch (error: any) {
+      console.error("获取申报详情失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取申报详情失败" 
+      });
+    }
+  });
+
+  // 4. 更新申报状态和数据
+  app.put("/api/export-declarations/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      
+      // 验证请求数据
+      const updateData = updateExportDeclarationSchema.parse(req.body);
+      
+      // 首先验证申报是否存在且属于当前用户
+      const existing = await storage.getExportDeclaration(id, userId);
+      if (!existing) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const declaration = await storage.updateExportDeclaration(id, updateData, userId);
+      res.json(declaration);
+    } catch (error: any) {
+      console.error("更新申报失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "更新申报失败" 
+      });
+    }
+  });
+
+  // 5. 订仓单管理 - 获取申报的订仓单列表
+  app.get("/api/export-declarations/:declarationId/booking-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const orders = await storage.getBookingOrders(declarationId, userId);
+      res.json(orders);
+    } catch (error: any) {
+      console.error("获取订仓单列表失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取订仓单列表失败" 
+      });
+    }
+  });
+
+  // 6. 创建订仓单
+  app.post("/api/export-declarations/:declarationId/booking-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const orderData = insertBookingOrderSchema.parse({
+        ...req.body,
+        declarationId
+      });
+      
+      const order = await storage.createBookingOrder(orderData, userId);
+      res.status(201).json(order);
+    } catch (error: any) {
+      console.error("创建订仓单失败:", error);
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建订仓单失败" 
+      });
+    }
+  });
+
+  // 7. 更新订仓单状态
+  app.put("/api/booking-orders/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      
+      // 验证请求数据
+      const updateData = updateBookingOrderSchema.parse(req.body);
+      
+      // 验证订仓单是否存在且属于当前用户
+      const existing = await storage.getBookingOrder(id, userId);
+      if (!existing) {
+        return res.status(404).json({ 
+          message: "订仓单不存在或无权访问" 
+        });
+      }
+      
+      const order = await storage.updateBookingOrder(id, updateData, userId);
+      res.json(order);
+    } catch (error: any) {
+      console.error("更新订仓单失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "订仓单不存在或无权访问" 
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "更新订仓单失败" 
+      });
+    }
+  });
+
+  // 8. 数据导入任务管理 - 获取申报的导入任务列表
+  app.get("/api/export-declarations/:declarationId/import-jobs", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const jobs = await storage.getImportJobs(declarationId, userId);
+      res.json(jobs);
+    } catch (error: any) {
+      console.error("获取导入任务列表失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取导入任务列表失败" 
+      });
+    }
+  });
+
+  // 9. 创建数据导入任务
+  app.post("/api/export-declarations/:declarationId/import-jobs", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const jobData = insertImportJobSchema.parse({
+        ...req.body,
+        declarationId
+      });
+      
+      const job = await storage.createImportJob(jobData, userId);
+      res.status(201).json(job);
+    } catch (error: any) {
+      console.error("创建导入任务失败:", error);
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建导入任务失败" 
+      });
+    }
+  });
+
+  // 10. 更新导入任务状态
+  app.put("/api/import-jobs/:id", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { id } = req.params;
+      
+      // 验证请求数据
+      const updateData = updateImportJobSchema.parse(req.body);
+      
+      // 验证导入任务是否存在且属于当前用户
+      const existing = await storage.getImportJob(id, userId);
+      if (!existing) {
+        return res.status(404).json({ 
+          message: "导入任务不存在或无权访问" 
+        });
+      }
+      
+      const job = await storage.updateImportJob(id, updateData, userId);
+      res.json(job);
+    } catch (error: any) {
+      console.error("更新导入任务失败:", error);
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "导入任务不存在或无权访问" 
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "更新导入任务失败" 
+      });
+    }
+  });
+
+  // 11. 提交历史记录 - 获取申报的提交历史
+  app.get("/api/export-declarations/:declarationId/submission-history", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      const { type } = req.query;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      let history;
+      if (type) {
+        history = await storage.getSubmissionHistoryByType(declarationId, type as string, userId);
+      } else {
+        history = await storage.getSubmissionHistory(declarationId, userId);
+      }
+      
+      res.json(history);
+    } catch (error: any) {
+      console.error("获取提交历史失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取提交历史失败" 
+      });
+    }
+  });
+
+  // 12. 创建提交历史记录
+  app.post("/api/export-declarations/:declarationId/submission-history", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const historyData = insertSubmissionHistorySchema.parse({
+        ...req.body,
+        declarationId
+      });
+      
+      const history = await storage.createSubmissionHistory(historyData, userId);
+      res.status(201).json(history);
+    } catch (error: any) {
+      console.error("创建提交历史失败:", error);
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建提交历史失败" 
+      });
+    }
+  });
+
+  // 13. 模板下载端点
+  app.get("/api/export-templates/:templateType", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { templateType } = req.params;
+      
+      // 白名单模板类型
+      const allowedTemplates = ['booking-order', 'customs-declaration', 'goods-info'];
+      if (!allowedTemplates.includes(templateType)) {
+        return res.status(404).json({ 
+          message: "模板类型不存在" 
+        });
+      }
+      
+      // 模拟模板文件路径（实际部署时应该是真实的模板文件）
+      const templatePaths: Record<string, string> = {
+        'booking-order': '/templates/booking-order-template.xlsx',
+        'customs-declaration': '/templates/customs-declaration-template.xlsx',
+        'goods-info': '/templates/goods-info-template.xlsx'
+      };
+      
+      res.json({
+        templateType,
+        downloadUrl: templatePaths[templateType],
+        filename: `${templateType}-template.xlsx`,
+        description: `${templateType}数据导入模板`
+      });
+    } catch (error: any) {
+      console.error("获取模板失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取模板失败" 
+      });
+    }
+  });
+
+  // 14. 单一窗口状态查询端点
+  app.get("/api/single-window/status/:declarationId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      // 模拟中国国际单一窗口查询结果
+      const mockStatus = {
+        declarationId,
+        status: declaration.status === 'approved' ? 'approved' : 'pending',
+        customsNumber: declaration.status === 'approved' ? `CUSTOMS-${Date.now()}` : null,
+        processTime: new Date().toISOString(),
+        results: [
+          {
+            step: '海关接收',
+            status: 'completed',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            message: '申报单据已接收'
+          },
+          {
+            step: '数据校验',
+            status: declaration.customsValidated ? 'completed' : 'processing',
+            timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+            message: declaration.customsValidated ? '数据校验通过' : '正在进行数据校验'
+          },
+          {
+            step: '风险分析',
+            status: declaration.status === 'approved' ? 'completed' : 'pending',
+            timestamp: declaration.status === 'approved' ? new Date().toISOString() : null,
+            message: declaration.status === 'approved' ? '风险分析完成，准予放行' : '等待风险分析结果'
+          }
+        ]
+      };
+      
+      res.json(mockStatus);
+    } catch (error: any) {
+      console.error("查询单一窗口状态失败:", error);
+      res.status(500).json({ 
+        message: error.message || "查询状态失败" 
       });
     }
   });

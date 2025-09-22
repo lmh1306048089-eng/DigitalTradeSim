@@ -874,6 +874,48 @@ export const insertSubmissionHistorySchema = createInsertSchema(submissionHistor
   submittedAt: true,
 });
 
+// Update schemas for API validation (whitelist updatable fields)
+export const updateExportDeclarationSchema = z.object({
+  title: z.string().min(1).optional(),
+  status: z.enum(["draft", "booking_pushed", "declaration_pushed", "under_review", "approved", "rejected"]).optional(),
+  templateDownloaded: z.boolean().optional(),
+  dataImported: z.boolean().optional(),
+  taskCreated: z.boolean().optional(),
+  dataGenerated: z.boolean().optional(),
+  bookingOrderPushed: z.boolean().optional(),
+  goodsInfoFilled: z.boolean().optional(),
+  declarationPushed: z.boolean().optional(),
+  customsValidated: z.boolean().optional(),
+  importedData: z.any().optional(),
+  taskInfo: z.object({
+    taskId: z.string(),
+    taskName: z.string(),
+    priority: z.string(),
+  }).optional(),
+  generatedData: z.any().optional(),
+  goodsDeclaration: z.any().optional(),
+  readyAt: z.date().optional(),
+});
+
+export const updateBookingOrderSchema = z.object({
+  orderNumber: z.string().optional(),
+  status: z.enum(["draft", "submitted", "confirmed", "rejected"]).optional(),
+  orderData: z.any().optional(),
+  submittedAt: z.date().optional(),
+  confirmedAt: z.date().optional(),
+});
+
+export const updateImportJobSchema = z.object({
+  jobName: z.string().optional(),
+  status: z.enum(["pending", "processing", "completed", "failed"]).optional(),
+  importType: z.string().optional(),
+  sourceFile: z.string().optional(),
+  importedData: z.any().optional(),
+  errorMessage: z.string().optional(),
+  startedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+});
+
 export type ExportDeclaration = typeof exportDeclarations.$inferSelect;
 export type InsertExportDeclaration = z.infer<typeof insertExportDeclarationSchema>;
 
@@ -885,3 +927,6 @@ export type InsertImportJob = z.infer<typeof insertImportJobSchema>;
 
 export type SubmissionHistory = typeof submissionHistory.$inferSelect;
 export type InsertSubmissionHistory = z.infer<typeof insertSubmissionHistorySchema>;
+export type UpdateExportDeclaration = z.infer<typeof updateExportDeclarationSchema>;
+export type UpdateBookingOrder = z.infer<typeof updateBookingOrderSchema>;
+export type UpdateImportJob = z.infer<typeof updateImportJobSchema>;
