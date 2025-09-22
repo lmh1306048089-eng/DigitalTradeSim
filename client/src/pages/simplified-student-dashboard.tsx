@@ -7,13 +7,22 @@ import {
   Plane,
   MapPin,
   Upload,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  List
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { BusinessRoleSelector } from "@/components/business-role-selector";
 import { useBusinessRole } from "@/hooks/useBusinessRole";
@@ -27,6 +36,7 @@ type ActiveSection = "overview" | "enterprise_scene" | "customs_scene" | "custom
 export default function SimplifiedStudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
   const [selectedScene, setSelectedScene] = useState<VirtualScene | null>(null);
+  const [showExportModeDialog, setShowExportModeDialog] = useState(false);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   
@@ -366,15 +376,15 @@ export default function SimplifiedStudentDashboard() {
               }
             },
             {
-              id: 'customs-declaration-export',
-              title: '业务系统 - 报关单模式出口申报',
-              description: '进入业务系统，完成报关单模式的出口申报，包括商品清单、物流信息、申报单填报等完整流程',
-              icon: <ArrowRight className="h-6 w-6" />,
+              id: 'export-declaration',
+              title: '出口申报',
+              description: '选择申报模式完成出口货物申报流程，支持报关单模式和清单模式两种申报方式',
+              icon: <FileText className="h-6 w-6" />,
               status: 'available',
               requiredRole: '跨境电商企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
-                  setLocation("/customs-declaration-export");
+                  setShowExportModeDialog(true);
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
@@ -627,6 +637,88 @@ export default function SimplifiedStudentDashboard() {
           </div>
         </main>
       </div>
+
+      {/* 出口申报模式选择对话框 */}
+      <Dialog open={showExportModeDialog} onOpenChange={setShowExportModeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center text-xl font-semibold">
+              选择出口申报模式
+            </DialogTitle>
+            <DialogDescription className="text-center text-muted-foreground">
+              请选择适合您业务需求的申报模式
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-1 gap-4 py-4">
+            {/* 报关单模式申报 */}
+            <div 
+              className="group relative border-2 border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
+              onClick={() => {
+                setShowExportModeDialog(false);
+                setLocation("/customs-declaration-export");
+              }}
+              data-testid="button-customs-declaration-mode"
+            >
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                  <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
+                    报关单模式申报
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    适用于一般贸易，需要完整的报关单填写，包括货物运抵申报、订仓单推送、申报任务创建等完整流程
+                  </p>
+                  <div className="mt-3 flex items-center text-xs text-blue-600 dark:text-blue-400">
+                    <span>完整业务流程</span>
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 清单模式申报 */}
+            <div 
+              className="group relative border-2 border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-400 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
+              onClick={() => {
+                setShowExportModeDialog(false);
+                setLocation("/list-declaration-export");
+              }}
+              data-testid="button-list-declaration-mode"
+            >
+              <div className="flex items-start space-x-4">
+                <div className="flex-shrink-0 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg group-hover:bg-green-100 dark:group-hover:bg-green-900/30 transition-colors">
+                  <List className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-gray-100 mb-2">
+                    清单模式申报
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    适用于跨境电商零售出口，简化申报流程，通过清单汇总方式进行申报，操作更便捷
+                  </p>
+                  <div className="mt-3 flex items-center text-xs text-green-600 dark:text-green-400">
+                    <span>简化申报流程</span>
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowExportModeDialog(false)}
+              data-testid="button-cancel-export-mode"
+            >
+              取消
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
