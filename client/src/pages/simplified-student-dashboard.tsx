@@ -159,10 +159,16 @@ export default function SimplifiedStudentDashboard() {
                 <div 
                   className="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
                   onClick={() => {
+                    console.log("电商企业点击事件触发");
+                    console.log("scenes数据:", scenes);
+                    console.log("SCENES.ENTERPRISE值:", SCENES.ENTERPRISE);
                     const enterpriseScene = scenes.find(s => s.id === SCENES.ENTERPRISE);
+                    console.log("找到的企业场景:", enterpriseScene);
                     if (enterpriseScene) {
+                      console.log("设置selectedScene:", enterpriseScene);
                       setSelectedScene(enterpriseScene);
                     } else {
+                      console.log("没找到场景，使用旧逻辑");
                       setActiveSection(SCENES.ENTERPRISE as ActiveSection);
                     }
                   }}
