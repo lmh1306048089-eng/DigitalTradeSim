@@ -158,20 +158,7 @@ export default function SimplifiedStudentDashboard() {
               <div className="relative group text-center">
                 <div 
                   className="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
-                  onClick={() => {
-                    console.log("电商企业点击事件触发");
-                    console.log("scenes数据:", scenes);
-                    console.log("SCENES.ENTERPRISE值:", SCENES.ENTERPRISE);
-                    const enterpriseScene = scenes.find(s => s.id === SCENES.ENTERPRISE);
-                    console.log("找到的企业场景:", enterpriseScene);
-                    if (enterpriseScene) {
-                      console.log("设置selectedScene:", enterpriseScene);
-                      setSelectedScene(enterpriseScene);
-                    } else {
-                      console.log("没找到场景，使用旧逻辑");
-                      setActiveSection(SCENES.ENTERPRISE as ActiveSection);
-                    }
-                  }}
+                  onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
                 >
                   <Building2 className="h-8 w-8 mx-auto mb-2" />
                   <h4 className="font-bold text-sm mb-1">电商企业</h4>
@@ -373,6 +360,21 @@ export default function SimplifiedStudentDashboard() {
               onClick: () => {
                 if (currentRole?.roleCode === 'enterprise_operator') {
                   setLocation("/experiments/transmission-id-application-exp");
+                } else {
+                  alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
+                }
+              }
+            },
+            {
+              id: 'customs-declaration-export',
+              title: '业务系统 - 报关单模式出口申报',
+              description: '进入业务系统，完成报关单模式的出口申报，包括商品清单、物流信息、申报单填报等完整流程',
+              icon: <ArrowRight className="h-6 w-6" />,
+              status: 'available',
+              requiredRole: '跨境电商企业操作员',
+              onClick: () => {
+                if (currentRole?.roleCode === 'enterprise_operator') {
+                  setLocation("/customs-declaration-export");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"跨境电商企业操作员"角色后重试。`);
                 }
@@ -626,16 +628,6 @@ export default function SimplifiedStudentDashboard() {
         </main>
       </div>
 
-      {/* Scene Modal */}
-      <SceneModal 
-        open={selectedScene !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedScene(null);
-          }
-        }}
-        scene={selectedScene}
-      />
     </div>
   );
 }
