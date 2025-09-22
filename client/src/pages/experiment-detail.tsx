@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
@@ -18,6 +19,7 @@ import type { Experiment, StudentProgress } from "../types/index";
 export default function ExperimentDetailPage() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
+  const { toast } = useToast();
   const [showCustomsForm, setShowCustomsForm] = useState(false);
   const [showEportForm, setShowEportForm] = useState(false);
   const [showEnterpriseQualificationForm, setShowEnterpriseQualificationForm] = useState(false);
