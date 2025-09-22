@@ -50,6 +50,9 @@ import {
   overseasWarehouseTestData,
   type OverseasWarehouseTestData,
   type InsertOverseasWarehouseTestData,
+  customsDeclarationExportTestData,
+  type CustomsDeclarationExportTestData,
+  type InsertCustomsDeclarationExportTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -145,6 +148,11 @@ export interface IStorage {
   getOverseasWarehouseTestData(): Promise<OverseasWarehouseTestData[]>;
   getOverseasWarehouseTestDataByName(dataSetName: string): Promise<OverseasWarehouseTestData | undefined>;
   createOverseasWarehouseTestData(testData: InsertOverseasWarehouseTestData): Promise<OverseasWarehouseTestData>;
+  
+  // Customs declaration export test data operations
+  getCustomsDeclarationExportTestData(): Promise<CustomsDeclarationExportTestData[]>;
+  getCustomsDeclarationExportTestDataByName(dataSetName: string): Promise<CustomsDeclarationExportTestData | undefined>;
+  createCustomsDeclarationExportTestData(testData: InsertCustomsDeclarationExportTestData): Promise<CustomsDeclarationExportTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -839,6 +847,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(overseasWarehouseTestData.id, testDataId));
     if (!insertedData) throw new Error("Failed to create overseas warehouse test data");
     return insertedData;
+  }
+
+  // Customs declaration export test data operations
+  async getCustomsDeclarationExportTestData(): Promise<CustomsDeclarationExportTestData[]> {
+    return db.select().from(customsDeclarationExportTestData).where(eq(customsDeclarationExportTestData.isActive, true));
+  }
+
+  async getCustomsDeclarationExportTestDataByName(dataSetName: string): Promise<CustomsDeclarationExportTestData | undefined> {
+    const [testData] = await db.select().from(customsDeclarationExportTestData)
+      .where(eq(customsDeclarationExportTestData.dataSetName, dataSetName));
+    return testData;
+  }
+
+  async createCustomsDeclarationExportTestData(testDataInput: InsertCustomsDeclarationExportTestData): Promise<CustomsDeclarationExportTestData> {
+    const testDataId = randomUUID();
+    await db.insert(customsDeclarationExportTestData).values([{
+      id: testDataId,
+      ...testDataInput,
+    }]);
+    
+    const createdTestData = await this.getCustomsDeclarationExportTestDataByName(testDataInput.dataSetName);
+    if (!createdTestData) throw new Error("Failed to create customs declaration export test data");
+    return createdTestData;
   }
 }
 

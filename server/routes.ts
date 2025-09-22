@@ -4,6 +4,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { z } from "zod";
+import { randomUUID } from "crypto";
 import { storage } from "./storage";
 import { 
   authenticateToken, 
@@ -28,7 +29,8 @@ import {
   insertIcCardTestDataSchema,
   insertEcommerceQualificationTestDataSchema,
   ecommerceQualificationSubmissionSchema,
-  insertOverseasWarehouseTestDataSchema
+  insertOverseasWarehouseTestDataSchema,
+  insertCustomsDeclarationExportTestDataSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -1039,6 +1041,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: error.message || "获取海外仓备案测试数据失败" 
+      });
+    }
+  });
+
+  // 报关单模式出口申报测试数据端点
+  app.get("/api/test-data/customs-declaration-export", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getCustomsDeclarationExportTestData();
+      res.json(testData);
+    } catch (error: any) {
+      console.error("获取报关单出口申报测试数据失败:", error);
+      res.status(500).json({ 
+        message: "获取报关单出口申报测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/test-data/customs-declaration-export/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getCustomsDeclarationExportTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          message: "报关单出口申报测试数据集不存在"
+        });
+      }
+
+      res.json(testData);
+    } catch (error: any) {
+      console.error("获取报关单出口申报测试数据失败:", error);
+      res.status(500).json({ 
+        message: "获取报关单出口申报测试数据失败" 
+      });
+    }
+  });
+
+  // 报关单模式出口申报提交端点
+  app.post("/api/experiments/customs-declaration-export/submit", 
+    authenticateToken, 
+    requireRole(["student"]),
+    async (req, res) => {
+    try {
+      const authReq = req as AuthRequest;
+      const userId = authReq.user!.id;
+      
+      // 查找实验ID
+      const experiment = await storage.getExperimentsByCategory("customs");
+      const customsExperiment = experiment.find(e => e.key === "customs-declaration-export");
+      
+      if (!customsExperiment) {
+        return res.status(404).json({ 
+          message: "实验不存在" 
+        });
+      }
+
+      // 验证实验结果数据
+      const resultValidation = insertExperimentResultSchema.safeParse({
+        userId: userId,
+        experimentId: customsExperiment.id,
+        submissionData: req.body,
+        feedback: null,
+        evaluatedBy: null,
+        evaluatedAt: null,
+        score: null,
+        taskId: null
+      });
+
+      if (!resultValidation.success) {
+        return res.status(400).json({ 
+          message: "数据验证失败" 
+        });
+      }
+
+      // 验证学生进度数据
+      const progressValidation = insertStudentProgressSchema.safeParse({
+        userId: userId,
+        experimentId: customsExperiment.id,
+        status: "completed",
+        completedAt: new Date(),
+        businessRoleId: null,
+        sceneId: null,
+        progress: 100,
+        currentStep: 6,
+        startedAt: new Date()
+      });
+
+      if (!progressValidation.success) {
+        return res.status(400).json({ 
+          message: "进度数据验证失败" 
+        });
+      }
+      
+      // 创建实验结果记录
+      const result = await storage.createExperimentResult(resultValidation.data);
+
+      // 更新学生进度
+      await storage.createOrUpdateProgress(progressValidation.data);
+
+      res.status(201).json(result);
+    } catch (error: any) {
+      console.error("报关单模式出口申报提交失败:", error);
+      res.status(500).json({ 
+        message: "提交失败，请重试" 
       });
     }
   });
