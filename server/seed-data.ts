@@ -537,6 +537,120 @@ export async function seedBasicData() {
         ],
         order: 5,
         isActive: true
+      },
+      {
+        id: 'df7e2bc1-4532-4f89-9db3-d5g11f3c159g',
+        name: '报关单模式出口申报',
+        description: '通过报关单模式完成出口货物申报流程，包括货物运抵申报、订仓单推送、数据导入和报关单推送等操作',
+        category: 'declaration',
+        steps: [
+          {
+            id: 'step_1',
+            title: '货物运抵申报',
+            description: '完成货物运抵申报，确认货物已运输至海关监管作业场所',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'arrivalReportNumber', label: '运抵报告编号', type: 'text', required: true },
+              { name: 'transportMode', label: '运输方式', type: 'select', required: true },
+              { name: 'transportToolNumber', label: '运输工具编号', type: 'text', required: true },
+              { name: 'departurePort', label: '启运港', type: 'text', required: true },
+              { name: 'destinationPort', label: '目的港', type: 'text', required: true },
+              { name: 'actualArrivalDate', label: '实际到达日期', type: 'date', required: true },
+              { name: 'supervisoryArea', label: '监管场所', type: 'select', required: true }
+            ],
+            estimatedTime: 10
+          },
+          {
+            id: 'step_2',
+            title: '跨境电商综合服务平台订仓单推送',
+            description: '在跨境电商综合服务平台中推送订仓单数据',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'bookingOrderNumber', label: '订仓单号', type: 'text', required: true },
+              { name: 'shippingCompany', label: '船公司', type: 'select', required: true },
+              { name: 'vesselName', label: '船名', type: 'text', required: true },
+              { name: 'voyageNumber', label: '航次号', type: 'text', required: true },
+              { name: 'containerNumber', label: '集装箱号', type: 'text', required: true },
+              { name: 'containerType', label: '集装箱类型', type: 'select', required: true },
+              { name: 'sealNumber', label: '封条号', type: 'text', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_3',
+            title: '基础数据导入和申报任务创建',
+            description: '下载报关单模式模板，导入基础数据并创建申报任务',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'declarationTaskId', label: '申报任务ID', type: 'text', required: true },
+              { name: 'declarationSystemType', label: '申报系统类型', type: 'select', required: true },
+              { name: 'goodsDescription', label: '货物描述', type: 'textarea', required: true },
+              { name: 'hsCode', label: 'HS编码', type: 'text', required: true },
+              { name: 'quantity', label: '数量', type: 'number', required: true },
+              { name: 'unit', label: '计量单位', type: 'select', required: true },
+              { name: 'totalValue', label: '总价值', type: 'number', required: true },
+              { name: 'currency', label: '币制', type: 'select', required: true }
+            ],
+            estimatedTime: 20
+          },
+          {
+            id: 'step_4',
+            title: '数据申报管理和推送',
+            description: '在数据申报管理模块中进行数据推送操作',
+            type: 'form', 
+            required: true,
+            formFields: [
+              { name: 'grossWeight', label: '毛重（千克）', type: 'number', required: true },
+              { name: 'netWeight', label: '净重（千克）', type: 'number', required: true },
+              { name: 'packageQuantity', label: '件数', type: 'number', required: true },
+              { name: 'packageType', label: '包装种类', type: 'select', required: true },
+              { name: 'tradeMode', label: '贸易方式', type: 'select', required: true },
+              { name: 'exemptionMethod', label: '征免性质', type: 'select', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_5',
+            title: '跨境电商出口统一版系统报关单推送',
+            description: '在跨境电商出口统一版系统中填写货物申报信息并推送报关单',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'customsDeclarationNumber', label: '报关单号', type: 'text', required: true },
+              { name: 'singleWindowNumber', label: '单一窗口编号', type: 'text', required: true },
+              { name: 'consignorName', label: '发货人名称', type: 'text', required: true },
+              { name: 'consignorAddress', label: '发货人地址', type: 'textarea', required: true },
+              { name: 'consigneeName', label: '收货人名称', type: 'text', required: true },
+              { name: 'consigneeAddress', label: '收货人地址', type: 'textarea', required: true },
+              { name: 'consigneeCountry', label: '收货人国家', type: 'select', required: true }
+            ],
+            estimatedTime: 18
+          },
+          {
+            id: 'step_6',
+            title: '申报结果查询',
+            description: '等待海关逻辑校验完成后，在中国国际单一窗口查询申报结果',
+            type: 'result',
+            required: true,
+            resultConfig: {
+              expectedResults: ['申报成功', '逻辑校验通过', '报关单已受理'],
+              queryUrl: '中国国际单一窗口',
+              waitTime: 30
+            },
+            estimatedTime: 8
+          }
+        ],
+        requirements: [
+          '企业已完成海关企业资质备案',
+          '货物已运抵指定海关监管作业场所',
+          '具备跨境电商综合服务平台和统一版系统使用权限',
+          '准备完整的货物申报信息和单证材料'
+        ],
+        order: 6,
+        isActive: true
       }
     ];
 
@@ -822,6 +936,160 @@ export async function seedBasicData() {
       }
     }
 
+    // 11. 创建报关单模式出口申报测试数据
+    console.log('创建报关单模式出口申报测试数据...');
+    const customsDeclarationExportTestDatasets = [
+      {
+        id: 'cust-decl-export-default-001',
+        dataSetName: '默认测试企业',
+        // 企业基本信息
+        companyName: '深圳市跨境通电子商务有限公司',
+        unifiedCreditCode: '91440300MA5DA1234X',
+        legalRepresentative: '张三',
+        registeredAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        businessAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        contactPerson: '李四',
+        contactPhone: '13800138001',
+        contactEmail: 'contact@crossborder.com',
+        businessLicense: 'GL440300123456789012345',
+        customsCode: '5144',
+        
+        // 货物运抵申报信息
+        arrivalReportNumber: 'ARR2024030001',
+        transportMode: '海运',
+        transportToolNumber: 'OOCL TOKYO',
+        departurePort: '深圳盐田港',
+        destinationPort: '洛杉矶港',
+        expectedArrivalDate: '2024-03-15',
+        actualArrivalDate: '2024-03-15',
+        supervisoryArea: '深圳前海保税区',
+        
+        // 订仓单信息
+        bookingOrderNumber: 'BOOK2024030001',
+        shippingCompany: '东方海外货柜航运',
+        vesselName: 'OOCL TOKYO',
+        voyageNumber: '2024003',
+        containerNumber: 'OOLU1234567',
+        containerType: '40尺集装箱',
+        sealNumber: 'SL2024030001',
+        
+        // 货物申报信息
+        goodsDescription: '无线蓝牙耳机',
+        hsCode: '8518300000',
+        quantity: '500.000',
+        unit: '个',
+        unitPrice: '25.50',
+        totalValue: '12750.00',
+        currency: 'USD',
+        grossWeight: '125.500',
+        netWeight: '100.000',
+        packageQuantity: 10,
+        packageType: '纸箱',
+        
+        // 贸易方式和征免性质
+        tradeMode: '9610',
+        exemptionMethod: '1',
+        
+        // 收发货人信息
+        consignorName: '深圳市跨境通电子商务有限公司',
+        consignorAddress: '深圳市南山区科技园南区高新中一道9号软件大厦A座15楼',
+        consigneeName: 'TechWorld Electronics Inc.',
+        consigneeAddress: '1234 Main Street, Los Angeles, CA 90001, USA',
+        consigneeCountry: '美国',
+        
+        // 申报任务信息
+        declarationTaskId: 'DT2024030001',
+        declarationSystemType: '跨境电商出口统一版',
+        declarationMode: 'declaration',
+        
+        // 单一窗口信息
+        singleWindowNumber: 'SW2024030001',
+        customsDeclarationNumber: 'CD514420240300001',
+        declarationStatus: 'draft',
+        
+        isActive: true
+      },
+      {
+        id: 'cust-decl-export-example-002',
+        dataSetName: '示例出口企业',
+        // 企业基本信息
+        companyName: '上海全球购贸易股份有限公司',
+        unifiedCreditCode: '91310000567890123Y',
+        legalRepresentative: '王五',
+        registeredAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        businessAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        contactPerson: '赵六',
+        contactPhone: '13900139002',
+        contactEmail: 'service@globalmarket.com',
+        businessLicense: 'GL310000567890123456789',
+        customsCode: '3101',
+        
+        // 货物运抵申报信息
+        arrivalReportNumber: 'ARR2024030002',
+        transportMode: '海运',
+        transportToolNumber: 'COSCO SHIPPING GALAXY',
+        departurePort: '上海洋山港',
+        destinationPort: '纽约港',
+        expectedArrivalDate: '2024-03-20',
+        actualArrivalDate: '2024-03-20',
+        supervisoryArea: '上海自贸区',
+        
+        // 订仓单信息
+        bookingOrderNumber: 'BOOK2024030002',
+        shippingCompany: '中远海运集装箱运输',
+        vesselName: 'COSCO SHIPPING GALAXY',
+        voyageNumber: '2024008',
+        containerNumber: 'COSU9876543',
+        containerType: '20尺集装箱',
+        sealNumber: 'SL2024030002',
+        
+        // 货物申报信息
+        goodsDescription: '智能手机保护壳',
+        hsCode: '3926909090',
+        quantity: '1000.000',
+        unit: '个',
+        unitPrice: '8.80',
+        totalValue: '8800.00',
+        currency: 'USD',
+        grossWeight: '85.600',
+        netWeight: '75.200',
+        packageQuantity: 20,
+        packageType: '纸箱',
+        
+        // 贸易方式和征免性质
+        tradeMode: '9610',
+        exemptionMethod: '1',
+        
+        // 收发货人信息
+        consignorName: '上海全球购贸易股份有限公司',
+        consignorAddress: '上海市浦东新区陆家嘴环路1000号恒生银行大厦36楼',
+        consigneeName: 'Global Tech Solutions LLC',
+        consigneeAddress: '567 Broadway, New York, NY 10012, USA',
+        consigneeCountry: '美国',
+        
+        // 申报任务信息
+        declarationTaskId: 'DT2024030002',
+        declarationSystemType: '跨境电商出口统一版',
+        declarationMode: 'declaration',
+        
+        // 单一窗口信息
+        singleWindowNumber: 'SW2024030002',
+        customsDeclarationNumber: 'CD310120240300002',
+        declarationStatus: 'draft',
+        
+        isActive: true
+      }
+    ];
+
+    for (const testData of customsDeclarationExportTestDatasets) {
+      try {
+        await db.insert(schema.customsDeclarationExportTestData).values(testData);
+        console.log(`✅ 报关单模式出口申报测试数据集创建成功: ${testData.dataSetName}`);
+      } catch (error) {
+        console.error(`❌ 报关单模式出口申报测试数据集创建失败: ${testData.dataSetName}`, error);
+      }
+    }
+
     console.log('基础数据初始化完成！');
 
     // 返回插入的数据用于验证
@@ -832,7 +1100,8 @@ export async function seedBasicData() {
       testDatasets: customsTestDatasets.length,
       icCardTestDatasets: icCardTestDatasets.length,
       ecommerceQualificationTestDatasets: ecommerceQualificationTestDatasets.length,
-      transmissionIdTestDatasets: transmissionIdTestDatasets.length
+      transmissionIdTestDatasets: transmissionIdTestDatasets.length,
+      customsDeclarationExportTestDatasets: customsDeclarationExportTestDatasets.length
     };
 
   } catch (error) {

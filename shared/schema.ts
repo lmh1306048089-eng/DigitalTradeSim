@@ -668,3 +668,86 @@ export const insertOverseasWarehouseTestDataSchema = createInsertSchema(overseas
 
 export type OverseasWarehouseTestData = typeof overseasWarehouseTestData.$inferSelect;
 export type InsertOverseasWarehouseTestData = z.infer<typeof insertOverseasWarehouseTestDataSchema>;
+
+// 报关单模式出口申报测试数据表
+export const customsDeclarationExportTestData = pgTable("customs_declaration_export_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull(), // 测试数据集名称
+  
+  // 企业基本信息
+  companyName: varchar("company_name", { length: 200 }).notNull(),
+  unifiedCreditCode: varchar("unified_credit_code", { length: 18 }).notNull(),
+  legalRepresentative: varchar("legal_representative", { length: 50 }).notNull(),
+  registeredAddress: text("registered_address").notNull(),
+  businessAddress: text("business_address").notNull(),
+  contactPerson: varchar("contact_person", { length: 50 }).notNull(),
+  contactPhone: varchar("contact_phone", { length: 11 }).notNull(),
+  contactEmail: varchar("contact_email", { length: 100 }).notNull(),
+  businessLicense: varchar("business_license", { length: 30 }).notNull(),
+  customsCode: varchar("customs_code", { length: 20 }).notNull(), // 海关代码
+  
+  // 货物运抵申报信息
+  arrivalReportNumber: varchar("arrival_report_number", { length: 30 }).notNull(), // 运抵报告编号
+  transportMode: varchar("transport_mode", { length: 20 }).notNull(), // 运输方式
+  transportToolNumber: varchar("transport_tool_number", { length: 50 }).notNull(), // 运输工具编号
+  departurePort: varchar("departure_port", { length: 100 }).notNull(), // 启运港
+  destinationPort: varchar("destination_port", { length: 100 }).notNull(), // 目的港
+  expectedArrivalDate: varchar("expected_arrival_date", { length: 20 }).notNull(), // 预计到达日期
+  actualArrivalDate: varchar("actual_arrival_date", { length: 20 }).notNull(), // 实际到达日期
+  supervisoryArea: varchar("supervisory_area", { length: 100 }).notNull(), // 监管场所
+  
+  // 订仓单信息
+  bookingOrderNumber: varchar("booking_order_number", { length: 30 }).notNull(), // 订仓单号
+  shippingCompany: varchar("shipping_company", { length: 200 }).notNull(), // 船公司
+  vesselName: varchar("vessel_name", { length: 100 }).notNull(), // 船名
+  voyageNumber: varchar("voyage_number", { length: 30 }).notNull(), // 航次号
+  containerNumber: varchar("container_number", { length: 30 }).notNull(), // 集装箱号
+  containerType: varchar("container_type", { length: 20 }).notNull(), // 集装箱类型
+  sealNumber: varchar("seal_number", { length: 30 }).notNull(), // 封条号
+  
+  // 货物申报信息
+  goodsDescription: text("goods_description").notNull(), // 货物描述
+  hsCode: varchar("hs_code", { length: 20 }).notNull(), // HS编码
+  quantity: numeric("quantity", { precision: 12, scale: 3 }).notNull(), // 数量
+  unit: varchar("unit", { length: 10 }).notNull(), // 计量单位
+  unitPrice: numeric("unit_price", { precision: 12, scale: 4 }).notNull(), // 单价
+  totalValue: numeric("total_value", { precision: 15, scale: 2 }).notNull(), // 总价值
+  currency: varchar("currency", { length: 3 }).notNull().default("USD"), // 币制
+  grossWeight: numeric("gross_weight", { precision: 12, scale: 3 }).notNull(), // 毛重（千克）
+  netWeight: numeric("net_weight", { precision: 12, scale: 3 }).notNull(), // 净重（千克）
+  packageQuantity: integer("package_quantity").notNull(), // 件数
+  packageType: varchar("package_type", { length: 50 }).notNull(), // 包装种类
+  
+  // 贸易方式和征免性质
+  tradeMode: varchar("trade_mode", { length: 10 }).notNull(), // 贸易方式代码
+  exemptionMethod: varchar("exemption_method", { length: 10 }).notNull(), // 征免性质代码
+  
+  // 收发货人信息
+  consignorName: varchar("consignor_name", { length: 200 }).notNull(), // 发货人名称
+  consignorAddress: text("consignor_address").notNull(), // 发货人地址
+  consigneeName: varchar("consignee_name", { length: 200 }).notNull(), // 收货人名称
+  consigneeAddress: text("consignee_address").notNull(), // 收货人地址
+  consigneeCountry: varchar("consignee_country", { length: 50 }).notNull(), // 收货人国家
+  
+  // 申报任务信息
+  declarationTaskId: varchar("declaration_task_id", { length: 50 }).notNull(), // 申报任务ID
+  declarationSystemType: varchar("declaration_system_type", { length: 50 }).notNull(), // 申报系统类型
+  declarationMode: varchar("declaration_mode", { length: 50 }).notNull().default("declaration"), // 申报模式
+  
+  // 单一窗口信息
+  singleWindowNumber: varchar("single_window_number", { length: 30 }).notNull(), // 单一窗口编号
+  customsDeclarationNumber: varchar("customs_declaration_number", { length: 30 }).notNull(), // 报关单号
+  declarationStatus: varchar("declaration_status", { length: 50 }).notNull().default("draft"), // 申报状态
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 报关单模式出口申报测试数据相关 schema
+export const insertCustomsDeclarationExportTestDataSchema = createInsertSchema(customsDeclarationExportTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type CustomsDeclarationExportTestData = typeof customsDeclarationExportTestData.$inferSelect;
+export type InsertCustomsDeclarationExportTestData = z.infer<typeof insertCustomsDeclarationExportTestDataSchema>;
