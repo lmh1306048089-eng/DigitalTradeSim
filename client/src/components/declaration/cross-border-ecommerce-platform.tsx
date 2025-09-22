@@ -33,7 +33,7 @@ interface CrossBorderEcommercePlatformProps {
   onCancel?: () => void;
 }
 
-type WorkflowStep = 'booking' | 'import' | 'template' | 'task' | 'generate' | 'management' | 'push';
+type WorkflowStep = 'booking' | 'import' | 'template' | 'fill' | 'task' | 'generate' | 'management' | 'push';
 
 interface BookingData {
   orderNumber: string;
@@ -66,6 +66,17 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [declarationTasks, setDeclarationTasks] = useState<DeclarationTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [formData, setFormData] = useState({
+    declarationNo: '',
+    productName: '',
+    quantity: '',
+    unitPrice: '',
+    totalPrice: '',
+    hsCode: '',
+    originCountry: '',
+    notes: ''
+  });
 
   // 自动填充测试数据
   useEffect(() => {
@@ -106,6 +117,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     { id: 'booking', title: '订仓单数据推送', icon: Ship, description: '推送订仓单数据到综合服务平台' },
     { id: 'import', title: '基础数据导入', icon: Database, description: '导入基础数据到平台系统' },
     { id: 'template', title: '模板下载', icon: Download, description: '下载报关单模式申报模板' },
+    { id: 'fill', title: '表单填写与上传', icon: Upload, description: '填写申报表单并上传文件' },
     { id: 'task', title: '申报任务创建', icon: FileText, description: '创建新的申报任务' },
     { id: 'generate', title: '数据生成', icon: Settings, description: '生成申报数据' },
     { id: 'management', title: '数据申报管理', icon: BarChart3, description: '管理申报数据' },
@@ -167,13 +179,53 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const handleTemplateDownload = () => {
     // 模拟模板下载
     const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,申报单号,商品名称,数量,单价,总价\nCB001,智能手机,1,999.00,999.00';
+    link.href = 'data:text/csv;charset=utf-8,申报单号,商品名称,数量,单价,总价,HS编码,原产国,备注\nCB001,智能手机,1,999.00,999.00,8517120000,中国,手机及配件';
     link.download = '报关单模式申报模板.csv';
     link.click();
     
     toast({
       title: "模板下载完成",
-      description: "报关单模式申报模板已下载到本地",
+      description: "报关单模式申报模板已下载到本地，请填写后上传",
+    });
+    
+    setTimeout(() => {
+      handleNext();
+    }, 1500);
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+      toast({
+        title: "文件上传成功",
+        description: `文件 ${file.name} 已上传`,
+      });
+    }
+  };
+
+  const handleFormSubmit = () => {
+    if (!formData.declarationNo || !formData.productName || !formData.quantity) {
+      toast({
+        title: "表单验证失败",
+        description: "请填写所有必填字段",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!uploadedFile) {
+      toast({
+        title: "文件验证失败", 
+        description: "请上传填写完成的申报文件",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "申报数据提交成功",
+      description: "申报表单和文件已成功提交，即将创建申报任务",
     });
     
     setTimeout(() => {
@@ -457,6 +509,160 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
             <Button onClick={handleTemplateDownload} className="w-full" data-testid="button-download-template">
               <Download className="mr-2 h-4 w-4" />
               下载申报模板
+            </Button>
+          </div>
+        );
+
+      case 'fill':
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <Upload className="h-12 w-12 mx-auto mb-4 text-amber-600" />
+              <h3 className="text-xl font-semibold mb-2">填写申报表单</h3>
+              <p className="text-gray-600">基于下载的模板填写申报信息并上传文件</p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>申报信息填写</CardTitle>
+                <CardDescription>请填写完整的申报信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="declarationNo">申报单号 *</Label>
+                    <Input
+                      id="declarationNo"
+                      value={formData.declarationNo}
+                      onChange={(e) => setFormData(prev => ({ ...prev, declarationNo: e.target.value }))}
+                      placeholder="CB202509220001"
+                      data-testid="input-declaration-no"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="productName">商品名称 *</Label>
+                    <Input
+                      id="productName"
+                      value={formData.productName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, productName: e.target.value }))}
+                      placeholder="智能手机"
+                      data-testid="input-product-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="quantity">数量 *</Label>
+                    <Input
+                      id="quantity"
+                      value={formData.quantity}
+                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                      placeholder="1"
+                      data-testid="input-quantity"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="unitPrice">单价 (USD)</Label>
+                    <Input
+                      id="unitPrice"
+                      value={formData.unitPrice}
+                      onChange={(e) => setFormData(prev => ({ ...prev, unitPrice: e.target.value }))}
+                      placeholder="999.00"
+                      data-testid="input-unit-price"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="totalPrice">总价 (USD)</Label>
+                    <Input
+                      id="totalPrice"
+                      value={formData.totalPrice}
+                      onChange={(e) => setFormData(prev => ({ ...prev, totalPrice: e.target.value }))}
+                      placeholder="999.00"
+                      data-testid="input-total-price"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="hsCode">HS编码</Label>
+                    <Input
+                      id="hsCode"
+                      value={formData.hsCode}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hsCode: e.target.value }))}
+                      placeholder="8517120000"
+                      data-testid="input-hs-code"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="originCountry">原产国</Label>
+                    <Input
+                      id="originCountry"
+                      value={formData.originCountry}
+                      onChange={(e) => setFormData(prev => ({ ...prev, originCountry: e.target.value }))}
+                      placeholder="中国"
+                      data-testid="input-origin-country"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="notes">备注</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    placeholder="手机及配件"
+                    rows={3}
+                    data-testid="textarea-notes"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>文件上传</CardTitle>
+                <CardDescription>上传填写完成的申报文件</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <div className="space-y-2">
+                      <p className="text-sm text-gray-600">拖拽文件到此处或点击选择文件</p>
+                      <p className="text-xs text-gray-500">支持 CSV, XLS, XLSX 格式</p>
+                    </div>
+                    <input
+                      type="file"
+                      accept=".csv,.xls,.xlsx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                      data-testid="input-file-upload"
+                    />
+                    <Label
+                      htmlFor="file-upload"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 mt-4"
+                    >
+                      选择文件
+                    </Label>
+                  </div>
+                  
+                  {uploadedFile && (
+                    <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="h-8 w-8 text-green-600" />
+                        <div>
+                          <div className="font-medium text-green-800">{uploadedFile.name}</div>
+                          <div className="text-sm text-green-600">{(uploadedFile.size / 1024).toFixed(2)} KB</div>
+                        </div>
+                      </div>
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">已上传</Badge>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleFormSubmit} className="w-full" data-testid="button-submit-form">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              提交申报数据
             </Button>
           </div>
         );
