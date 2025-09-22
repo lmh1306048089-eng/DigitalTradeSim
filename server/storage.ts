@@ -53,6 +53,18 @@ import {
   customsDeclarationExportTestData,
   type CustomsDeclarationExportTestData,
   type InsertCustomsDeclarationExportTestData,
+  exportDeclarations,
+  bookingOrders,
+  importJobs,
+  submissionHistory,
+  type ExportDeclaration,
+  type InsertExportDeclaration,
+  type BookingOrder,
+  type InsertBookingOrder,
+  type ImportJob,
+  type InsertImportJob,
+  type SubmissionHistory,
+  type InsertSubmissionHistory,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -153,6 +165,29 @@ export interface IStorage {
   getCustomsDeclarationExportTestData(): Promise<CustomsDeclarationExportTestData[]>;
   getCustomsDeclarationExportTestDataByName(dataSetName: string): Promise<CustomsDeclarationExportTestData | undefined>;
   createCustomsDeclarationExportTestData(testData: InsertCustomsDeclarationExportTestData): Promise<CustomsDeclarationExportTestData>;
+  
+  // Export declaration operations（报关单模式业务流程）
+  getExportDeclarations(userId: string): Promise<ExportDeclaration[]>;
+  getExportDeclaration(id: string, userId: string): Promise<ExportDeclaration | undefined>;
+  createExportDeclaration(declaration: InsertExportDeclaration): Promise<ExportDeclaration>;
+  updateExportDeclaration(id: string, updates: Partial<ExportDeclaration>, userId: string): Promise<ExportDeclaration>;
+  
+  // Booking order operations（订仓单管理）
+  getBookingOrders(declarationId: string, userId: string): Promise<BookingOrder[]>;
+  getBookingOrder(id: string, userId: string): Promise<BookingOrder | undefined>;
+  createBookingOrder(order: InsertBookingOrder, userId: string): Promise<BookingOrder>;
+  updateBookingOrder(id: string, updates: Partial<BookingOrder>, userId: string): Promise<BookingOrder>;
+  
+  // Import job operations（数据导入任务）
+  getImportJobs(declarationId: string, userId: string): Promise<ImportJob[]>;
+  getImportJob(id: string, userId: string): Promise<ImportJob | undefined>;
+  createImportJob(job: InsertImportJob, userId: string): Promise<ImportJob>;
+  updateImportJob(id: string, updates: Partial<ImportJob>, userId: string): Promise<ImportJob>;
+  
+  // Submission history operations（提交历史记录）
+  getSubmissionHistory(declarationId: string, userId: string): Promise<SubmissionHistory[]>;
+  getSubmissionHistoryByType(declarationId: string, submissionType: string, userId: string): Promise<SubmissionHistory[]>;
+  createSubmissionHistory(history: InsertSubmissionHistory, userId: string): Promise<SubmissionHistory>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -870,6 +905,192 @@ export class DatabaseStorage implements IStorage {
     const createdTestData = await this.getCustomsDeclarationExportTestDataByName(testDataInput.dataSetName);
     if (!createdTestData) throw new Error("Failed to create customs declaration export test data");
     return createdTestData;
+  }
+
+  // Export declaration operations（报关单模式业务流程）
+  async getExportDeclarations(userId: string): Promise<ExportDeclaration[]> {
+    return await db.select().from(exportDeclarations)
+      .where(eq(exportDeclarations.userId, userId))
+      .orderBy(desc(exportDeclarations.createdAt));
+  }
+
+  async getExportDeclaration(id: string, userId: string): Promise<ExportDeclaration | undefined> {
+    const [declaration] = await db.select().from(exportDeclarations)
+      .where(and(eq(exportDeclarations.id, id), eq(exportDeclarations.userId, userId)));
+    return declaration;
+  }
+
+  async createExportDeclaration(declaration: InsertExportDeclaration): Promise<ExportDeclaration> {
+    const id = randomUUID();
+    await db.insert(exportDeclarations).values({
+      id,
+      ...declaration
+    });
+    const result = await this.getExportDeclaration(id, declaration.userId);
+    if (!result) throw new Error("Failed to create export declaration");
+    return result;
+  }
+
+  async updateExportDeclaration(id: string, updates: Partial<ExportDeclaration>, userId: string): Promise<ExportDeclaration> {
+    // Remove sensitive fields that should not be updated
+    const { userId: _, id: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(exportDeclarations)
+      .set({
+        ...safeUpdates,
+        updatedAt: new Date()
+      })
+      .where(and(eq(exportDeclarations.id, id), eq(exportDeclarations.userId, userId)));
+    const result = await this.getExportDeclaration(id, userId);
+    if (!result) throw new Error("Export declaration not found or access denied");
+    return result;
+  }
+
+  // Booking order operations（订仓单管理）
+  async getBookingOrders(declarationId: string, userId: string): Promise<BookingOrder[]> {
+    // Ensure the booking orders belong to the user's export declaration
+    const results = await db.select({ order: bookingOrders })
+      .from(bookingOrders)
+      .innerJoin(exportDeclarations, eq(bookingOrders.declarationId, exportDeclarations.id))
+      .where(and(eq(bookingOrders.declarationId, declarationId), eq(exportDeclarations.userId, userId)))
+      .orderBy(desc(bookingOrders.createdAt));
+    return results.map(r => r.order);
+  }
+
+  async getBookingOrder(id: string, userId: string): Promise<BookingOrder | undefined> {
+    // Ensure the booking order belongs to the user's export declaration
+    const [result] = await db.select({ order: bookingOrders })
+      .from(bookingOrders)
+      .innerJoin(exportDeclarations, eq(bookingOrders.declarationId, exportDeclarations.id))
+      .where(and(eq(bookingOrders.id, id), eq(exportDeclarations.userId, userId)));
+    return result?.order;
+  }
+
+  async createBookingOrder(order: InsertBookingOrder, userId: string): Promise<BookingOrder> {
+    // Verify the declaration belongs to the user
+    const declaration = await this.getExportDeclaration(order.declarationId, userId);
+    if (!declaration) throw new Error("Export declaration not found or access denied");
+    
+    const id = randomUUID();
+    await db.insert(bookingOrders).values({
+      id,
+      ...order
+    });
+    const result = await this.getBookingOrder(id, userId);
+    if (!result) throw new Error("Failed to create booking order");
+    return result;
+  }
+
+  async updateBookingOrder(id: string, updates: Partial<BookingOrder>, userId: string): Promise<BookingOrder> {
+    // First verify the booking order belongs to the user
+    const existingOrder = await this.getBookingOrder(id, userId);
+    if (!existingOrder) throw new Error("Booking order not found or access denied");
+    
+    // Remove sensitive fields that should not be updated
+    const { id: _, declarationId: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(bookingOrders)
+      .set(safeUpdates)
+      .where(eq(bookingOrders.id, id));
+    
+    const result = await this.getBookingOrder(id, userId);
+    if (!result) throw new Error("Booking order not found");
+    return result;
+  }
+
+  // Import job operations（数据导入任务）
+  async getImportJobs(declarationId: string, userId: string): Promise<ImportJob[]> {
+    // Ensure the import jobs belong to the user's export declaration
+    const results = await db.select({ job: importJobs })
+      .from(importJobs)
+      .innerJoin(exportDeclarations, eq(importJobs.declarationId, exportDeclarations.id))
+      .where(and(eq(importJobs.declarationId, declarationId), eq(exportDeclarations.userId, userId)))
+      .orderBy(desc(importJobs.createdAt));
+    return results.map(r => r.job);
+  }
+
+  async getImportJob(id: string, userId: string): Promise<ImportJob | undefined> {
+    // Ensure the import job belongs to the user's export declaration
+    const [result] = await db.select({ job: importJobs })
+      .from(importJobs)
+      .innerJoin(exportDeclarations, eq(importJobs.declarationId, exportDeclarations.id))
+      .where(and(eq(importJobs.id, id), eq(exportDeclarations.userId, userId)));
+    return result?.job;
+  }
+
+  async createImportJob(job: InsertImportJob, userId: string): Promise<ImportJob> {
+    // Verify the declaration belongs to the user
+    const declaration = await this.getExportDeclaration(job.declarationId, userId);
+    if (!declaration) throw new Error("Export declaration not found or access denied");
+    
+    const id = randomUUID();
+    await db.insert(importJobs).values({
+      id,
+      ...job
+    });
+    const result = await this.getImportJob(id, userId);
+    if (!result) throw new Error("Failed to create import job");
+    return result;
+  }
+
+  async updateImportJob(id: string, updates: Partial<ImportJob>, userId: string): Promise<ImportJob> {
+    // First verify the import job belongs to the user
+    const existingJob = await this.getImportJob(id, userId);
+    if (!existingJob) throw new Error("Import job not found or access denied");
+    
+    // Remove sensitive fields that should not be updated
+    const { id: _, declarationId: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(importJobs)
+      .set(safeUpdates)
+      .where(eq(importJobs.id, id));
+    
+    const result = await this.getImportJob(id, userId);
+    if (!result) throw new Error("Import job not found");
+    return result;
+  }
+
+  // Submission history operations（提交历史记录）
+  async getSubmissionHistory(declarationId: string, userId: string): Promise<SubmissionHistory[]> {
+    // Ensure the submission history belongs to the user's export declaration
+    const results = await db.select({ history: submissionHistory })
+      .from(submissionHistory)
+      .innerJoin(exportDeclarations, eq(submissionHistory.declarationId, exportDeclarations.id))
+      .where(and(eq(submissionHistory.declarationId, declarationId), eq(exportDeclarations.userId, userId)))
+      .orderBy(desc(submissionHistory.submittedAt));
+    return results.map(r => r.history);
+  }
+
+  async getSubmissionHistoryByType(declarationId: string, submissionType: string, userId: string): Promise<SubmissionHistory[]> {
+    // Ensure the submission history belongs to the user's export declaration
+    const results = await db.select({ history: submissionHistory })
+      .from(submissionHistory)
+      .innerJoin(exportDeclarations, eq(submissionHistory.declarationId, exportDeclarations.id))
+      .where(
+        and(
+          eq(submissionHistory.declarationId, declarationId),
+          eq(submissionHistory.submissionType, submissionType),
+          eq(exportDeclarations.userId, userId)
+        )
+      )
+      .orderBy(desc(submissionHistory.submittedAt));
+    return results.map(r => r.history);
+  }
+
+  async createSubmissionHistory(history: InsertSubmissionHistory, userId: string): Promise<SubmissionHistory> {
+    // Verify the declaration belongs to the user
+    const declaration = await this.getExportDeclaration(history.declarationId, userId);
+    if (!declaration) throw new Error("Export declaration not found or access denied");
+    
+    const id = randomUUID();
+    await db.insert(submissionHistory).values({
+      id,
+      ...history
+    });
+    const [result] = await db.select().from(submissionHistory)
+      .where(eq(submissionHistory.id, id));
+    if (!result) throw new Error("Failed to create submission history");
+    return result;
   }
 }
 
