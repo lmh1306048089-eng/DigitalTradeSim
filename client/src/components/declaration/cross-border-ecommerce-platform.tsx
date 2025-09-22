@@ -33,7 +33,7 @@ interface CrossBorderEcommercePlatformProps {
   onCancel?: () => void;
 }
 
-type WorkflowStep = 'booking' | 'import' | 'template' | 'fill' | 'task' | 'generate' | 'management' | 'push';
+type WorkflowStep = 'booking' | 'template' | 'fill' | 'task' | 'generate' | 'management';
 
 interface BookingData {
   orderNumber: string;
@@ -115,13 +115,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
   const steps = [
     { id: 'booking', title: '订仓单数据推送', icon: Ship, description: '推送订仓单数据到综合服务平台' },
-    { id: 'import', title: '基础数据导入', icon: Database, description: '导入基础数据到平台系统' },
-    { id: 'template', title: '模板下载', icon: Download, description: '下载报关单模式申报模板' },
+    { id: 'template', title: '模板下载', icon: Download, description: '下载报关单模式申报模板并导入基础数据' },
     { id: 'fill', title: '表单填写与上传', icon: Upload, description: '填写申报表单并上传文件' },
     { id: 'task', title: '申报任务创建', icon: FileText, description: '创建新的申报任务' },
     { id: 'generate', title: '数据生成', icon: Settings, description: '生成申报数据' },
-    { id: 'management', title: '数据申报管理', icon: BarChart3, description: '管理申报数据' },
-    { id: 'push', title: '数据推送', icon: Send, description: '推送数据到单一窗口' }
+    { id: 'management', title: '数据申报管理与推送', icon: BarChart3, description: '管理申报数据并推送到统一版系统' }
   ];
 
   const getStepIndex = (step: WorkflowStep) => steps.findIndex(s => s.id === step);
@@ -177,20 +175,28 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   };
 
   const handleTemplateDownload = () => {
-    // 模拟模板下载
-    const link = document.createElement('a');
-    link.href = 'data:text/csv;charset=utf-8,申报单号,商品名称,数量,单价,总价,HS编码,原产国,备注\nCB001,智能手机,1,999.00,999.00,8517120000,中国,手机及配件';
-    link.download = '报关单模式申报模板.csv';
-    link.click();
-    
+    // 模拟基础数据导入
     toast({
-      title: "模板下载完成",
-      description: "报关单模式申报模板已下载到本地，请填写后上传",
+      title: "基础数据导入中...",
+      description: "正在导入企业信息、商品编码、申报要素等基础数据",
     });
     
     setTimeout(() => {
-      handleNext();
-    }, 1500);
+      // 模拟模板下载
+      const link = document.createElement('a');
+      link.href = 'data:text/csv;charset=utf-8,申报单号,商品名称,数量,单价,总价,HS编码,原产国,备注\nCB001,智能手机,1,999.00,999.00,8517120000,中国,手机及配件';
+      link.download = '报关单模式申报模板.csv';
+      link.click();
+      
+      toast({
+        title: "模板下载完成",
+        description: "基础数据已导入，报关单模式申报模板已下载到本地，请填写后上传",
+      });
+      
+      setTimeout(() => {
+        handleNext();
+      }, 1500);
+    }, 1000);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,71 +406,6 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
           </div>
         );
 
-      case 'import':
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Database className="h-12 w-12 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold mb-2">基础数据导入</h3>
-              <p className="text-gray-600">将基础数据导入到综合服务平台</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">企业信息</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">企业代码</span>
-                    <Badge variant="secondary">已导入</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">商品信息</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">商品编码</span>
-                    <Badge variant="secondary">已导入</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">运输信息</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">物流公司</span>
-                    <Badge variant="secondary">已导入</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">申报信息</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">申报要素</span>
-                    <Badge variant="secondary">已导入</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <Button onClick={handleDataImport} className="w-full" data-testid="button-import-data">
-              <Database className="mr-2 h-4 w-4" />
-              确认数据导入
-            </Button>
-          </div>
-        );
 
       case 'template':
         return (
@@ -907,26 +848,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardContent>
             </Card>
             
-            <Button 
-              onClick={handleNext} 
-              className="w-full" 
-              disabled={declarationTasks.filter(t => t.status === 'completed').length === 0}
-              data-testid="button-to-push"
-            >
-              <ArrowRight className="mr-2 h-4 w-4" />
-              进入数据推送
-            </Button>
-          </div>
-        );
-
-      case 'push':
-        return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Send className="h-12 w-12 mx-auto mb-4 text-red-600" />
-              <h3 className="text-xl font-semibold mb-2">数据推送</h3>
-              <p className="text-gray-600">推送申报数据到跨境电商出口统一版系统</p>
-            </div>
+            <Separator className="my-6" />
             
             <Card>
               <CardHeader>
@@ -982,12 +904,18 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardContent>
             </Card>
             
-            <Button onClick={handleDataPush} className="w-full" data-testid="button-push-data">
+            <Button 
+              onClick={handleDataPush} 
+              className="w-full" 
+              disabled={declarationTasks.filter(t => t.status === 'completed').length === 0}
+              data-testid="button-push-data"
+            >
               <Send className="mr-2 h-4 w-4" />
               推送到统一版系统
             </Button>
           </div>
         );
+
 
       default:
         return null;
@@ -1084,7 +1012,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                   上一步
                 </Button>
               )}
-              {getStepIndex(currentStep) < steps.length - 1 && currentStep !== 'push' && (
+              {getStepIndex(currentStep) < steps.length - 1 && (
                 <Button
                   variant="outline"
                   onClick={handleNext}
