@@ -1,9 +1,21 @@
 import { useState } from "react";
-import { ArrowRight, Monitor, FolderOpen, Printer, PlayCircle } from "lucide-react";
+import { ArrowRight, Monitor, FolderOpen, Printer, PlayCircle, FileText, Building2 } from "lucide-react";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { VirtualScene } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
+import { useBusinessRole } from "@/hooks/useBusinessRole";
+import { SCENE_CONFIGS, BUSINESS_ROLES } from "@shared/business-roles";
+import type { VirtualScene } from "@/types/index";
+
+// 操作点类型定义
+type OperationPoint = {
+  businessRoleCode: string;
+  entryName: string;
+  entryDescription: string;
+  allowedOperations: string[];
+};
 
 interface SceneModalProps {
   open: boolean;
@@ -13,8 +25,27 @@ interface SceneModalProps {
 
 export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
   const [currentTask, setCurrentTask] = useState("目的国入境清关实验");
+  const [showOperationsMenu, setShowOperationsMenu] = useState(false);
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const { selectedRoleCode } = useBusinessRole();
 
   if (!scene) return null;
+
+  // 获取当前角色在这个场景中可以执行的操作
+  const getAvailableOperations = () => {
+    if (!selectedRoleCode || !scene.operationPoints) return [];
+    
+    // 使用类型断言来处理operationPoints
+    const operationPoints = scene.operationPoints as OperationPoint[];
+    const operationPoint = operationPoints.find(
+      (point: OperationPoint) => point.businessRoleCode === selectedRoleCode
+    );
+    
+    return operationPoint?.allowedOperations || [];
+  };
+
+  const availableOperations = getAvailableOperations();
 
   const interactiveElements = [
     { id: "business", icon: Monitor, label: "业务系统", description: "进入业务系统操作界面" },
@@ -26,7 +57,9 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
   const handleElementClick = (elementId: string) => {
     switch (elementId) {
       case "business":
-        // TODO: Open business system modal
+        if (availableOperations.length > 0) {
+          setShowOperationsMenu(true);
+        }
         break;
       case "files":
         // TODO: Open file manager
@@ -37,6 +70,37 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
       case "training":
         // TODO: Open training videos
         break;
+    }
+  };
+
+  const handleOperationClick = (operation: string) => {
+    switch (operation) {
+      case "出口申报":
+        setLocation("/customs-declaration-export");
+        onOpenChange(false);
+        break;
+      case "备案申报":
+        // TODO: 导航到备案相关页面
+        break;
+      case "退税申报":
+        // TODO: 导航到退税相关页面
+        break;
+      default:
+        break;
+    }
+    setShowOperationsMenu(false);
+  };
+
+  const getOperationIcon = (operation: string) => {
+    switch (operation) {
+      case "出口申报":
+        return <FileText className="h-4 w-4" />;
+      case "备案申报":
+        return <Building2 className="h-4 w-4" />;
+      case "退税申报":
+        return <FileText className="h-4 w-4" />;
+      default:
+        return <FileText className="h-4 w-4" />;
     }
   };
 
@@ -69,7 +133,7 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
               <div className="space-y-2">
                 <h4 className="font-medium">可操作元素：</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  {scene.interactiveElements?.map((element, index) => (
+                  {scene.interactiveElements?.map((element: string, index: number) => (
                     <li key={index} data-testid={`interactive-element-${index}`}>
                       • {element}
                     </li>
@@ -78,7 +142,7 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
                     "• 文件柜 - 查看和提交备案材料", 
                     "• 打印机 - 打印申报单据",
                     "• 会议室 - 查看培训视频和指导"
-                  ].map((element, index) => (
+                  ].map((element: string, index: number) => (
                     <li key={index}>{element}</li>
                   ))}
                 </ul>
@@ -95,6 +159,7 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
                 className="p-4 h-auto flex-col space-y-2 hover:bg-muted transition-colors"
                 onClick={() => handleElementClick(element.id)}
                 data-testid={`element-button-${element.id}`}
+                disabled={element.id === "business" && availableOperations.length === 0}
               >
                 <element.icon className="h-6 w-6 text-primary" />
                 <div className="text-center">
@@ -104,6 +169,35 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
               </Button>
             ))}
           </div>
+
+          {/* Operations Menu */}
+          {showOperationsMenu && availableOperations.length > 0 && (
+            <div className="p-4 bg-accent/10 rounded-lg border">
+              <h4 className="font-medium mb-3">选择操作类型</h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {availableOperations.map((operation: string, index: number) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    className="p-3 h-auto flex items-center space-x-2 hover:bg-muted transition-colors"
+                    onClick={() => handleOperationClick(operation)}
+                    data-testid={`operation-button-${operation}`}
+                  >
+                    {getOperationIcon(operation)}
+                    <span className="text-sm">{operation}</span>
+                  </Button>
+                ))}
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="mt-3"
+                onClick={() => setShowOperationsMenu(false)}
+              >
+                取消
+              </Button>
+            </div>
+          )}
 
           {/* Current Task */}
           <div className="p-4 bg-accent/10 rounded-lg border-l-4 border-accent">
@@ -124,10 +218,15 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
             >
               返回
             </Button>
-            <Button data-testid="button-scene-start">
-              开始实验
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            {availableOperations.length > 0 && (
+              <Button 
+                onClick={() => setShowOperationsMenu(true)}
+                data-testid="button-scene-start"
+              >
+                开始操作
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

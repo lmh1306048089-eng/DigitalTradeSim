@@ -17,6 +17,7 @@ import { CustomsQualificationForm } from "@/components/customs/customs-qualifica
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
+import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -81,6 +82,19 @@ function Router() {
             <TransportIdForm 
               onComplete={(data) => {
                 console.log("传输ID申请完成:", data);
+                // 返回主页
+                window.location.href = "/";
+              }}
+              onCancel={() => {
+                // 返回主页
+                window.location.href = "/";
+              }}
+            />
+          </Route>
+          <Route path="/customs-declaration-export">
+            <CustomsDeclarationExportForm 
+              onComplete={(data) => {
+                console.log("报关单模式出口申报完成:", data);
                 // 返回主页
                 window.location.href = "/";
               }}
