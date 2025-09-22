@@ -9,6 +9,7 @@ import {
   Upload,
   ArrowRight
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
 import { Sidebar, SidebarItem } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
@@ -16,15 +17,23 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { BusinessRoleSelector } from "@/components/business-role-selector";
 import { useBusinessRole } from "@/hooks/useBusinessRole";
+import { SceneModal } from "@/components/modals/scene-modal";
 import { SCENES, BUSINESS_ROLE_CONFIGS } from "@shared/business-roles";
 import { useLocation } from "wouter";
+import type { VirtualScene } from "@/types/index";
 
 type ActiveSection = "overview" | "enterprise_scene" | "customs_scene" | "customs_supervision_scene" | "overseas_warehouse_scene" | "buyer_home_scene";
 
 export default function SimplifiedStudentDashboard() {
   const [activeSection, setActiveSection] = useState<ActiveSection>("overview");
+  const [selectedScene, setSelectedScene] = useState<VirtualScene | null>(null);
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  
+  // 查询场景数据
+  const { data: scenes = [] } = useQuery<VirtualScene[]>({
+    queryKey: ["/api/scenes"],
+  });
 
   // 监听URL查询参数，设置对应的场景
   useEffect(() => {
@@ -149,7 +158,14 @@ export default function SimplifiedStudentDashboard() {
               <div className="relative group text-center">
                 <div 
                   className="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white p-4 rounded-xl shadow-lg cursor-pointer transform hover:scale-105 transition-all duration-300"
-                  onClick={() => setActiveSection(SCENES.ENTERPRISE as ActiveSection)}
+                  onClick={() => {
+                    const enterpriseScene = scenes.find(s => s.id === SCENES.ENTERPRISE);
+                    if (enterpriseScene) {
+                      setSelectedScene(enterpriseScene);
+                    } else {
+                      setActiveSection(SCENES.ENTERPRISE as ActiveSection);
+                    }
+                  }}
                 >
                   <Building2 className="h-8 w-8 mx-auto mb-2" />
                   <h4 className="font-bold text-sm mb-1">电商企业</h4>
@@ -604,7 +620,16 @@ export default function SimplifiedStudentDashboard() {
         </main>
       </div>
 
-      {/* 注意：现在使用页面跳转而不是模态框 */}
+      {/* Scene Modal */}
+      <SceneModal 
+        open={selectedScene !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedScene(null);
+          }
+        }}
+        scene={selectedScene}
+      />
     </div>
   );
 }
