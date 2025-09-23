@@ -7,7 +7,9 @@ import {
   integer, 
   jsonb, 
   boolean,
-  numeric
+  numeric,
+  index,
+  unique
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -518,6 +520,263 @@ export const insertIcCardTestDataSchema = createInsertSchema(icCardTestData).omi
 
 export type IcCardTestData = typeof icCardTestData.$inferSelect;
 export type InsertIcCardTestData = z.infer<typeof insertIcCardTestDataSchema>;
+
+// 海关申报表单主表
+export const declarationForms = pgTable("declaration_forms", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  
+  // 基本申报信息
+  preEntryNo: varchar("pre_entry_no", { length: 50 }), // 预录入编号
+  customsNo: varchar("customs_no", { length: 50 }), // 海关编号
+  consignorConsignee: varchar("consignor_consignee", { length: 200 }).notNull(), // 收发货人
+  productionSalesUnit: varchar("production_sales_unit", { length: 200 }), // 生产销售单位
+  declarationUnit: varchar("declaration_unit", { length: 200 }), // 申报单位
+  filingNo: varchar("filing_no", { length: 50 }), // 备案号
+  licenseNo: varchar("license_no", { length: 50 }), // 许可证号
+  
+  // 合同与发票信息
+  contractNo: varchar("contract_no", { length: 50 }), // 合同协议号
+  invoiceNo: varchar("invoice_no", { length: 50 }), // 发票号
+  tradeTerms: varchar("trade_terms", { length: 20 }), // 成交方式(FOB/CIF/etc)
+  
+  // 贸易信息
+  exportPort: varchar("export_port", { length: 100 }).notNull(), // 出口口岸
+  exportDate: timestamp("export_date"), // 出口日期
+  declareDate: timestamp("declare_date").defaultNow().notNull(), // 申报日期
+  transportMode: varchar("transport_mode", { length: 50 }).notNull(), // 运输方式
+  transportName: varchar("transport_name", { length: 100 }), // 运输工具名称
+  billNo: varchar("bill_no", { length: 50 }), // 提运单号
+  containerNos: jsonb("container_nos").$type<string[]>(), // 集装箱号列表
+  supervisionMode: varchar("supervision_mode", { length: 20 }), // 监管方式
+  exemptionNature: varchar("exemption_nature", { length: 50 }), // 征免性质
+  tradeCountry: varchar("trade_country", { length: 50 }), // 贸易国(地区)
+  arrivalCountry: varchar("arrival_country", { length: 50 }), // 运抵国(地区)
+  originCountry: varchar("origin_country", { length: 50 }), // 启运国(地区)
+  finalDestCountry: varchar("final_dest_country", { length: 50 }), // 最终目的国(地区)
+  transitPort: varchar("transit_port", { length: 100 }), // 经停港
+  inlandDest: varchar("inland_dest", { length: 100 }), // 境内目的地
+  goodsLocation: varchar("goods_location", { length: 200 }), // 货物存放地点
+  
+  // 金融信息
+  currency: varchar("currency", { length: 10 }).default("USD"), // 币制
+  exchangeRate: numeric("exchange_rate", { precision: 10, scale: 6 }), // 汇率
+  totalAmountForeign: numeric("total_amount_foreign", { precision: 18, scale: 2 }), // 外币总价
+  totalAmountCNY: numeric("total_amount_cny", { precision: 18, scale: 2 }), // 人民币总价
+  freight: numeric("freight", { precision: 15, scale: 2 }), // 运费
+  insurance: numeric("insurance", { precision: 15, scale: 2 }), // 保险费
+  otherCharges: numeric("other_charges", { precision: 15, scale: 2 }), // 杂费
+  
+  // 计量与包装
+  packages: integer("packages"), // 件数
+  packageType: varchar("package_type", { length: 50 }), // 包装种类
+  grossWeight: numeric("gross_weight", { precision: 10, scale: 3 }), // 毛重(千克)
+  netWeight: numeric("net_weight", { precision: 10, scale: 3 }), // 净重(千克)
+  
+  // 申报相关信息
+  declarationLocation: varchar("declaration_location", { length: 100 }), // 申报地点
+  customsDistrict: varchar("customs_district", { length: 50 }), // 关区代码
+  declarationPerson: varchar("declaration_person", { length: 50 }), // 申报人员
+  declarationPhone: varchar("declaration_phone", { length: 20 }), // 申报联系电话
+  
+  // 标记唛码及备注
+  marksAndNotes: text("marks_and_notes"), // 标记唛码及备注
+  
+  // 申报声明与选项
+  inspectionQuarantine: boolean("inspection_quarantine").default(false), // 检验检疫(是/否)
+  priceInfluenceFactor: boolean("price_influence_factor").default(false), // 价格影响因素(是/否)
+  paymentSettlementUsage: boolean("payment_settlement_usage").default(false), // 支付/结汇方式使用情况(是/否)
+  
+  // 元数据
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).references(() => experiments.id),
+  resultId: varchar("result_id", { length: 36 }).references(() => experimentResults.id),
+  status: varchar("status", { length: 20 }).default("draft"), // draft, submitted, completed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userIdIdx: index("declaration_forms_user_id_idx").on(table.userId),
+  experimentIdIdx: index("declaration_forms_experiment_id_idx").on(table.experimentId),
+  resultIdIdx: index("declaration_forms_result_id_idx").on(table.resultId),
+}));
+
+// 海关申报商品明细表
+export const declarationItems = pgTable("declaration_items", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationFormId: varchar("declaration_form_id", { length: 36 }).notNull().references(() => declarationForms.id, { onDelete: "cascade" }),
+  
+  // 商品信息
+  itemNo: integer("item_no").notNull(), // 项号
+  goodsCode: varchar("goods_code", { length: 20 }), // 商品编号(HS)
+  goodsNameSpec: text("goods_name_spec").notNull(), // 商品名称/规格型号
+  
+  // 数量和单位 (支持双重计量)
+  quantity1: numeric("quantity1", { precision: 17, scale: 3 }).notNull(), // 第一数量
+  unit1: varchar("unit1", { length: 20 }).notNull(), // 第一单位
+  quantity2: numeric("quantity2", { precision: 17, scale: 3 }), // 第二数量
+  unit2: varchar("unit2", { length: 20 }), // 第二单位
+  
+  // 价格信息
+  unitPrice: numeric("unit_price", { precision: 15, scale: 4 }).notNull(), // 单价
+  totalPrice: numeric("total_price", { precision: 18, scale: 2 }).notNull(), // 总价
+  currency: varchar("currency", { length: 10 }).default("USD"), // 币制
+  
+  // 原产地和贸易信息
+  originCountry: varchar("origin_country", { length: 50 }), // 原产国
+  finalDestCountry: varchar("final_dest_country", { length: 50 }), // 最终目的国(地区)
+  
+  // 税务和监管信息
+  exemption: varchar("exemption", { length: 50 }), // 征免
+  taxCode: varchar("tax_code", { length: 20 }), // 税号
+  taxRate: numeric("tax_rate", { precision: 5, scale: 2 }), // 税率
+  dutyRate: numeric("duty_rate", { precision: 5, scale: 2 }), // 关税税率
+  vatRate: numeric("vat_rate", { precision: 5, scale: 2 }), // 增值税税率
+  preference: varchar("preference", { length: 50 }), // 优惠贸易协定
+  
+  // 附加信息
+  brand: varchar("brand", { length: 100 }), // 品牌
+  model: varchar("model", { length: 100 }), // 型号
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  // 确保同一申报单内项号唯一
+  uniqueItemNo: unique("declaration_items_unique_item_no").on(table.declarationFormId, table.itemNo),
+}));
+
+// 申报表单测试数据表
+export const declarationTestData = pgTable("declaration_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  experimentKey: varchar("experiment_key", { length: 100 }).notNull(), // 实验标识符
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull().default("默认测试企业"), // 数据集名称
+  
+  // 基本申报信息
+  preEntryNo: varchar("pre_entry_no", { length: 50 }),
+  customsNo: varchar("customs_no", { length: 50 }),
+  consignorConsignee: varchar("consignor_consignee", { length: 200 }).notNull(),
+  productionSalesUnit: varchar("production_sales_unit", { length: 200 }),
+  declarationUnit: varchar("declaration_unit", { length: 200 }),
+  filingNo: varchar("filing_no", { length: 50 }),
+  licenseNo: varchar("license_no", { length: 50 }),
+  
+  // 贸易信息 
+  exportPort: varchar("export_port", { length: 100 }).notNull(),
+  exportDate: varchar("export_date", { length: 10 }),
+  declareDate: varchar("declare_date", { length: 10 }).notNull(),
+  transportMode: varchar("transport_mode", { length: 50 }).notNull(),
+  transportName: varchar("transport_name", { length: 100 }),
+  billNo: varchar("bill_no", { length: 50 }),
+  supervisionMode: varchar("supervision_mode", { length: 20 }),
+  exemptionNature: varchar("exemption_nature", { length: 50 }),
+  tradeCountry: varchar("trade_country", { length: 50 }),
+  arrivalCountry: varchar("arrival_country", { length: 50 }),
+  originCountry: varchar("origin_country", { length: 50 }),
+  finalDestCountry: varchar("final_dest_country", { length: 50 }),
+  transitPort: varchar("transit_port", { length: 100 }),
+  inlandDest: varchar("inland_dest", { length: 100 }),
+  goodsLocation: varchar("goods_location", { length: 200 }),
+  
+  // 计量与包装
+  packages: integer("packages"),
+  packageType: varchar("package_type", { length: 50 }),
+  grossWeight: numeric("gross_weight", { precision: 10, scale: 3 }),
+  netWeight: numeric("net_weight", { precision: 10, scale: 3 }),
+  
+  // 标记唛码及备注
+  marksAndNotes: text("marks_and_notes"),
+  
+  // 商品明细数据(JSON格式存储)
+  itemsData: jsonb("items_data").$type<{
+    itemNo: number;
+    goodsCode: string;
+    goodsNameSpec: string;
+    quantity: number;
+    unit: string;
+    finalDestCountry?: string;
+    unitPrice: number;
+    totalPrice: number;
+    currency: string;
+    exemption?: string;
+  }[]>(),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 海关申报表单相关 schema
+export const insertDeclarationFormSchema = createInsertSchema(declarationForms).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  consignorConsignee: z.string().min(2, "收发货人不能少于2个字符"),
+  exportPort: z.string().min(2, "出口口岸不能为空"),
+  transportMode: z.enum(["1", "2", "3", "4", "5", "6", "7", "8", "9"], {
+    errorMap: () => ({ message: "请选择有效的运输方式" })
+  }), // 1-江海, 2-铁路, 3-公路, 4-航空, 5-邮政, 6-固定运输, 7-管道运输, 8-内陆水运, 9-其他
+  supervisionMode: z.enum(["0110", "1210", "1239", "9610", "9710", "9810"], {
+    errorMap: () => ({ message: "请选择有效的监管方式" })
+  }).optional(),
+  status: z.enum(["draft", "submitted", "completed"], {
+    errorMap: () => ({ message: "状态必须为草稿、已提交或已完成" })
+  }).optional(),
+  tradeTerms: z.enum(["FOB", "CIF", "CFR", "EXW", "FCA", "CPT", "CIP", "DAT", "DAP", "DDP"], {
+    errorMap: () => ({ message: "请选择有效的贸易条款" })
+  }).optional(),
+  currency: z.string().length(3, "币种代码必须为3位"),
+  exchangeRate: z.number().positive("汇率必须为正数").optional(),
+  totalAmountForeign: z.number().positive("外币总价必须为正数").optional(),
+  totalAmountCNY: z.number().positive("人民币总价必须为正数").optional(),
+  packages: z.number().int().positive("件数必须为正整数").optional(),
+  grossWeight: z.number().positive("毛重必须为正数").optional(),
+  netWeight: z.number().positive("净重必须为正数").optional(),
+  declarationPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号").optional(),
+  containerNos: z.array(z.string().min(1, "集装箱号不能为空")).optional(),
+});
+
+export const insertDeclarationItemSchema = createInsertSchema(declarationItems).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  goodsNameSpec: z.string().min(2, "商品名称不能少于2个字符"),
+  goodsCode: z.string().regex(/^\d{8,10}$/, "HS编码必须为8-10位数字").optional(),
+  quantity1: z.number().positive("第一数量必须为正数"),
+  unit1: z.string().min(1, "第一单位不能为空"),
+  quantity2: z.number().positive("第二数量必须为正数").optional(),
+  unit2: z.string().min(1, "第二单位不能为空").optional(),
+  unitPrice: z.number().positive("单价必须为正数"),
+  totalPrice: z.number().positive("总价必须为正数"),
+  currency: z.string().length(3, "币种代码必须为3位"),
+  itemNo: z.number().int().positive("项号必须为正整数"),
+  taxRate: z.number().min(0).max(100, "税率必须在0-100之间").optional(),
+  dutyRate: z.number().min(0).max(100, "关税税率必须在0-100之间").optional(),
+  vatRate: z.number().min(0).max(100, "增值税税率必须在0-100之间").optional(),
+});
+
+export const insertDeclarationTestDataSchema = createInsertSchema(declarationTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+// 关系定义
+export const declarationFormsRelations = relations(declarationForms, ({ one, many }) => ({
+  user: one(users, { fields: [declarationForms.userId], references: [users.id] }),
+  experiment: one(experiments, { fields: [declarationForms.experimentId], references: [experiments.id] }),
+  items: many(declarationItems),
+}));
+
+export const declarationItemsRelations = relations(declarationItems, ({ one }) => ({
+  declarationForm: one(declarationForms, { 
+    fields: [declarationItems.declarationFormId], 
+    references: [declarationForms.id] 
+  }),
+}));
+
+// 申报表单类型定义
+export type DeclarationForm = typeof declarationForms.$inferSelect;
+export type InsertDeclarationForm = z.infer<typeof insertDeclarationFormSchema>;
+export type DeclarationItem = typeof declarationItems.$inferSelect;
+export type InsertDeclarationItem = z.infer<typeof insertDeclarationItemSchema>;
+export type DeclarationTestData = typeof declarationTestData.$inferSelect;
+export type InsertDeclarationTestData = z.infer<typeof insertDeclarationTestDataSchema>;
 
 // 电商企业资质备案测试数据表
 export const ecommerceQualificationTestData = pgTable("ecommerce_qualification_test_data", {
