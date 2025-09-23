@@ -743,6 +743,24 @@ export const insertDeclarationFormSchema = createInsertSchema(declarationForms).
   netWeight: z.number().positive("净重必须为正数").optional(),
   declarationPhone: z.string().regex(/^1[3-9]\d{9}$/, "请输入有效的手机号").optional(),
   containerNos: z.array(z.string().min(1, "集装箱号不能为空")).optional(),
+  
+  // PDF标准新增字段
+  billNo: z.string().optional(), // 提运单号
+  exemptionNature: z.string().optional(), // 征免性质
+  transitPort: z.string().optional(), // 指运港/经停港
+  domesticSource: z.string().optional(), // 境内货源地
+  
+  // 确认声明字段  
+  specialRelationshipConfirm: z.boolean().optional(), // 特殊关系确认
+  priceInfluenceConfirm: z.boolean().optional(), // 价格影响确认
+  royaltyPaymentConfirm: z.boolean().optional(), // 支付特许权使用费确认
+  
+  // 随附单证和人员信息
+  supportingDocuments: z.string().optional(), // 随附单证
+  entryPersonnel: z.string().min(1, "录入人员不能为空").optional(), // 录入人员
+  entryUnit: z.string().min(2, "录入单位不能少于2个字符").optional(), // 录入单位
+  unitAddress: z.string().optional(), // 单位地址
+  fillDate: z.coerce.date().optional(), // 填制日期
 });
 
 export const insertDeclarationItemSchema = createInsertSchema(declarationItems).omit({
