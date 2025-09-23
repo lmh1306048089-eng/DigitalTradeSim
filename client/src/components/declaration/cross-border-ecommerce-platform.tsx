@@ -1985,14 +1985,14 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardContent>
             </Card>
 
-            {/* 第五部分：标记唛头及备注 */}
+            {/* 第七部分：标记备注与单证录入 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileText className="h-5 w-5 text-purple-600" />
-                  <span>7. 标记唛头及备注</span>
+                  <span>7. 标记备注与单证录入</span>
                 </CardTitle>
-                <CardDescription>填写货物标记、唛头信息和确认声明</CardDescription>
+                <CardDescription>填写货物标记、确认声明、随附单证和录入信息</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -2077,118 +2077,112 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                   />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-
-
-            {/* 第九部分：随附单证和录入信息 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileCheck className="h-5 w-5 text-green-600" />
-                  <span>8. 随附单证和录入信息</span>
-                </CardTitle>
-                <CardDescription>填写随附单证信息和录入人员信息</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* 随附单证信息 */}
-                <FormField
-                  control={form.control}
-                  name="supportingDocuments"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>随附单证</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="请输入随附单证信息&#10;例如：&#10;- 发票 Invoice&#10;- 装箱单 Packing List&#10;- 提单 Bill of Lading&#10;- 原产地证书 Certificate of Origin"
-                          className="min-h-[100px]"
-                          data-testid="textarea-supporting-documents"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        列出所有随附的单证文件类型和编号
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 
-                {/* 录入人员信息 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* 随附单证信息 */}
+                <div className="mt-6">
+                  <FormLabel className="text-base font-medium mb-4 block">随附单证信息</FormLabel>
                   <FormField
                     control={form.control}
-                    name="entryPersonnel"
+                    name="supportingDocuments"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>录入人员</FormLabel>
+                        <FormLabel>随附单证</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="请输入录入人员姓名"
-                            data-testid="input-entry-personnel"
+                          <Textarea
+                            placeholder="请输入随附单证信息&#10;例如：&#10;- 发票 Invoice&#10;- 装箱单 Packing List&#10;- 提单 Bill of Lading&#10;- 原产地证书 Certificate of Origin"
+                            className="min-h-[100px]"
+                            data-testid="textarea-supporting-documents"
                             {...field}
                           />
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="entryUnit"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>录入单位</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="请输入录入单位名称"
-                            data-testid="input-entry-unit"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="fillDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>填制日期</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="datetime-local"
-                            data-testid="input-fill-date"
-                            value={field.value instanceof Date ? field.value.toISOString().slice(0, 16) : ''}
-                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
-                          />
-                        </FormControl>
+                        <FormDescription>
+                          列出所有随附的单证文件类型和编号
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
                 
-                {/* 单位地址 */}
-                <FormField
-                  control={form.control}
-                  name="unitAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>单位地址</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="请输入完整的单位地址"
-                          data-testid="input-unit-address"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* 录入人员信息 */}
+                <div className="mt-6">
+                  <FormLabel className="text-base font-medium mb-4 block">录入人员信息</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="entryPersonnel"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>录入人员</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="请输入录入人员姓名"
+                              data-testid="input-entry-personnel"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="entryUnit"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>录入单位</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="请输入录入单位名称"
+                              data-testid="input-entry-unit"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="fillDate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>填制日期</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="datetime-local"
+                              data-testid="input-fill-date"
+                              value={field.value instanceof Date ? field.value.toISOString().slice(0, 16) : ''}
+                              onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                
+                  {/* 单位地址 */}
+                  <div className="mt-4">
+                    <FormField
+                      control={form.control}
+                      name="unitAddress"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>单位地址</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="请输入完整的单位地址"
+                              data-testid="input-unit-address"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
