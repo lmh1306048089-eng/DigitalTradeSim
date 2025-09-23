@@ -186,23 +186,13 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   };
 
   const handleTemplateDownload = () => {
-    // 检查是否有已上传的文件
-    if (!uploadedFile) {
-      toast({
-        title: "无法下载",
-        description: "请先上传填写完成的申报文件",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // 下载用户之前上传的原始文件
-    const downloadUrl = `/api/files/${uploadedFile.id}/download`;
+    // 下载DOCX模板文件
+    const downloadUrl = '/api/templates/customs-declaration.docx';
     window.location.href = downloadUrl;
     
     toast({
-      title: "文件下载开始",
-      description: `正在下载您上传的文件: ${uploadedFile.originalName}`,
+      title: "模板下载开始",
+      description: "正在下载海关出口货物报关单模板文件",
     });
     
     setTimeout(() => {
@@ -461,7 +451,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     <div className="flex items-center space-x-3">
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
-                        <div className="font-medium">海关出口货物报关单模板.csv</div>
+                        <div className="font-medium">海关出口货物报关单模板.docx</div>
                         <div className="text-sm text-gray-500">中华人民共和国海关标准格式</div>
                       </div>
                     </div>
@@ -602,11 +592,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600">拖拽文件到此处或点击选择文件</p>
-                      <p className="text-xs text-gray-500">支持 CSV, XLS, XLSX 格式</p>
+                      <p className="text-xs text-gray-500">支持 DOCX, CSV, XLS, XLSX 格式</p>
                     </div>
                     <input
                       type="file"
-                      accept=".csv,.xls,.xlsx"
+                      accept=".docx,.csv,.xls,.xlsx"
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
@@ -625,7 +615,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       <div className="flex items-center space-x-3">
                         <FileText className="h-8 w-8 text-green-600" />
                         <div>
-                          <div className="font-medium text-green-800">{uploadedFile.name}</div>
+                          <div className="font-medium text-green-800">{uploadedFile.originalName}</div>
                           <div className="text-sm text-green-600">{(uploadedFile.size / 1024).toFixed(2)} KB</div>
                         </div>
                       </div>
