@@ -44,7 +44,8 @@ import {
   Package,
   Ship,
   Settings,
-  BarChart3
+  BarChart3,
+  DollarSign
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -116,16 +117,41 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       declareDate: new Date(),
       userId: '',
       status: 'draft',
-      // 其他可选字段
+      // 基本申报信息
       preEntryNo: '',
       customsNo: '',
       productionSalesUnit: '',
       declarationUnit: '',
       filingNo: '',
+      licenseNo: '',
+      // 合同与发票信息
+      contractNo: '',
+      invoiceNo: '',
+      tradeTerms: 'FOB',
+      // 贸易信息
       transportName: '',
       tradeCountry: '',
       arrivalCountry: '',
+      // 金融信息
+      totalAmountForeign: '',
+      totalAmountCNY: '',
+      exchangeRate: '',
+      freight: '',
+      insurance: '',
+      otherCharges: '',
+      // 包装信息
+      packages: '',
+      packageType: '',
+      grossWeight: '',
+      netWeight: '',
+      // 申报相关信息
+      declarationLocation: '',
+      customsDistrict: '',
+      declarationPerson: '',
+      declarationPhone: '',
+      // 标记备注
       marksAndNotes: '',
+      // 申报选项
       inspectionQuarantine: false,
       priceInfluenceFactor: false,
       paymentSettlementUsage: false,
@@ -456,6 +482,102 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         /总价[：:]\s*([^\s\n]+)/g,
         /Total Price[：:]\s*([^\s\n]+)/gi,
         /总金额[：:]\s*([^\s\n]+)/g
+      ],
+      // 金融信息字段
+      totalAmountForeign: [
+        /外币总价[：:]\s*([^\s\n]+)/g,
+        /外币金额[：:]\s*([^\s\n]+)/g,
+        /Foreign Amount[：:]\s*([^\s\n]+)/gi
+      ],
+      totalAmountCNY: [
+        /人民币总价[：:]\s*([^\s\n]+)/g,
+        /人民币金额[：:]\s*([^\s\n]+)/g,
+        /CNY Amount[：:]\s*([^\s\n]+)/gi
+      ],
+      exchangeRate: [
+        /汇率[：:]\s*([^\s\n]+)/g,
+        /Exchange Rate[：:]\s*([^\s\n]+)/gi
+      ],
+      freight: [
+        /运费[：:]\s*([^\s\n]+)/g,
+        /Freight[：:]\s*([^\s\n]+)/gi,
+        /运输费[：:]\s*([^\s\n]+)/g
+      ],
+      insurance: [
+        /保险费[：:]\s*([^\s\n]+)/g,
+        /Insurance[：:]\s*([^\s\n]+)/gi
+      ],
+      otherCharges: [
+        /杂费[：:]\s*([^\s\n]+)/g,
+        /Other Charges[：:]\s*([^\s\n]+)/gi,
+        /其他费用[：:]\s*([^\s\n]+)/g
+      ],
+      tradeTerms: [
+        /成交方式[：:]\s*([^\s\n]+)/g,
+        /Trade Terms[：:]\s*([^\s\n]+)/gi,
+        /贸易条款[：:]\s*([^\s\n]+)/g
+      ],
+      contractNo: [
+        /合同协议号[：:]\s*([^\s\n]+)/g,
+        /Contract No[：:]\s*([^\s\n]+)/gi,
+        /合同号[：:]\s*([^\s\n]+)/g
+      ],
+      invoiceNo: [
+        /发票号[：:]\s*([^\s\n]+)/g,
+        /Invoice No[：:]\s*([^\s\n]+)/gi,
+        /发票编号[：:]\s*([^\s\n]+)/g
+      ],
+      // 包装信息字段
+      packages: [
+        /件数[：:]\s*([^\s\n]+)/g,
+        /Packages[：:]\s*([^\s\n]+)/gi,
+        /包装件数[：:]\s*([^\s\n]+)/g
+      ],
+      packageType: [
+        /包装种类[：:]\s*([^\s\n]+)/g,
+        /Package Type[：:]\s*([^\s\n]+)/gi,
+        /包装类型[：:]\s*([^\s\n]+)/g
+      ],
+      grossWeight: [
+        /毛重[：:]\s*([^\s\n]+)/g,
+        /Gross Weight[：:]\s*([^\s\n]+)/gi,
+        /总重量[：:]\s*([^\s\n]+)/g
+      ],
+      netWeight: [
+        /净重[：:]\s*([^\s\n]+)/g,
+        /Net Weight[：:]\s*([^\s\n]+)/gi,
+        /净重量[：:]\s*([^\s\n]+)/g
+      ],
+      // 申报相关信息字段
+      declarationLocation: [
+        /申报地点[：:]\s*([^\n]+)/g,
+        /Declaration Location[：:]\s*([^\n]+)/gi,
+        /申报地[：:]\s*([^\n]+)/g
+      ],
+      customsDistrict: [
+        /关区代码[：:]\s*([^\s\n]+)/g,
+        /Customs District[：:]\s*([^\s\n]+)/gi,
+        /海关关区[：:]\s*([^\s\n]+)/g
+      ],
+      declarationPerson: [
+        /申报人员[：:]\s*([^\n]+)/g,
+        /Declaration Person[：:]\s*([^\n]+)/gi,
+        /申报人[：:]\s*([^\n]+)/g
+      ],
+      declarationPhone: [
+        /申报联系电话[：:]\s*([^\s\n]+)/g,
+        /Declaration Phone[：:]\s*([^\s\n]+)/gi,
+        /申报电话[：:]\s*([^\s\n]+)/g
+      ],
+      filingNo: [
+        /备案号[：:]\s*([^\s\n]+)/g,
+        /Filing No[：:]\s*([^\s\n]+)/gi,
+        /备案编号[：:]\s*([^\s\n]+)/g
+      ],
+      licenseNo: [
+        /许可证号[：:]\s*([^\s\n]+)/g,
+        /License No[：:]\s*([^\s\n]+)/gi,
+        /许可证编号[：:]\s*([^\s\n]+)/g
       ]
     };
 
@@ -500,7 +622,29 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       totalPrice: new Set(['总价', 'total_price', 'total_amount', '总金额', 'total-price', 'total-amount']),
       hsCode: new Set(['HS编码', 'hs_code', 'hscode', '编码', 'hs-code', '商品编码']),
       originCountry: new Set(['原产国', 'origin_country', '原产地', 'origin-country']),
-      marksAndNotes: new Set(['备注', 'remarks', 'notes', '说明', '标记唛码', '唛头', 'marks'])
+      marksAndNotes: new Set(['备注', 'remarks', 'notes', '说明', '标记唛码', '唛头', 'marks']),
+      // 金融信息字段
+      totalAmountForeign: new Set(['外币总价', 'total_amount_foreign', '外币金额', 'foreign_amount', '外币价值']),
+      totalAmountCNY: new Set(['人民币总价', 'total_amount_cny', '人民币金额', 'cny_amount', '人民币价值']),
+      exchangeRate: new Set(['汇率', 'exchange_rate', 'rate', '换汇率', 'exchange-rate']),
+      freight: new Set(['运费', 'freight', '运输费', 'shipping_cost', '运输费用']),
+      insurance: new Set(['保险费', 'insurance', '保险', 'insurance_fee', '保险费用']),
+      otherCharges: new Set(['杂费', 'other_charges', '其他费用', 'other_fees', '附加费']),
+      tradeTerms: new Set(['成交方式', 'trade_terms', '贸易条款', 'trade_conditions', 'incoterms']),
+      contractNo: new Set(['合同协议号', 'contract_no', '合同号', 'contract_number', '协议号']),
+      invoiceNo: new Set(['发票号', 'invoice_no', '发票编号', 'invoice_number', '票据号']),
+      // 包装信息字段
+      packages: new Set(['件数', 'packages', '包装件数', 'package_count', '箱数']),
+      packageType: new Set(['包装种类', 'package_type', '包装类型', 'packaging_type', '包装方式']),
+      grossWeight: new Set(['毛重', 'gross_weight', '总重量', 'total_weight', '毛重量']),
+      netWeight: new Set(['净重', 'net_weight', '净重量', 'net_weight_kg', '净重公斤']),
+      // 申报相关信息字段
+      declarationLocation: new Set(['申报地点', 'declaration_location', '申报地', 'declare_location', '申报场所']),
+      customsDistrict: new Set(['关区代码', 'customs_district', '海关关区', 'customs_code', '关区']),
+      declarationPerson: new Set(['申报人员', 'declaration_person', '申报人', 'declarant', '申报员']),
+      declarationPhone: new Set(['申报联系电话', 'declaration_phone', '申报电话', 'phone', '联系电话']),
+      filingNo: new Set(['备案号', 'filing_no', '备案编号', 'filing_number', '企业备案号']),
+      licenseNo: new Set(['许可证号', 'license_no', '许可证编号', 'license_number', '执照号'])
     };
 
     // 标准化键名（去除空格，转换为小写，替换常见分隔符）
@@ -561,7 +705,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       // 2. 上传文件到服务器（用于存档）
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
-      uploadFormData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5011f3c1593'); // 报关单模式出口申报实验ID
+      uploadFormData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5g11f3c159g'); // 报关单模式出口申报实验ID
 
       const response = await apiRequest("POST", "/api/upload", uploadFormData);
       
@@ -1175,7 +1319,298 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardContent>
             </Card>
 
-            {/* 第四部分：商品信息表格 */}
+            {/* 第四部分：金融与费用信息 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                  <span>4. 金融与费用信息</span>
+                </CardTitle>
+                <CardDescription>填写贸易金额、汇率及相关费用</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="totalAmountForeign"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>外币总价 *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="1550.00"
+                            data-testid="input-total-amount-foreign"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="totalAmountCNY"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>人民币总价</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="11160.00"
+                            data-testid="input-total-amount-cny"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="exchangeRate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>汇率</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.000001"
+                            placeholder="7.2000"
+                            data-testid="input-exchange-rate"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="freight"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>运费</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="150.00"
+                            data-testid="input-freight"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="insurance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>保险费</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="50.00"
+                            data-testid="input-insurance"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="otherCharges"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>杂费</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="25.00"
+                            data-testid="input-other-charges"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tradeTerms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>成交方式</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger data-testid="select-trade-terms">
+                              <SelectValue placeholder="选择成交方式" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="FOB">FOB (离岸价)</SelectItem>
+                              <SelectItem value="CIF">CIF (到岸价)</SelectItem>
+                              <SelectItem value="CFR">CFR (成本加运费)</SelectItem>
+                              <SelectItem value="EXW">EXW (工厂交货)</SelectItem>
+                              <SelectItem value="FCA">FCA (货交承运人)</SelectItem>
+                              <SelectItem value="CPT">CPT (运费付至)</SelectItem>
+                              <SelectItem value="CIP">CIP (运费保险费付至)</SelectItem>
+                              <SelectItem value="DAT">DAT (终端交货)</SelectItem>
+                              <SelectItem value="DAP">DAP (目的地交货)</SelectItem>
+                              <SelectItem value="DDP">DDP (完税后交货)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contractNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>合同协议号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="CT202509220001"
+                            data-testid="input-contract-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="invoiceNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>发票号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="INV202509220001"
+                            data-testid="input-invoice-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 第五部分：包装与重量信息 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Package className="h-5 w-5 text-orange-600" />
+                  <span>5. 包装与重量信息</span>
+                </CardTitle>
+                <CardDescription>填写货物的包装和重量详细信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="packages"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>件数 *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            min="1"
+                            placeholder="100"
+                            data-testid="input-packages"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="packageType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>包装种类</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger data-testid="select-package-type">
+                              <SelectValue placeholder="选择包装种类" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="01">纸箱</SelectItem>
+                              <SelectItem value="02">木箱</SelectItem>
+                              <SelectItem value="03">铁箱</SelectItem>
+                              <SelectItem value="04">塑料箱</SelectItem>
+                              <SelectItem value="05">袋装</SelectItem>
+                              <SelectItem value="06">桶装</SelectItem>
+                              <SelectItem value="07">散装</SelectItem>
+                              <SelectItem value="99">其他</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="grossWeight"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>毛重(千克) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.001"
+                            placeholder="250.500"
+                            data-testid="input-gross-weight"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="netWeight"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>净重(千克) *</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.001"
+                            placeholder="200.000"
+                            data-testid="input-net-weight"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 第六部分：商品信息表格 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
@@ -1298,6 +1733,157 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     )}
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* 第七部分：申报相关信息 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Building className="h-5 w-5 text-blue-600" />
+                  <span>7. 申报相关信息</span>
+                </CardTitle>
+                <CardDescription>填写申报地点、人员和联系方式</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="declarationLocation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>申报地点</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="深圳蛇口海关"
+                            data-testid="input-declaration-location"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="customsDistrict"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>关区代码</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="5130"
+                            data-testid="input-customs-district"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="declarationPerson"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>申报人员</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="张三"
+                            data-testid="input-declaration-person"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="declarationPhone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>申报联系电话</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="138-0000-0000"
+                            data-testid="input-declaration-phone"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="filingNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>备案号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="BA2025092200001"
+                            data-testid="input-filing-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="licenseNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>许可证号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="LIC20250922001"
+                            data-testid="input-license-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 第八部分：标记唛码及备注 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                  <span>8. 标记唛码及备注</span>
+                </CardTitle>
+                <CardDescription>填写货物标记、唛码和其他备注信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="marksAndNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>标记唛码及备注</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="请输入标记唛码及备注信息&#10;例如：&#10;- 货物标记：FRAGILE&#10;- 包装要求：防潮处理&#10;- 特殊说明：易碎物品，轻拿轻放"
+                          className="min-h-[100px]"
+                          data-testid="textarea-marks-and-notes"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        包括但不限于：货物标记、唛头信息、包装说明、特殊要求等
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
