@@ -182,18 +182,191 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     });
     
     setTimeout(() => {
-      // 模拟模板下载
-      const csvContent = `预录入编号,海关编号,收发货人,出口口岸,出口日期,申报日期,生产销售单位,运输方式,运输工具名称,提运单号,申报单位,监管方式,征免性质,备案号,贸易国地区,运抵国地区,指运港,境内货源地,许可证号,成交方式,运费,保费,杂费,合同协议号,件数,包装种类,毛重千克,集装箱号,随附单证,标记唛头及备注,项号,商品编号,商品名称规格型号,数量及单位,最终目的国地区,单价,总价,币制,征免
-CB2024001,,上海贸易有限公司,上海浦东机场,2024-09-22,2024-09-22,上海贸易有限公司,5,航空运输,CA1234,上海贸易有限公司,9610,101,123456,美国,美国,洛杉矶,上海,XK001,CIF,500.00,50.00,25.00,HT2024001,10,纸箱,25.5,CONU1234567,发票|装箱单,SAMPLE GOODS,1,8517120000,智能手机配件/型号iPhone15,100台,美国,15.50,1550.00,142,301`;
+      // 创建Word格式的海关报关单模板
+      const wordContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>中华人民共和国海关出口货物报关单</title>
+    <style>
+        body { font-family: SimSun, serif; font-size: 12pt; margin: 1inch; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        td, th { border: 1px solid black; padding: 3px; vertical-align: top; }
+        .title { text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px; }
+        .small { font-size: 10pt; }
+        .input-field { min-height: 20px; border-bottom: 1px solid black; display: inline-block; width: 200px; }
+    </style>
+</head>
+<body>
+    <div class="title">中华人民共和国海关出口货物报关单</div>
+    
+    <table>
+        <tr>
+            <td>预录入编号：<span class="input-field"></span></td>
+            <td colspan="2">海关编号：<span class="input-field"></span></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="25%">收发货人<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="25%">出口口岸<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="25%">出口日期<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="25%">申报日期<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>生产销售单位<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运输方式<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运输工具名称<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>提运单号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>申报单位<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>监管方式<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>征免性质<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>备案号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>贸易国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运抵国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>指运港<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>境内货源地<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>许可证号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>成交方式<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>保费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>杂费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>合同协议号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>件数<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>包装种类<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>毛重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>净重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>集装箱号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>随附单证<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td colspan="4">标记唛头及备注<br><span class="input-field" style="width:100%; height:60px;"></span></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr style="background-color: #f0f0f0;">
+            <th width="8%">项号</th>
+            <th width="12%">商品编号</th>
+            <th width="20%">商品名称、规格型号</th>
+            <th width="12%">数量及单位</th>
+            <th width="15%">最终目的国(地区)</th>
+            <th width="10%">单价</th>
+            <th width="10%">总价</th>
+            <th width="8%">币制</th>
+            <th width="5%">征免</th>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="33%">特殊关系确认：否</td>
+            <td width="33%">价格影响确认：否</td>
+            <td width="34%">支付特许权使用费确认：否</td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="25%">录入人员<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="25%">录入单位<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td colspan="2">兹声明以上内容承担如实申报、依法纳税之法律责任</td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td colspan="4" style="text-align:center; background-color: #f0f0f0;">海关批注及签章：</td>
+        </tr>
+        <tr>
+            <td width="25%">审单<br><span style="height:60px; display:block;"></span></td>
+            <td width="25%">审价<br><span style="height:60px; display:block;"></span></td>
+            <td width="25%">征税<br><span style="height:60px; display:block;"></span></td>
+            <td width="25%">统计<br><span style="height:60px; display:block;"></span></td>
+        </tr>
+        <tr>
+            <td width="25%">查验<br><span style="height:60px; display:block;"></span></td>
+            <td width="25%">放行<br><span style="height:60px; display:block;"></span></td>
+            <td colspan="2"></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="30%">报关人员<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="40%">申报单位（签章）<br><span style="height:60px; display:block;"></span></td>
+            <td width="30%"></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="40%">单位地址<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="15%">邮编<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="15%">电话<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td width="30%">填制日期<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+    </table>
+</body>
+</html>`;
       
+      const blob = new Blob([wordContent], { type: 'text/html;charset=utf-8' });
       const link = document.createElement('a');
-      link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csvContent)}`;
-      link.download = '海关出口货物报关单模板.csv';
+      link.href = URL.createObjectURL(blob);
+      link.download = '海关出口货物报关单模板.html';
       link.click();
       
       toast({
         title: "模板下载完成",
-        description: "基础数据已导入，报关单模式申报模板已下载到本地，请填写后上传",
+        description: "基础数据已导入，海关出口货物报关单模板已下载，打开后可另存为Word格式",
       });
       
       setTimeout(() => {
@@ -430,7 +603,7 @@ CB2024001,,上海贸易有限公司,上海浦东机场,2024-09-22,2024-09-22,上
                     <div className="flex items-center space-x-3">
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
-                        <div className="font-medium">海关出口货物报关单模板.csv</div>
+                        <div className="font-medium">海关出口货物报关单模板.docx</div>
                         <div className="text-sm text-gray-500">中华人民共和国海关标准格式</div>
                       </div>
                     </div>
@@ -571,11 +744,11 @@ CB2024001,,上海贸易有限公司,上海浦东机场,2024-09-22,2024-09-22,上
                     <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600">拖拽文件到此处或点击选择文件</p>
-                      <p className="text-xs text-gray-500">支持 CSV, XLS, XLSX 格式</p>
+                      <p className="text-xs text-gray-500">支持 DOC, DOCX, PDF 格式</p>
                     </div>
                     <input
                       type="file"
-                      accept=".csv,.xls,.xlsx"
+                      accept=".doc,.docx,.pdf"
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
