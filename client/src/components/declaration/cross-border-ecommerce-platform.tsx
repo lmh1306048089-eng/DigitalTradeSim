@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import * as XLSX from 'xlsx';
+import Papa from 'papaparse';
+import mammoth from 'mammoth';
 
 interface CrossBorderEcommercePlatformProps {
   onComplete?: (data: any) => void;
@@ -88,6 +91,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [selectedPreviewTask, setSelectedPreviewTask] = useState<DeclarationTask | null>(null);
   const [formData, setFormData] = useState({
+    // 原有字段
     declarationNo: '',
     productName: '',
     quantity: '',
@@ -95,7 +99,24 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     totalPrice: '',
     hsCode: '',
     originCountry: '',
-    notes: ''
+    notes: '',
+    // 新增海关申报字段
+    preEntryNo: '',
+    customsNo: '',
+    consignorConsignee: '',
+    productionSalesUnit: '',
+    declarationUnit: '',
+    filingNo: '',
+    exportPort: '',
+    transportMode: '',
+    transportName: '',
+    tradeCountry: '',
+    arrivalCountry: '',
+    currency: 'USD',
+    marksAndNotes: '',
+    inspectionQuarantine: false,
+    priceInfluenceFactor: false,
+    paymentSettlementUsage: false
   });
 
   // 自动填充测试数据
@@ -209,35 +230,300 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     }, 1500);
   };
 
+  // 文件解析和自动填充功能
+  const parseFileAndAutoFill = async (file: File) => {
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    let parsedData: any = {};
+
+    try {
+      switch (fileExtension) {
+        case 'csv':
+          parsedData = await parseCSVFile(file);
+          break;
+        case 'xlsx':
+        case 'xls':
+          parsedData = await parseExcelFile(file);
+          break;
+        case 'docx':
+          parsedData = await parseDOCXFile(file);
+          break;
+        default:
+          throw new Error('不支持的文件格式');
+      }
+
+      // 自动填充表单数据
+      if (Object.keys(parsedData).length > 0) {
+        setFormData(prev => ({
+          ...prev,
+          ...parsedData
+        }));
+
+        toast({
+          title: "文件解析成功",
+          description: `从 ${file.name} 中解析出数据并自动填充表单`,
+        });
+      }
+    } catch (error) {
+      console.error('文件解析错误:', error);
+      toast({
+        title: "文件解析失败",
+        description: `无法解析文件 ${file.name}，请检查文件格式`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // CSV文件解析
+  const parseCSVFile = (file: File): Promise<any> => {
+    return new Promise((resolve) => {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const data = results.data[0] as any; // 假设第一行是数据
+          const mappedData = mapDataToFormFields(data);
+          resolve(mappedData);
+        },
+        error: (error) => {
+          console.error('CSV解析错误:', error);
+          resolve({});
+        }
+      });
+    });
+  };
+
+  // Excel文件解析
+  const parseExcelFile = (file: File): Promise<any> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          
+          if (jsonData.length > 0) {
+            const mappedData = mapDataToFormFields(jsonData[0] as any);
+            resolve(mappedData);
+          } else {
+            resolve({});
+          }
+        } catch (error) {
+          console.error('Excel解析错误:', error);
+          resolve({});
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  // DOCX文件解析（使用mammoth库）
+  const parseDOCXFile = (file: File): Promise<any> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          
+          // 使用mammoth解析DOCX文件
+          const result = await mammoth.extractRawText({ arrayBuffer });
+          const text = result.value;
+          
+          // 解析文档中的表单数据
+          const mappedData = parseDOCXContent(text);
+          resolve(mappedData);
+        } catch (error) {
+          console.error('DOCX解析错误:', error);
+          resolve({});
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  // 解析DOCX文档内容并提取表单数据
+  const parseDOCXContent = (text: string) => {
+    const mappedData: any = {};
+    
+    // 定义文档中常见的标签模式
+    const patterns: { [key: string]: RegExp[] } = {
+      preEntryNo: [
+        /预录入编号[：:]\s*([^\s\n]+)/g,
+        /Pre-entry No[：:]\s*([^\s\n]+)/gi
+      ],
+      customsNo: [
+        /海关编号[：:]\s*([^\s\n]+)/g,
+        /Customs No[：:]\s*([^\s\n]+)/gi
+      ],
+      consignorConsignee: [
+        /收发货人[：:]\s*([^\n]+)/g,
+        /发货人[：:]\s*([^\n]+)/g,
+        /Consignor[：:]\s*([^\n]+)/gi
+      ],
+      declarationUnit: [
+        /申报单位[：:]\s*([^\n]+)/g,
+        /Declaration Unit[：:]\s*([^\n]+)/gi
+      ],
+      exportPort: [
+        /出口口岸[：:]\s*([^\s\n]+)/g,
+        /Export Port[：:]\s*([^\s\n]+)/gi
+      ],
+      transportMode: [
+        /运输方式[：:]\s*([^\n]+)/g,
+        /Transport Mode[：:]\s*([^\n]+)/gi
+      ],
+      tradeCountry: [
+        /贸易国[：:]\s*([^\s\n]+)/g,
+        /贸易国.*地区[：:]\s*([^\s\n]+)/g,
+        /Trade Country[：:]\s*([^\s\n]+)/gi
+      ],
+      productName: [
+        /商品名称[：:]\s*([^\n]+)/g,
+        /Product Name[：:]\s*([^\n]+)/gi,
+        /货物名称[：:]\s*([^\n]+)/g
+      ],
+      hsCode: [
+        /HS编码[：:]\s*([^\s\n]+)/g,
+        /HS Code[：:]\s*([^\s\n]+)/gi,
+        /商品编码[：:]\s*([^\s\n]+)/g
+      ],
+      originCountry: [
+        /原产国[：:]\s*([^\s\n]+)/g,
+        /Origin Country[：:]\s*([^\s\n]+)/gi,
+        /原产地[：:]\s*([^\s\n]+)/g
+      ],
+      quantity: [
+        /数量[：:]\s*([^\s\n]+)/g,
+        /Quantity[：:]\s*([^\s\n]+)/gi
+      ],
+      unitPrice: [
+        /单价[：:]\s*([^\s\n]+)/g,
+        /Unit Price[：:]\s*([^\s\n]+)/gi
+      ],
+      totalPrice: [
+        /总价[：:]\s*([^\s\n]+)/g,
+        /Total Price[：:]\s*([^\s\n]+)/gi,
+        /总金额[：:]\s*([^\s\n]+)/g
+      ]
+    };
+
+    // 遍历每个字段的模式，尝试提取数据
+    Object.entries(patterns).forEach(([field, regexList]) => {
+      for (const regex of regexList) {
+        const matches = Array.from(text.matchAll(regex));
+        if (matches.length > 0) {
+          const value = matches[0][1]?.trim();
+          if (value && value !== '') {
+            mappedData[field] = value;
+            break; // 找到匹配就跳出内层循环
+          }
+        }
+      }
+    });
+
+    return mappedData;
+  };
+
+  // 将解析的数据映射到表单字段（改进的精确匹配）
+  const mapDataToFormFields = (data: any) => {
+    const mappedData: any = {};
+    const mappingSummary: { matched: string[], unmatched: string[] } = { matched: [], unmatched: [] };
+    
+    // 精确的字段名映射字典
+    const fieldMappings: { [key: string]: Set<string> } = {
+      preEntryNo: new Set(['预录入编号', 'preentryno', 'pre_entry_no', '预录入号', 'pre-entry-no']),
+      customsNo: new Set(['海关编号', 'customsno', 'customs_no', '海关号', 'customs-no']),
+      consignorConsignee: new Set(['收发货人', 'consignor', 'consignee', '企业名称', 'company', '收货人', '发货人']),
+      productionSalesUnit: new Set(['生产销售单位', 'production_sales_unit', '生产企业', 'production-sales-unit']),
+      declarationUnit: new Set(['申报单位', 'declaration_unit', '申报企业', 'declaration-unit']),
+      exportPort: new Set(['出口口岸', 'export_port', '口岸', 'export-port', '出境口岸']),
+      transportMode: new Set(['运输方式', 'transport_mode', '运输', 'transport-mode', '运输工具类型']),
+      transportName: new Set(['运输工具名称', 'transport_name', '运输工具', 'transport-name', '航班号', '船名']),
+      tradeCountry: new Set(['贸易国', 'trade_country', '目的国', 'trade-country', '贸易国家']),
+      arrivalCountry: new Set(['运抵国', 'arrival_country', '到达国', 'arrival-country', '最终目的国']),
+      currency: new Set(['币制', 'currency', '货币', '币种']),
+      productName: new Set(['商品名称', 'product_name', 'goods_name', '商品', 'product-name', 'goods-name', '货物名称']),
+      quantity: new Set(['数量', 'quantity', 'qty', '件数']),
+      unitPrice: new Set(['单价', 'unit_price', 'price', 'unit-price']),
+      totalPrice: new Set(['总价', 'total_price', 'total_amount', '总金额', 'total-price', 'total-amount']),
+      hsCode: new Set(['HS编码', 'hs_code', 'hscode', '编码', 'hs-code', '商品编码']),
+      originCountry: new Set(['原产国', 'origin_country', '原产地', 'origin-country']),
+      marksAndNotes: new Set(['备注', 'remarks', 'notes', '说明', '标记唛码', '唛头', 'marks'])
+    };
+
+    // 标准化键名（去除空格，转换为小写，替换常见分隔符）
+    const normalizeKey = (key: string): string => {
+      return key.toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/[_-]/g, '')
+        .replace(/[：:]/g, '');
+    };
+
+    // 遍历数据对象，进行精确匹配
+    Object.keys(data).forEach(originalKey => {
+      const normalizedKey = normalizeKey(originalKey);
+      let matched = false;
+      
+      // 查找匹配的表单字段
+      Object.entries(fieldMappings).forEach(([formField, possibleKeys]) => {
+        if (!matched) { // 确保每个键只匹配一个字段
+          for (const possibleKey of Array.from(possibleKeys)) {
+            const normalizedPossibleKey = normalizeKey(possibleKey);
+            
+            // 精确匹配或完全包含匹配
+            if (normalizedKey === normalizedPossibleKey || 
+                (normalizedKey.length > 2 && normalizedPossibleKey.includes(normalizedKey)) ||
+                (normalizedPossibleKey.length > 2 && normalizedKey.includes(normalizedPossibleKey))) {
+              
+              const value = data[originalKey];
+              if (value !== null && value !== undefined && value !== '') {
+                mappedData[formField] = String(value).trim();
+                mappingSummary.matched.push(`${originalKey} → ${formField}`);
+                matched = true;
+                break;
+              }
+            }
+          }
+        }
+      });
+
+      if (!matched) {
+        mappingSummary.unmatched.push(originalKey);
+      }
+    });
+
+    // 打印映射摘要到控制台（便于调试）
+    console.log('字段映射摘要:', mappingSummary);
+
+    return mappedData;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     try {
-      // 创建 FormData 对象
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5g11f3c159g'); // 报关单模式出口申报实验ID
+      // 1. 解析文件并自动填充表单
+      await parseFileAndAutoFill(file);
 
-      // 上传文件到服务器
-      const response = await apiRequest("POST", "/api/upload", formData);
+      // 2. 上传文件到服务器（用于存档）
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      uploadFormData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5011f3c1593'); // 报关单模式出口申报实验ID
+
+      const response = await apiRequest("POST", "/api/upload", uploadFormData);
       
       if (response.ok) {
         const uploadedFileData: UploadedFileMetadata = await response.json();
         setUploadedFile(uploadedFileData);
-        
-        toast({
-          title: "文件上传成功",
-          description: `文件 ${file.name} 已上传到服务器`,
-        });
-      } else {
-        throw new Error('文件上传失败');
       }
     } catch (error) {
-      console.error('文件上传错误:', error);
+      console.error('文件处理错误:', error);
       toast({
-        title: "文件上传失败",
-        description: "请重试上传文件",
+        title: "文件处理失败",
+        description: "请检查文件格式并重试",
         variant: "destructive"
       });
     }
@@ -521,144 +807,310 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
           <div className="space-y-6">
             <div className="text-center mb-6">
               <Upload className="h-12 w-12 mx-auto mb-4 text-amber-600" />
-              <h3 className="text-xl font-semibold mb-2">填写申报表单</h3>
-              <p className="text-gray-600">基于下载的模板填写申报信息并上传文件</p>
+              <h3 className="text-xl font-semibold mb-2">报关单申报表单</h3>
+              <p className="text-gray-600">上传文件自动填充或手动填写完整的海关申报信息</p>
             </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>申报信息填写</CardTitle>
-                <CardDescription>请填写完整的申报信息</CardDescription>
+            {/* 第一优先级：文件上传与自动填充 */}
+            <Card className="border-2 border-blue-200">
+              <CardHeader className="bg-blue-50">
+                <CardTitle className="flex items-center space-x-2">
+                  <Upload className="h-5 w-5 text-blue-600" />
+                  <span>1. 文件上传与自动填充</span>
+                </CardTitle>
+                <CardDescription>上传DOCX/CSV/XLS/XLSX文件自动解析并填充表单数据</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="declarationNo">申报单号 *</Label>
-                    <Input
-                      id="declarationNo"
-                      value={formData.declarationNo}
-                      onChange={(e) => setFormData(prev => ({ ...prev, declarationNo: e.target.value }))}
-                      placeholder="CB202509220001"
-                      data-testid="input-declaration-no"
-                    />
+              <CardContent className="p-6">
+                <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50/50">
+                  <Upload className="h-16 w-16 mx-auto mb-4 text-blue-500" />
+                  <div className="space-y-3">
+                    <h4 className="text-lg font-semibold text-blue-700">拖拽文件或点击上传</h4>
+                    <p className="text-sm text-blue-600">支持 DOCX, CSV, XLS, XLSX 格式文件</p>
+                    <p className="text-xs text-blue-500">上传后将自动解析文件内容并填充下方表单</p>
                   </div>
-                  <div>
-                    <Label htmlFor="productName">商品名称 *</Label>
-                    <Input
-                      id="productName"
-                      value={formData.productName}
-                      onChange={(e) => setFormData(prev => ({ ...prev, productName: e.target.value }))}
-                      placeholder="智能手机"
-                      data-testid="input-product-name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="quantity">数量 *</Label>
-                    <Input
-                      id="quantity"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-                      placeholder="1"
-                      data-testid="input-quantity"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="unitPrice">单价 (USD)</Label>
-                    <Input
-                      id="unitPrice"
-                      value={formData.unitPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, unitPrice: e.target.value }))}
-                      placeholder="999.00"
-                      data-testid="input-unit-price"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="totalPrice">总价 (USD)</Label>
-                    <Input
-                      id="totalPrice"
-                      value={formData.totalPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, totalPrice: e.target.value }))}
-                      placeholder="999.00"
-                      data-testid="input-total-price"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hsCode">HS编码</Label>
-                    <Input
-                      id="hsCode"
-                      value={formData.hsCode}
-                      onChange={(e) => setFormData(prev => ({ ...prev, hsCode: e.target.value }))}
-                      placeholder="8517120000"
-                      data-testid="input-hs-code"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="originCountry">原产国</Label>
-                    <Input
-                      id="originCountry"
-                      value={formData.originCountry}
-                      onChange={(e) => setFormData(prev => ({ ...prev, originCountry: e.target.value }))}
-                      placeholder="中国"
-                      data-testid="input-origin-country"
-                    />
-                  </div>
+                  <input
+                    type="file"
+                    accept=".docx,.csv,.xls,.xlsx"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="file-upload"
+                    data-testid="input-file-upload"
+                  />
+                  <Label
+                    htmlFor="file-upload"
+                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 mt-6 transition-colors"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    选择文件上传
+                  </Label>
                 </div>
                 
-                <div>
-                  <Label htmlFor="notes">备注</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    placeholder="手机及配件"
-                    rows={3}
-                    data-testid="textarea-notes"
-                  />
+                {uploadedFile && (
+                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <FileText className="h-8 w-8 text-green-600" />
+                        <div>
+                          <p className="font-medium text-green-700">{uploadedFile.originalName}</p>
+                          <p className="text-sm text-green-600">已成功上传并解析</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setUploadedFile(null)}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        data-testid="button-remove-file"
+                      >
+                        移除文件
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* 第二部分：基本申报信息 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5 text-green-600" />
+                  <span>2. 基本申报信息</span>
+                </CardTitle>
+                <CardDescription>填写海关申报的基础信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="preEntryNo">预录入编号</Label>
+                    <Input
+                      id="preEntryNo"
+                      value={formData.preEntryNo || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, preEntryNo: e.target.value }))}
+                      placeholder="18110820180001"
+                      data-testid="input-pre-entry-no"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="customsNo">海关编号</Label>
+                    <Input
+                      id="customsNo"
+                      value={formData.customsNo || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, customsNo: e.target.value }))}
+                      placeholder="181108201800010001"
+                      data-testid="input-customs-no"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="consignorConsignee">收发货人 *</Label>
+                    <Input
+                      id="consignorConsignee"
+                      value={formData.consignorConsignee || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, consignorConsignee: e.target.value }))}
+                      placeholder="深圳市XX贸易有限公司"
+                      data-testid="input-consignor-consignee"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="productionSalesUnit">生产销售单位</Label>
+                    <Input
+                      id="productionSalesUnit"
+                      value={formData.productionSalesUnit || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, productionSalesUnit: e.target.value }))}
+                      placeholder="深圳市XX电子科技有限公司"
+                      data-testid="input-production-sales-unit"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="declarationUnit">申报单位</Label>
+                    <Input
+                      id="declarationUnit"
+                      value={formData.declarationUnit || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, declarationUnit: e.target.value }))}
+                      placeholder="深圳市XX报关有限公司"
+                      data-testid="input-declaration-unit"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="filingNo">备案号</Label>
+                    <Input
+                      id="filingNo"
+                      value={formData.filingNo || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, filingNo: e.target.value }))}
+                      placeholder="44011234567"
+                      data-testid="input-filing-no"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
+            {/* 第三部分：贸易信息 */}
             <Card>
               <CardHeader>
-                <CardTitle>文件上传</CardTitle>
-                <CardDescription>上传填写完成的申报文件</CardDescription>
+                <CardTitle className="flex items-center space-x-2">
+                  <Ship className="h-5 w-5 text-blue-600" />
+                  <span>3. 贸易信息</span>
+                </CardTitle>
+                <CardDescription>填写贸易相关的运输和地区信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="exportPort">出口口岸 *</Label>
+                    <Input
+                      id="exportPort"
+                      value={formData.exportPort || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, exportPort: e.target.value }))}
+                      placeholder="深圳"
+                      data-testid="input-export-port"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="transportMode">运输方式 *</Label>
+                    <Input
+                      id="transportMode"
+                      value={formData.transportMode || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, transportMode: e.target.value }))}
+                      placeholder="4-航空运输"
+                      data-testid="input-transport-mode"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="transportName">运输工具名称</Label>
+                    <Input
+                      id="transportName"
+                      value={formData.transportName || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, transportName: e.target.value }))}
+                      placeholder="CA123"
+                      data-testid="input-transport-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tradeCountry">贸易国(地区)</Label>
+                    <Input
+                      id="tradeCountry"
+                      value={formData.tradeCountry || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tradeCountry: e.target.value }))}
+                      placeholder="美国"
+                      data-testid="input-trade-country"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="arrivalCountry">运抵国(地区)</Label>
+                    <Input
+                      id="arrivalCountry"
+                      value={formData.arrivalCountry || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, arrivalCountry: e.target.value }))}
+                      placeholder="美国"
+                      data-testid="input-arrival-country"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="currency">币制</Label>
+                    <Input
+                      id="currency"
+                      value={formData.currency || 'USD'}
+                      onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+                      placeholder="USD"
+                      data-testid="input-currency"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 第四部分：商品信息表格 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Package className="h-5 w-5 text-purple-600" />
+                  <span>4. 商品信息明细</span>
+                </CardTitle>
+                <CardDescription>详细的商品申报信息</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <div className="space-y-2">
-                      <p className="text-sm text-gray-600">拖拽文件到此处或点击选择文件</p>
-                      <p className="text-xs text-gray-500">支持 DOCX, CSV, XLS, XLSX 格式</p>
+                  {/* 商品明细表格 - 这里将在下一个任务中实现动态表格 */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <div className="grid grid-cols-6 gap-2 text-sm font-semibold text-gray-700 mb-3 pb-2 border-b">
+                      <div>项号</div>
+                      <div>商品名称/规格型号</div>
+                      <div>数量</div>
+                      <div>单位</div>
+                      <div>单价</div>
+                      <div>总价</div>
                     </div>
-                    <input
-                      type="file"
-                      accept=".docx,.csv,.xls,.xlsx"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="file-upload"
-                      data-testid="input-file-upload"
-                    />
-                    <Label
-                      htmlFor="file-upload"
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md cursor-pointer hover:bg-blue-700 mt-4"
-                    >
-                      选择文件
-                    </Label>
+                    <div className="grid grid-cols-6 gap-2 text-sm">
+                      <Input placeholder="1" className="h-8" data-testid="input-item-no" />
+                      <Input placeholder="智能手机" className="h-8" data-testid="input-goods-name" />
+                      <Input placeholder="1" className="h-8" data-testid="input-quantity" />
+                      <Input placeholder="台" className="h-8" data-testid="input-unit" />
+                      <Input placeholder="999.00" className="h-8" data-testid="input-unit-price" />
+                      <Input placeholder="999.00" className="h-8" data-testid="input-total-price" />
+                    </div>
+                    <div className="mt-3 pt-3 border-t">
+                      <Button variant="outline" size="sm" data-testid="button-add-item">
+                        + 添加商品明细
+                      </Button>
+                    </div>
                   </div>
-                  
-                  {uploadedFile && (
-                    <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="h-8 w-8 text-green-600" />
-                        <div>
-                          <div className="font-medium text-green-800">{uploadedFile.originalName}</div>
-                          <div className="text-sm text-green-600">{(uploadedFile.size / 1024).toFixed(2)} KB</div>
-                        </div>
-                      </div>
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">已上传</Badge>
-                    </div>
-                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 第五部分：备案与备注 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5 text-gray-600" />
+                  <span>5. 备案与备注</span>
+                </CardTitle>
+                <CardDescription>补充信息和备注说明</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="marksAndNotes">标记唛码及备注</Label>
+                  <Textarea
+                    id="marksAndNotes"
+                    value={formData.marksAndNotes || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, marksAndNotes: e.target.value }))}
+                    placeholder="商品标记、包装说明、特殊要求等"
+                    rows={4}
+                    data-testid="textarea-marks-notes"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="inspectionQuarantine"
+                      checked={formData.inspectionQuarantine || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, inspectionQuarantine: e.target.checked }))}
+                      data-testid="checkbox-inspection-quarantine"
+                    />
+                    <Label htmlFor="inspectionQuarantine" className="text-sm">检验检疫</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="priceInfluenceFactor"
+                      checked={formData.priceInfluenceFactor || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, priceInfluenceFactor: e.target.checked }))}
+                      data-testid="checkbox-price-influence"
+                    />
+                    <Label htmlFor="priceInfluenceFactor" className="text-sm">价格影响因素</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="paymentSettlementUsage"
+                      checked={formData.paymentSettlementUsage || false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, paymentSettlementUsage: e.target.checked }))}
+                      data-testid="checkbox-payment-settlement"
+                    />
+                    <Label htmlFor="paymentSettlementUsage" className="text-sm">支付/结汇方式</Label>
+                  </div>
                 </div>
               </CardContent>
             </Card>
