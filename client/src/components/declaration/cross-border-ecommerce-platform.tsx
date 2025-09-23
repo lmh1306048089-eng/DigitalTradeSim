@@ -45,7 +45,8 @@ import {
   Ship,
   Settings,
   BarChart3,
-  DollarSign
+  DollarSign,
+  FileCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -1257,6 +1258,31 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                   />
                   <FormField
                     control={form.control}
+                    name="supervisionMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>监管方式</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger data-testid="select-supervision-mode">
+                              <SelectValue placeholder="选择监管方式" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="0110">0110-一般贸易</SelectItem>
+                              <SelectItem value="1210">1210-保税跨境贸易电子商务</SelectItem>
+                              <SelectItem value="1239">1239-保税跨境贸易电子商务A</SelectItem>
+                              <SelectItem value="9610">9610-跨境贸易电子商务</SelectItem>
+                              <SelectItem value="9710">9710-跨境电子商务出口海外仓</SelectItem>
+                              <SelectItem value="9810">9810-跨境电子商务出口特殊区域</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="transportName"
                     render={({ field }) => (
                       <FormItem>
@@ -1265,6 +1291,40 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="CA123"
                             data-testid="input-transport-name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="billNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>提运单号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入提运单号"
+                            data-testid="input-bill-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="exemptionNature"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>征免性质</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入征免性质"
+                            data-testid="input-exemption-nature"
                             {...field}
                           />
                         </FormControl>
@@ -1325,6 +1385,40 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                               <SelectItem value="JPY">日元 (JPY)</SelectItem>
                             </SelectContent>
                           </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="transitPort"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>指运港/经停港</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入指运港或经停港"
+                            data-testid="input-transit-port"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="domesticSource"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>境内货源地</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入境内货源地"
+                            data-testid="input-domestic-source"
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -1747,6 +1841,60 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="specialRelationshipConfirm"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-special-relationship"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          特殊关系确认
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="priceInfluenceConfirm"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-price-influence-confirm"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          价格影响确认
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="royaltyPaymentConfirm"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-royalty-payment"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          支付特许权使用费确认
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1895,6 +2043,116 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       <FormDescription>
                         包括但不限于：货物标记、唛头信息、包装说明、特殊要求等
                       </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* 第九部分：随附单证和录入信息 */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <FileCheck className="h-5 w-5 text-green-600" />
+                  <span>9. 随附单证和录入信息</span>
+                </CardTitle>
+                <CardDescription>填写随附单证信息和录入人员信息</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* 随附单证信息 */}
+                <FormField
+                  control={form.control}
+                  name="supportingDocuments"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>随附单证</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="请输入随附单证信息&#10;例如：&#10;- 发票 Invoice&#10;- 装箱单 Packing List&#10;- 提单 Bill of Lading&#10;- 原产地证书 Certificate of Origin"
+                          className="min-h-[100px]"
+                          data-testid="textarea-supporting-documents"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        列出所有随附的单证文件类型和编号
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* 录入人员信息 */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="entryPersonnel"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>录入人员</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入录入人员姓名"
+                            data-testid="input-entry-personnel"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="entryUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>录入单位</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="请输入录入单位名称"
+                            data-testid="input-entry-unit"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fillDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>填制日期</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            data-testid="input-fill-date"
+                            value={field.value instanceof Date ? field.value.toISOString().slice(0, 16) : ''}
+                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : new Date())}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                {/* 单位地址 */}
+                <FormField
+                  control={form.control}
+                  name="unitAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>单位地址</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="请输入完整的单位地址"
+                          data-testid="input-unit-address"
+                          {...field}
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
