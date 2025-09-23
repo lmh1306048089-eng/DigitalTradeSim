@@ -556,6 +556,7 @@ export const declarationForms = pgTable("declaration_forms", {
   transitPort: varchar("transit_port", { length: 100 }), // 经停港
   inlandDest: varchar("inland_dest", { length: 100 }), // 境内目的地
   goodsLocation: varchar("goods_location", { length: 200 }), // 货物存放地点
+  domesticSource: varchar("domestic_source", { length: 100 }), // 境内货源地
   
   // 金融信息
   currency: varchar("currency", { length: 10 }).default("USD"), // 币制
@@ -583,8 +584,20 @@ export const declarationForms = pgTable("declaration_forms", {
   
   // 申报声明与选项
   inspectionQuarantine: boolean("inspection_quarantine").default(false), // 检验检疫(是/否)
-  priceInfluenceFactor: boolean("price_influence_factor").default(false), // 价格影响因素(是/否)
+  priceInfluenceFactor: boolean("price_influence_factor").default(false), // 价格影响因素(是/否)  
   paymentSettlementUsage: boolean("payment_settlement_usage").default(false), // 支付/结汇方式使用情况(是/否)
+  specialRelationshipConfirm: boolean("special_relationship_confirm").default(false), // 特殊关系确认
+  priceInfluenceConfirm: boolean("price_influence_confirm").default(false), // 价格影响确认
+  royaltyPaymentConfirm: boolean("royalty_payment_confirm").default(false), // 支付特许权使用费确认
+  
+  // 随附单证
+  supportingDocuments: text("supporting_documents"), // 随附单证信息
+  
+  // 录入和申报人员信息
+  entryPersonnel: varchar("entry_personnel", { length: 50 }), // 录入人员
+  entryUnit: varchar("entry_unit", { length: 200 }), // 录入单位
+  unitAddress: text("unit_address"), // 单位地址
+  fillDate: timestamp("fill_date"), // 填制日期
   
   // 元数据
   userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),

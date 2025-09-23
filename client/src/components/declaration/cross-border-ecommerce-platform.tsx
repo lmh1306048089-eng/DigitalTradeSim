@@ -130,20 +130,25 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       tradeTerms: 'FOB',
       // 贸易信息
       transportName: '',
+      billNo: '', // 提运单号
+      supervisionMode: '0110' as const, // 监管方式，使用默认值
+      exemptionNature: '', // 征免性质
       tradeCountry: '',
       arrivalCountry: '',
+      transitPort: '', // 指运港/经停港
+      domesticSource: '', // 境内货源地
       // 金融信息
-      totalAmountForeign: '',
-      totalAmountCNY: '',
-      exchangeRate: '',
-      freight: '',
-      insurance: '',
-      otherCharges: '',
+      totalAmountForeign: 0,
+      totalAmountCNY: 0,
+      exchangeRate: 0,
+      freight: 0,
+      insurance: 0,
+      otherCharges: 0,
       // 包装信息
-      packages: '',
+      packages: 0,
       packageType: '',
-      grossWeight: '',
-      netWeight: '',
+      grossWeight: 0,
+      netWeight: 0,
       // 申报相关信息
       declarationLocation: '',
       customsDistrict: '',
@@ -155,6 +160,16 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       inspectionQuarantine: false,
       priceInfluenceFactor: false,
       paymentSettlementUsage: false,
+      // PDF新增确认选项
+      specialRelationshipConfirm: false,
+      priceInfluenceConfirm: false,
+      royaltyPaymentConfirm: false,
+      // 随附单证和人员信息
+      supportingDocuments: '',
+      entryPersonnel: '',
+      entryUnit: '',
+      unitAddress: '',
+      fillDate: new Date(),
     },
   });
 
