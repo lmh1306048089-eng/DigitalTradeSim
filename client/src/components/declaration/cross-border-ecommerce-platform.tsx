@@ -107,10 +107,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   // 设置react-hook-form
   const form = useForm<InsertDeclarationForm>({
     resolver: zodResolver(insertDeclarationFormSchema),
+    mode: 'onChange', // 启用实时验证
     defaultValues: {
       consignorConsignee: '',
       exportPort: '',
-      transportMode: '1' as any,
+      transportMode: '1', // 移除 as any，使用字符串类型
       currency: 'USD',
       declareDate: new Date(),
       userId: '',
@@ -263,12 +264,49 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
           throw new Error('不支持的文件格式');
       }
 
-      // 自动填充表单数据
+      // 自动填充表单数据（使用react-hook-form）
       if (Object.keys(parsedData).length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          ...parsedData
-        }));
+        const allowedKeys = Object.keys(form.getValues()) as (keyof InsertDeclarationForm)[];
+        
+        Object.entries(parsedData).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && value !== '' && allowedKeys.includes(key as keyof InsertDeclarationForm)) {
+            try {
+              // 类型强制转换
+              let processedValue: any = value;
+              
+              // 处理布尔字段
+              if (['inspectionQuarantine', 'priceInfluenceFactor', 'paymentSettlementUsage'].includes(key)) {
+                processedValue = Boolean(value) || String(value).toLowerCase() === 'true';
+              }
+              // 处理日期字段
+              else if (key === 'declareDate') {
+                processedValue = value instanceof Date ? value : new Date(String(value));
+              }
+              // 处理数值字段
+              else if (['totalAmountForeign', 'totalAmountCNY', 'exchangeRate', 'freight', 'insurance', 'otherCharges', 'grossWeight', 'netWeight'].includes(key)) {
+                const numValue = parseFloat(String(value));
+                if (!isNaN(numValue)) {
+                  processedValue = numValue;
+                }
+              }
+              // 处理整数字段
+              else if (['packages'].includes(key)) {
+                const intValue = parseInt(String(value), 10);
+                if (!isNaN(intValue)) {
+                  processedValue = intValue;
+                }
+              }
+              // 其他字段保持字符串
+              else {
+                processedValue = String(value);
+              }
+              
+              form.setValue(key as keyof InsertDeclarationForm, processedValue);
+            } catch (error) {
+              console.warn(`无法设置字段 ${key}:`, error);
+            }
+          }
+        });
 
         toast({
           title: "文件解析成功",
@@ -541,16 +579,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     }
   };
 
-  const handleFormSubmit = () => {
-    if (!formData.declarationNo || !formData.productName || !formData.quantity) {
-      toast({
-        title: "表单验证失败",
-        description: "请填写所有必填字段",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  // 表单提交成功处理函数
+  const onFormSubmit = (data: InsertDeclarationForm) => {
     if (!uploadedFile) {
       toast({
         title: "文件验证失败", 
@@ -560,6 +590,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       return;
     }
 
+    console.log('表单提交数据:', data);
+    
     toast({
       title: "申报数据提交成功",
       description: "申报表单和文件已成功提交，即将创建申报任务",
@@ -568,6 +600,16 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     setTimeout(() => {
       handleNext();
     }, 1500);
+  };
+
+  // 表单提交失败处理函数
+  const onFormError = (errors: any) => {
+    console.error('表单验证错误:', errors);
+    toast({
+      title: "表单验证失败",
+      description: "请检查并填写所有必填字段",
+      variant: "destructive"
+    });
   };
 
   const handleCreateTask = () => {
@@ -666,25 +708,26 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   };
 
   const generateMockDeclarationData = (task: DeclarationTask) => {
+    const formValues = form.watch();
     return {
       预录入编号: `CB${new Date().getFullYear()}${(Math.random() * 10000).toFixed(0).padStart(4, '0')}`,
       海关编号: `${new Date().getFullYear()}${(Math.random() * 1000000).toFixed(0).padStart(6, '0')}`,
-      收发货人: formData.declarationNo ? '上海贸易有限公司' : '深圳进出口有限公司',
+      收发货人: formValues.consignorConsignee || '深圳进出口有限公司',
       出口口岸: '上海浦东机场',
       出口日期: new Date().toISOString().split('T')[0],
       申报日期: new Date().toISOString().split('T')[0],
       生产销售单位: '上海贸易有限公司',
       运输方式: '5(航空运输)',
       运输工具名称: 'CA1234',
-      商品名称: formData.productName || '智能手机配件',
-      数量: `${formData.quantity || '100'}台`,
-      单价: `${formData.unitPrice || '15.50'} USD`,
-      总价: `${formData.totalPrice || '1550.00'} USD`,
-      HS编码: formData.hsCode || '8517120000',
-      原产国: formData.originCountry || '中国',
+      商品名称: '智能手机配件',
+      数量: '100台',
+      单价: '15.50 USD',
+      总价: '1550.00 USD',
+      HS编码: '8517120000',
+      原产国: '中国',
       监管方式: '9610',
       贸易方式: '跨境电商B2C出口',
-      备注: formData.notes || '手机及配件'
+      备注: '手机及配件'
     };
   };
 
@@ -816,12 +859,13 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
       case 'fill':
         return (
-          <div className="space-y-6">
-            <div className="text-center mb-6">
-              <Upload className="h-12 w-12 mx-auto mb-4 text-amber-600" />
-              <h3 className="text-xl font-semibold mb-2">报关单申报表单</h3>
-              <p className="text-gray-600">上传文件自动填充或手动填写完整的海关申报信息</p>
-            </div>
+          <Form {...form}>
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <Upload className="h-12 w-12 mx-auto mb-4 text-amber-600" />
+                <h3 className="text-xl font-semibold mb-2">报关单申报表单</h3>
+                <p className="text-gray-600">上传文件自动填充或手动填写完整的海关申报信息</p>
+              </div>
 
             {/* 第一优先级：文件上传与自动填充 */}
             <Card className="border-2 border-blue-200">
@@ -893,66 +937,108 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="preEntryNo">预录入编号</Label>
-                    <Input
-                      id="preEntryNo"
-                      value={formData.preEntryNo || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, preEntryNo: e.target.value }))}
-                      placeholder="18110820180001"
-                      data-testid="input-pre-entry-no"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="customsNo">海关编号</Label>
-                    <Input
-                      id="customsNo"
-                      value={formData.customsNo || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, customsNo: e.target.value }))}
-                      placeholder="181108201800010001"
-                      data-testid="input-customs-no"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="consignorConsignee">收发货人 *</Label>
-                    <Input
-                      id="consignorConsignee"
-                      value={formData.consignorConsignee || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, consignorConsignee: e.target.value }))}
-                      placeholder="深圳市XX贸易有限公司"
-                      data-testid="input-consignor-consignee"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="productionSalesUnit">生产销售单位</Label>
-                    <Input
-                      id="productionSalesUnit"
-                      value={formData.productionSalesUnit || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, productionSalesUnit: e.target.value }))}
-                      placeholder="深圳市XX电子科技有限公司"
-                      data-testid="input-production-sales-unit"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="declarationUnit">申报单位</Label>
-                    <Input
-                      id="declarationUnit"
-                      value={formData.declarationUnit || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, declarationUnit: e.target.value }))}
-                      placeholder="深圳市XX报关有限公司"
-                      data-testid="input-declaration-unit"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="filingNo">备案号</Label>
-                    <Input
-                      id="filingNo"
-                      value={formData.filingNo || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, filingNo: e.target.value }))}
-                      placeholder="44011234567"
-                      data-testid="input-filing-no"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="preEntryNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>预录入编号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="18110820180001"
+                            data-testid="input-pre-entry-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="customsNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>海关编号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="181108201800010001"
+                            data-testid="input-customs-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="consignorConsignee"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>收发货人 *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="深圳市XX贸易有限公司"
+                            data-testid="input-consignor-consignee"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="productionSalesUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>生产销售单位</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="深圳市XX电子科技有限公司"
+                            data-testid="input-production-sales-unit"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="declarationUnit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>申报单位</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="深圳市XX报关有限公司"
+                            data-testid="input-declaration-unit"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="filingNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>备案号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="44011234567"
+                            data-testid="input-filing-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -968,66 +1054,123 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="exportPort">出口口岸 *</Label>
-                    <Input
-                      id="exportPort"
-                      value={formData.exportPort || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, exportPort: e.target.value }))}
-                      placeholder="深圳"
-                      data-testid="input-export-port"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="transportMode">运输方式 *</Label>
-                    <Input
-                      id="transportMode"
-                      value={formData.transportMode || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, transportMode: e.target.value }))}
-                      placeholder="4-航空运输"
-                      data-testid="input-transport-mode"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="transportName">运输工具名称</Label>
-                    <Input
-                      id="transportName"
-                      value={formData.transportName || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, transportName: e.target.value }))}
-                      placeholder="CA123"
-                      data-testid="input-transport-name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="tradeCountry">贸易国(地区)</Label>
-                    <Input
-                      id="tradeCountry"
-                      value={formData.tradeCountry || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, tradeCountry: e.target.value }))}
-                      placeholder="美国"
-                      data-testid="input-trade-country"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="arrivalCountry">运抵国(地区)</Label>
-                    <Input
-                      id="arrivalCountry"
-                      value={formData.arrivalCountry || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, arrivalCountry: e.target.value }))}
-                      placeholder="美国"
-                      data-testid="input-arrival-country"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="currency">币制</Label>
-                    <Input
-                      id="currency"
-                      value={formData.currency || 'USD'}
-                      onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                      placeholder="USD"
-                      data-testid="input-currency"
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="exportPort"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>出口口岸 *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="深圳"
+                            data-testid="input-export-port"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="transportMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>运输方式 *</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger data-testid="select-transport-mode">
+                              <SelectValue placeholder="选择运输方式" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="1">1-非保税区运输</SelectItem>
+                              <SelectItem value="2">2-直接运输</SelectItem>
+                              <SelectItem value="3">3-转关运输</SelectItem>
+                              <SelectItem value="4">4-航空运输</SelectItem>
+                              <SelectItem value="5">5-海运</SelectItem>
+                              <SelectItem value="9">9-其他运输</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="transportName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>运输工具名称</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="CA123"
+                            data-testid="input-transport-name"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tradeCountry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>贸易国(地区)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="美国"
+                            data-testid="input-trade-country"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="arrivalCountry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>运抵国(地区)</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="美国"
+                            data-testid="input-arrival-country"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="currency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>币制</FormLabel>
+                        <FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || 'USD'}>
+                            <SelectTrigger data-testid="select-currency">
+                              <SelectValue placeholder="选择币制" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="USD">美元 (USD)</SelectItem>
+                              <SelectItem value="EUR">欧元 (EUR)</SelectItem>
+                              <SelectItem value="CNY">人民币 (CNY)</SelectItem>
+                              <SelectItem value="GBP">英镑 (GBP)</SelectItem>
+                              <SelectItem value="JPY">日元 (JPY)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1081,57 +1224,94 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                 <CardDescription>补充信息和备注说明</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="marksAndNotes">标记唛码及备注</Label>
-                  <Textarea
-                    id="marksAndNotes"
-                    value={formData.marksAndNotes || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, marksAndNotes: e.target.value }))}
-                    placeholder="商品标记、包装说明、特殊要求等"
-                    rows={4}
-                    data-testid="textarea-marks-notes"
-                  />
-                </div>
+                <FormField
+                  control={form.control}
+                  name="marksAndNotes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>标记唛码及备注</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="商品标记、包装说明、特殊要求等"
+                          rows={4}
+                          data-testid="textarea-marks-notes"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="inspectionQuarantine"
-                      checked={formData.inspectionQuarantine || false}
-                      onChange={(e) => setFormData(prev => ({ ...prev, inspectionQuarantine: e.target.checked }))}
-                      data-testid="checkbox-inspection-quarantine"
-                    />
-                    <Label htmlFor="inspectionQuarantine" className="text-sm">检验检疫</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="priceInfluenceFactor"
-                      checked={formData.priceInfluenceFactor || false}
-                      onChange={(e) => setFormData(prev => ({ ...prev, priceInfluenceFactor: e.target.checked }))}
-                      data-testid="checkbox-price-influence"
-                    />
-                    <Label htmlFor="priceInfluenceFactor" className="text-sm">价格影响因素</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="paymentSettlementUsage"
-                      checked={formData.paymentSettlementUsage || false}
-                      onChange={(e) => setFormData(prev => ({ ...prev, paymentSettlementUsage: e.target.checked }))}
-                      data-testid="checkbox-payment-settlement"
-                    />
-                    <Label htmlFor="paymentSettlementUsage" className="text-sm">支付/结汇方式</Label>
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="inspectionQuarantine"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-inspection-quarantine"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          检验检疫
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="priceInfluenceFactor"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-price-influence"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          价格影响因素
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="paymentSettlementUsage"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-payment-settlement"
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          支付/结汇方式
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
 
-            <Button onClick={handleFormSubmit} className="w-full" data-testid="button-submit-form">
+            <Button 
+              type="submit" 
+              onClick={form.handleSubmit(onFormSubmit, onFormError)}
+              className="w-full" 
+              data-testid="button-submit-form"
+            >
               <CheckCircle className="mr-2 h-4 w-4" />
               提交申报数据
             </Button>
-          </div>
+            </div>
+          </Form>
         );
 
       case 'task':
