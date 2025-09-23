@@ -480,6 +480,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Template download route
+  app.get("/api/templates/customs-declaration.docx", async (req, res) => {
+    try {
+      const templatePath = path.join(process.cwd(), "attached_assets", "templates", "海关出口货物报关单模板.docx");
+      
+      // 检查模板文件是否存在
+      if (!fs.existsSync(templatePath)) {
+        return res.status(404).json({ message: "模板文件不存在" });
+      }
+      
+      // 获取文件信息
+      const stats = fs.statSync(templatePath);
+      
+      // 设置响应头
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', 'attachment; filename="' + encodeURIComponent('海关出口货物报关单模板.docx') + '"');
+      res.setHeader('Content-Length', stats.size);
+      
+      // 流式传输文件
+      const fileStream = fs.createReadStream(templatePath);
+      fileStream.pipe(res);
+      
+      fileStream.on('error', (error) => {
+        console.error('模板文件流错误:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "模板下载失败" });
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('模板下载错误:', error);
+      res.status(500).json({ message: error.message || "模板下载失败" });
+    }
+  });
+
   // E-port IC card application form submission
   app.post("/api/experiments/eport-ic-card/submit", authenticateToken, upload.fields([
     { name: "businessLicense_0", maxCount: 1 },
