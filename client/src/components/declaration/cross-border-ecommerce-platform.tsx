@@ -8,6 +8,13 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft, 
@@ -78,6 +85,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [selectedTask, setSelectedTask] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<UploadedFileMetadata | null>(null);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [selectedPreviewTask, setSelectedPreviewTask] = useState<DeclarationTask | null>(null);
   const [formData, setFormData] = useState({
     declarationNo: '',
     productName: '',
@@ -351,6 +360,34 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         variant: "destructive"
       });
     }
+  };
+
+  const handlePreviewData = (task: DeclarationTask) => {
+    setSelectedPreviewTask(task);
+    setPreviewDialogOpen(true);
+  };
+
+  const generateMockDeclarationData = (task: DeclarationTask) => {
+    return {
+      预录入编号: `CB${new Date().getFullYear()}${(Math.random() * 10000).toFixed(0).padStart(4, '0')}`,
+      海关编号: `${new Date().getFullYear()}${(Math.random() * 1000000).toFixed(0).padStart(6, '0')}`,
+      收发货人: formData.declarationNo ? '上海贸易有限公司' : '深圳进出口有限公司',
+      出口口岸: '上海浦东机场',
+      出口日期: new Date().toISOString().split('T')[0],
+      申报日期: new Date().toISOString().split('T')[0],
+      生产销售单位: '上海贸易有限公司',
+      运输方式: '5(航空运输)',
+      运输工具名称: 'CA1234',
+      商品名称: formData.productName || '智能手机配件',
+      数量: `${formData.quantity || '100'}台`,
+      单价: `${formData.unitPrice || '15.50'} USD`,
+      总价: `${formData.totalPrice || '1550.00'} USD`,
+      HS编码: formData.hsCode || '8517120000',
+      原产国: formData.originCountry || '中国',
+      监管方式: '9610',
+      贸易方式: '跨境电商B2C出口',
+      备注: formData.notes || '手机及配件'
+    };
   };
 
   const renderCurrentStep = () => {
@@ -858,9 +895,102 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                         </div>
                         <div className="flex items-center space-x-2">
                           <Badge variant="default">已生成</Badge>
-                          <Button variant="outline" size="sm">
-                            预览数据
-                          </Button>
+                          <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handlePreviewData(task)}
+                                data-testid={`button-preview-data-${task.id}`}
+                              >
+                                预览数据
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>申报数据预览</DialogTitle>
+                              </DialogHeader>
+                              {selectedPreviewTask && (
+                                <div className="space-y-6">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-sm">任务信息</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-2">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">任务名称:</span>
+                                          <span className="font-medium">{selectedPreviewTask.taskName}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">创建时间:</span>
+                                          <span className="font-medium">{selectedPreviewTask.createdAt}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">订单数量:</span>
+                                          <span className="font-medium">{selectedPreviewTask.orderCount}个</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">状态:</span>
+                                          <Badge variant="default">已生成</Badge>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                    
+                                    <Card>
+                                      <CardHeader>
+                                        <CardTitle className="text-sm">关联订单</CardTitle>
+                                      </CardHeader>
+                                      <CardContent className="space-y-2">
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">订单号:</span>
+                                          <span className="font-medium">{bookingData.orderNumber}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">客户名称:</span>
+                                          <span className="font-medium">{bookingData.customerName}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">目的国:</span>
+                                          <span className="font-medium">{bookingData.destinationCountry}</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="text-gray-600">总重量:</span>
+                                          <span className="font-medium">{bookingData.weight}kg</span>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
+                                  </div>
+                                  
+                                  <Card>
+                                    <CardHeader>
+                                      <CardTitle className="text-sm">生成的申报数据</CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+                                        {Object.entries(generateMockDeclarationData(selectedPreviewTask)).map(([key, value]) => (
+                                          <div key={key} className="flex flex-col space-y-1">
+                                            <span className="text-gray-600 text-xs">{key}</span>
+                                            <span className="font-medium bg-gray-50 p-2 rounded border">{value}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                  
+                                  <div className="bg-blue-50 p-4 rounded-lg">
+                                    <h4 className="font-medium mb-2 text-blue-800">数据说明：</h4>
+                                    <ul className="text-sm text-blue-700 space-y-1">
+                                      <li>• 该数据基于您填写的申报信息自动生成</li>
+                                      <li>• 符合海关跨境电商出口申报标准格式</li>
+                                      <li>• 数据已完成合规性检查，可直接用于申报</li>
+                                      <li>• 推送后将进入海关审核流程</li>
+                                    </ul>
+                                  </div>
+                                </div>
+                              )}
+                            </DialogContent>
+                          </Dialog>
                         </div>
                       </div>
                     ))}
