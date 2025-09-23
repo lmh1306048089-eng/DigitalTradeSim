@@ -183,9 +183,12 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     
     setTimeout(() => {
       // 模拟模板下载
+      const csvContent = `预录入编号,海关编号,收发货人,出口口岸,出口日期,申报日期,生产销售单位,运输方式,运输工具名称,提运单号,申报单位,监管方式,征免性质,备案号,贸易国地区,运抵国地区,指运港,境内货源地,许可证号,成交方式,运费,保费,杂费,合同协议号,件数,包装种类,毛重千克,集装箱号,随附单证,标记唛头及备注,项号,商品编号,商品名称规格型号,数量及单位,最终目的国地区,单价,总价,币制,征免
+CB2024001,,上海贸易有限公司,上海浦东机场,2024-09-22,2024-09-22,上海贸易有限公司,5,航空运输,CA1234,上海贸易有限公司,9610,101,123456,美国,美国,洛杉矶,上海,XK001,CIF,500.00,50.00,25.00,HT2024001,10,纸箱,25.5,CONU1234567,发票|装箱单,SAMPLE GOODS,1,8517120000,智能手机配件/型号iPhone15,100台,美国,15.50,1550.00,142,301`;
+      
       const link = document.createElement('a');
-      link.href = 'data:text/csv;charset=utf-8,申报单号,商品名称,数量,单价,总价,HS编码,原产国,备注\nCB001,智能手机,1,999.00,999.00,8517120000,中国,手机及配件';
-      link.download = '报关单模式申报模板.csv';
+      link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(csvContent)}`;
+      link.download = '海关出口货物报关单模板.csv';
       link.click();
       
       toast({
@@ -427,20 +430,21 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     <div className="flex items-center space-x-3">
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
-                        <div className="font-medium">报关单模式申报模板.csv</div>
-                        <div className="text-sm text-gray-500">包含标准申报字段</div>
+                        <div className="font-medium">海关出口货物报关单模板.csv</div>
+                        <div className="text-sm text-gray-500">中华人民共和国海关标准格式</div>
                       </div>
                     </div>
-                    <Badge variant="outline">CSV格式</Badge>
+                    <Badge variant="outline">标准格式</Badge>
                   </div>
                   
                   <div className="bg-gray-50 p-4 rounded-lg">
                     <h4 className="font-medium mb-2">模板说明：</h4>
                     <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• 包含申报单号、商品名称、数量、单价等必填字段</li>
-                      <li>• 支持批量导入多个商品记录</li>
-                      <li>• 格式符合海关申报系统要求</li>
-                      <li>• 可直接上传到申报系统使用</li>
+                      <li>• 包含预录入编号、海关编号、收发货人等基本信息</li>
+                      <li>• 涵盖运输方式、监管方式、贸易国等贸易信息</li>
+                      <li>• 包含商品编号、规格型号、数量单价等商品明细</li>
+                      <li>• 符合中华人民共和国海关标准格式要求</li>
+                      <li>• 可直接用于海关出口货物申报</li>
                     </ul>
                   </div>
                 </div>
