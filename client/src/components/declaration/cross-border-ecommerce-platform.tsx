@@ -327,45 +327,116 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       if (Object.keys(parsedData).length > 0) {
         const allowedKeys = Object.keys(form.getValues()) as (keyof InsertDeclarationForm)[];
         
+        // 商品字段映射（需要特殊处理的嵌套字段）
+        const goodsFieldMap: { [key: string]: string } = {
+          'productName': 'goodsNameSpec',
+          'goodsName': 'goodsNameSpec', 
+          'goodsNameSpec': 'goodsNameSpec',
+          'quantity': 'quantity1',
+          'quantity1': 'quantity1',
+          'unit': 'unit1',
+          'unit1': 'unit1',
+          'unitPrice': 'unitPrice',
+          'totalPrice': 'totalPrice',
+          'hsCode': 'goodsCode',
+          'goodsCode': 'goodsCode',
+          'finalDestCountry': 'finalDestCountry',
+          'exemption': 'exemption'
+        };
+        
+        // 收集商品相关字段
+        const goodsData: any = {};
+        const topLevelData: any = {};
+        
         Object.entries(parsedData).forEach(([key, value]) => {
-          if (value !== null && value !== undefined && value !== '' && allowedKeys.includes(key as keyof InsertDeclarationForm)) {
+          if (value !== null && value !== undefined && value !== '') {
+            if (goodsFieldMap[key]) {
+              // 商品字段
+              const mappedKey = goodsFieldMap[key];
+              goodsData[mappedKey] = value;
+            } else if (allowedKeys.includes(key as keyof InsertDeclarationForm)) {
+              // 顶级字段
+              topLevelData[key] = value;
+            }
+          }
+        });
+        
+        // 设置顶级字段
+        Object.entries(topLevelData).forEach(([key, value]) => {
+          try {
+            // 类型强制转换
+            let processedValue: any = value;
+            
+            // 处理布尔字段
+            if (['inspectionQuarantine', 'priceInfluenceFactor', 'paymentSettlementUsage'].includes(key)) {
+              processedValue = Boolean(value) || String(value).toLowerCase() === 'true';
+            }
+            // 处理日期字段
+            else if (key === 'declareDate') {
+              processedValue = value instanceof Date ? value : new Date(String(value));
+            }
+            // 处理数值字段
+            else if (['totalAmountForeign', 'totalAmountCNY', 'exchangeRate', 'freight', 'insurance', 'otherCharges', 'grossWeight', 'netWeight'].includes(key)) {
+              const numValue = parseFloat(String(value));
+              if (!isNaN(numValue)) {
+                processedValue = numValue;
+              }
+            }
+            // 处理整数字段
+            else if (['packages'].includes(key)) {
+              const intValue = parseInt(String(value), 10);
+              if (!isNaN(intValue)) {
+                processedValue = intValue;
+              }
+            }
+            // 其他字段保持字符串
+            else {
+              processedValue = String(value);
+            }
+            
+            form.setValue(key as keyof InsertDeclarationForm, processedValue);
+          } catch (error) {
+            console.warn(`无法设置字段 ${key}:`, error);
+          }
+        });
+        
+        // 设置商品字段到goods[0]
+        if (Object.keys(goodsData).length > 0) {
+          const currentGoods = form.getValues('goods') || [{}];
+          const updatedGoodsItem = { ...currentGoods[0] };
+          
+          Object.entries(goodsData).forEach(([key, value]) => {
             try {
-              // 类型强制转换
               let processedValue: any = value;
               
-              // 处理布尔字段
-              if (['inspectionQuarantine', 'priceInfluenceFactor', 'paymentSettlementUsage'].includes(key)) {
-                processedValue = Boolean(value) || String(value).toLowerCase() === 'true';
-              }
-              // 处理日期字段
-              else if (key === 'declareDate') {
-                processedValue = value instanceof Date ? value : new Date(String(value));
-              }
               // 处理数值字段
-              else if (['totalAmountForeign', 'totalAmountCNY', 'exchangeRate', 'freight', 'insurance', 'otherCharges', 'grossWeight', 'netWeight'].includes(key)) {
+              if (['quantity1', 'unitPrice', 'totalPrice'].includes(key)) {
                 const numValue = parseFloat(String(value));
                 if (!isNaN(numValue)) {
                   processedValue = numValue;
                 }
               }
-              // 处理整数字段
-              else if (['packages'].includes(key)) {
-                const intValue = parseInt(String(value), 10);
-                if (!isNaN(intValue)) {
-                  processedValue = intValue;
-                }
+              // 处理项号（自动设置为1）
+              else if (key === 'itemNo') {
+                processedValue = 1;
               }
               // 其他字段保持字符串
               else {
                 processedValue = String(value);
               }
               
-              form.setValue(key as keyof InsertDeclarationForm, processedValue);
+              updatedGoodsItem[key] = processedValue;
             } catch (error) {
-              console.warn(`无法设置字段 ${key}:`, error);
+              console.warn(`无法设置商品字段 ${key}:`, error);
             }
-          }
-        });
+          });
+          
+          // 确保项号始终为1
+          updatedGoodsItem.itemNo = 1;
+          
+          // 更新商品数组
+          form.setValue('goods', [updatedGoodsItem]);
+        }
 
         toast({
           title: "文件解析成功",
@@ -555,10 +626,33 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         /Contract No[：:]\s*([^\s\n]+)/gi,
         /合同号[：:]\s*([^\s\n]+)/g
       ],
-      invoiceNo: [
-        /发票号[：:]\s*([^\s\n]+)/g,
-        /Invoice No[：:]\s*([^\s\n]+)/gi,
-        /发票编号[：:]\s*([^\s\n]+)/g
+      // 顶级征免性质字段
+      exemptionNature: [
+        /征免性质[：:]\s*([^\s\n]+)/g,
+        /Exemption Nature[：:]\s*([^\s\n]+)/gi,
+        /税收征免[：:]\s*([^\s\n]+)/g
+      ],
+      // 商品明细字段 (for DOCX parsing)
+      goodsCode: [
+        /HS编码[：:]\s*([^\s\n]+)/g,
+        /HS Code[：:]\s*([^\s\n]+)/gi,
+        /商品编码[：:]\s*([^\s\n]+)/g,
+        /商品码[：:]\s*([^\s\n]+)/g
+      ],
+      finalDestCountry: [
+        /最终目的地国[：:]\s*([^\s\n]+)/g,
+        /Final Destination[：:]\s*([^\s\n]+)/gi,
+        /最终目的地[：:]\s*([^\s\n]+)/g
+      ],
+      exemption: [
+        /征免[：:]\s*([^\s\n]+)/g,
+        /Exemption[：:]\s*([^\s\n]+)/gi,
+        /商品征免[：:]\s*([^\s\n]+)/g
+      ],
+      unit1: [
+        /计量单位[：:]\s*([^\s\n]+)/g,
+        /Unit[：:]\s*([^\s\n]+)/gi,
+        /单位[：:]\s*([^\s\n]+)/g
       ],
       // 包装信息字段
       packages: [
@@ -650,12 +744,15 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       arrivalCountry: new Set(['运抵国', 'arrival_country', '到达国', 'arrival-country', '最终目的国']),
       currency: new Set(['币制', 'currency', '货币', '币种']),
       productName: new Set(['商品名称', 'product_name', 'goods_name', '商品', 'product-name', 'goods-name', '货物名称']),
-      quantity: new Set(['数量', 'quantity', 'qty', '件数']),
+      quantity: new Set(['数量', 'quantity', 'qty']),
       unitPrice: new Set(['单价', 'unit_price', 'price', 'unit-price']),
       totalPrice: new Set(['总价', 'total_price', 'total_amount', '总金额', 'total-price', 'total-amount']),
-      hsCode: new Set(['HS编码', 'hs_code', 'hscode', '编码', 'hs-code', '商品编码']),
-      originCountry: new Set(['原产国', 'origin_country', '原产地', 'origin-country']),
       marksAndNotes: new Set(['备注', 'remarks', 'notes', '说明', '标记唛码', '唛头', 'marks']),
+      // 商品明细字段 (for CSV/XLSX parsing)
+      goodsCode: new Set(['HS编码', 'hs_code', 'hscode', '商品编码', '商品码', 'goods_code', '编码']),
+      finalDestCountry: new Set(['最终目的地国', 'final_dest_country', '最终目的地', 'final_destination', '目的地国家']),
+      exemption: new Set(['征免', 'exemption', '商品征免', 'duty_exemption', '征免情况']),
+      unit1: new Set(['计量单位', 'unit1', 'unit', '单位', 'measurement_unit', '计量']),
       // 金融信息字段
       totalAmountForeign: new Set(['外币总价', 'total_amount_foreign', '外币金额', 'foreign_amount', '外币价值']),
       totalAmountCNY: new Set(['人民币总价', 'total_amount_cny', '人民币金额', 'cny_amount', '人民币价值']),
@@ -665,7 +762,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       otherCharges: new Set(['杂费', 'other_charges', '其他费用', 'other_fees', '附加费']),
       tradeTerms: new Set(['成交方式', 'trade_terms', '贸易条款', 'trade_conditions', 'incoterms']),
       contractNo: new Set(['合同协议号', 'contract_no', '合同号', 'contract_number', '协议号']),
-      invoiceNo: new Set(['发票号', 'invoice_no', '发票编号', 'invoice_number', '票据号']),
+      exemptionNature: new Set(['征免性质', 'exemption_nature', '税收征免', 'exemption-nature']),
       // 包装信息字段
       packages: new Set(['件数', 'packages', '包装件数', 'package_count', '箱数']),
       packageType: new Set(['包装种类', 'package_type', '包装类型', 'packaging_type', '包装方式']),
