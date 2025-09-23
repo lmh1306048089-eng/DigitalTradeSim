@@ -750,10 +750,20 @@ export const insertDeclarationFormSchema = createInsertSchema(declarationForms).
   transitPort: z.string().optional(), // 指运港/经停港
   domesticSource: z.string().optional(), // 境内货源地
   
-  // 确认声明字段  
-  specialRelationshipConfirm: z.boolean().optional(), // 特殊关系确认
-  priceInfluenceConfirm: z.boolean().optional(), // 价格影响确认
-  royaltyPaymentConfirm: z.boolean().optional(), // 支付特许权使用费确认
+  // 核心字段验证
+  declareDate: z.coerce.date(), // 申报日期 - 必填
+  licenseNo: z.string().optional(), // 许可证号 - 可选
+  
+  // 已移除字段 - 设为可选以保持向后兼容
+  invoiceNo: z.string().optional(), // 发票号 - 已从UI移除
+  inspectionQuarantine: z.boolean().optional().default(false), // 已从UI移除
+  priceInfluenceFactor: z.boolean().optional().default(false), // 已从UI移除
+  paymentSettlementUsage: z.boolean().optional().default(false), // 已从UI移除
+  
+  // 确认声明字段 - 保持为复选框
+  specialRelationshipConfirm: z.boolean().optional().default(false), // 特殊关系确认
+  priceInfluenceConfirm: z.boolean().optional().default(false), // 价格影响确认
+  royaltyPaymentConfirm: z.boolean().optional().default(false), // 支付特许权使用费确认
   
   // 随附单证和人员信息
   supportingDocuments: z.string().optional(), // 随附单证
@@ -767,16 +777,24 @@ export const insertDeclarationItemSchema = createInsertSchema(declarationItems).
   id: true,
   createdAt: true,
 }).extend({
-  goodsNameSpec: z.string().min(2, "商品名称不能少于2个字符"),
-  goodsCode: z.string().regex(/^\d{8,10}$/, "HS编码必须为8-10位数字").optional(),
-  quantity1: z.number().positive("第一数量必须为正数"),
-  unit1: z.string().min(1, "第一单位不能为空"),
-  quantity2: z.number().positive("第二数量必须为正数").optional(),
-  unit2: z.string().min(1, "第二单位不能为空").optional(),
+  // 必填字段
+  itemNo: z.number().int().positive("项号必须为正整数"),
+  goodsCode: z.string().regex(/^\d{8,10}$/, "商品编号(HS)必须为8-10位数字").optional(), // 商品编号
+  goodsNameSpec: z.string().min(2, "商品名称/规格型号不能少于2个字符"),
+  quantity1: z.number().positive("数量必须为正数"),
+  unit1: z.string().min(1, "单位不能为空"),
   unitPrice: z.number().positive("单价必须为正数"),
   totalPrice: z.number().positive("总价必须为正数"),
-  currency: z.string().length(3, "币种代码必须为3位"),
-  itemNo: z.number().int().positive("项号必须为正整数"),
+  currency: z.string().length(3, "币种代码必须为3位").default("USD"),
+  
+  // 新增的9列格式必需字段
+  finalDestCountry: z.string().min(2, "最终目的地国(地区)不能为空").optional(), // 最终目的地国
+  exemption: z.string().min(1, "征免代码不能为空").optional(), // 征免
+  
+  // 可选字段
+  quantity2: z.number().positive("第二数量必须为正数").optional(),
+  unit2: z.string().min(1, "第二单位不能为空").optional(),
+  originCountry: z.string().optional(), // 原产国
   taxRate: z.number().min(0).max(100, "税率必须在0-100之间").optional(),
   dutyRate: z.number().min(0).max(100, "关税税率必须在0-100之间").optional(),
   vatRate: z.number().min(0).max(100, "增值税税率必须在0-100之间").optional(),
