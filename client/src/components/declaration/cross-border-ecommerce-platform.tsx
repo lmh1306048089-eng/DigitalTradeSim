@@ -52,6 +52,17 @@ interface DeclarationTask {
   orderCount: number;
 }
 
+interface UploadedFileMetadata {
+  id: string;
+  originalName: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  userId: string;
+  experimentId: string;
+}
+
 export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBorderEcommercePlatformProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('booking');
@@ -66,7 +77,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [declarationTasks, setDeclarationTasks] = useState<DeclarationTask[]>([]);
   const [selectedTask, setSelectedTask] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFileMetadata | null>(null);
   const [formData, setFormData] = useState({
     declarationNo: '',
     productName: '',
@@ -175,540 +186,142 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   };
 
   const handleTemplateDownload = () => {
-    // 模拟基础数据导入
+    // 检查是否有已上传的文件
+    if (!uploadedFile) {
+      toast({
+        title: "无法下载",
+        description: "请先上传填写完成的申报文件",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 下载用户之前上传的原始文件
+    const downloadUrl = `/api/files/${uploadedFile.id}/download`;
+    window.location.href = downloadUrl;
+    
     toast({
-      title: "基础数据导入中...",
-      description: "正在导入企业信息、商品编码、申报要素等基础数据",
+      title: "文件下载开始",
+      description: `正在下载您上传的文件: ${uploadedFile.originalName}`,
     });
     
-    setTimeout(async () => {
-      // 使用docx库生成真正的Word文档
-      const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, BorderStyle } = await import('docx');
-      
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: [
-            // 标题
-            new Paragraph({
-              alignment: 'center',
-              children: [
-                new TextRun({
-                  text: "中华人民共和国海关出口货物报关单",
-                  bold: true,
-                  size: 32,
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 预录入编号和海关编号
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("预录入编号：_______________________")],
-                      width: { size: 50, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("海关编号：_______________________")],
-                      width: { size: 50, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 基本信息表格
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("收发货人"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("出口口岸"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("出口日期"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("申报日期"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("生产销售单位"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("运输方式"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("运输工具名称"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("提运单号"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("申报单位"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("监管方式"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("征免性质"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("备案号"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("贸易国（地区）"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("运抵国（地区）"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("指运港"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("境内货源地"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("许可证号"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("成交方式"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("运费"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("保费"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("杂费"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("合同协议号"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("件数"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("包装种类"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("毛重（千克）"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("净重（千克）"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("集装箱号"), new Paragraph("_____________")],
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("随附单证"), new Paragraph("_____________")],
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 标记唛头及备注
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [
-                        new Paragraph("标记唛头及备注"),
-                        new Paragraph(""),
-                        new Paragraph("_________________________________"),
-                        new Paragraph("_________________________________"),
-                      ],
-                      width: { size: 100, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 商品明细表
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "项号", bold: true })] })],
-                      width: { size: 8, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "商品编号", bold: true })] })],
-                      width: { size: 12, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "商品名称、规格型号", bold: true })] })],
-                      width: { size: 20, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "数量及单位", bold: true })] })],
-                      width: { size: 12, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "最终目的国(地区)", bold: true })] })],
-                      width: { size: 15, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "单价", bold: true })] })],
-                      width: { size: 10, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "总价", bold: true })] })],
-                      width: { size: 10, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "币制", bold: true })] })],
-                      width: { size: 8, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph({ children: [new TextRun({ text: "征免", bold: true })] })],
-                      width: { size: 5, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-                // 空行用于填写
-                ...Array(3).fill(0).map(() => new TableRow({
-                  children: [
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                    new TableCell({ children: [new Paragraph("")] }),
-                  ],
-                }))
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 确认信息
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("特殊关系确认：否")],
-                      width: { size: 33, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("价格影响确认：否")],
-                      width: { size: 33, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("支付特许权使用费确认：否")],
-                      width: { size: 34, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 录入信息
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("录入人员"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("录入单位"), new Paragraph("_____________")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("兹声明以上内容承担如实申报、依法纳税之法律责任")],
-                      width: { size: 50, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 海关批注
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph({ alignment: 'center', children: [new TextRun({ text: "海关批注及签章：", bold: true })] })],
-                      width: { size: 100, type: WidthType.PERCENTAGE },
-                      columnSpan: 4,
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("审单"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("审价"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("征税"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("统计"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("查验"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("放行"), new Paragraph(""), new Paragraph("")],
-                      width: { size: 25, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("")],
-                      width: { size: 50, type: WidthType.PERCENTAGE },
-                      columnSpan: 2,
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 签字栏
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("报关人员"), new Paragraph(""), new Paragraph("_____________")],
-                      width: { size: 30, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("申报单位（签章）"), new Paragraph(""), new Paragraph(""), new Paragraph("")],
-                      width: { size: 40, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("")],
-                      width: { size: 30, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-            
-            // 空行
-            new Paragraph({}),
-            
-            // 联系信息
-            new Table({
-              width: {
-                size: 100,
-                type: WidthType.PERCENTAGE,
-              },
-              borders: {
-                top: { style: BorderStyle.SINGLE, size: 1 },
-                bottom: { style: BorderStyle.SINGLE, size: 1 },
-                left: { style: BorderStyle.SINGLE, size: 1 },
-                right: { style: BorderStyle.SINGLE, size: 1 },
-              },
-              rows: [
-                new TableRow({
-                  children: [
-                    new TableCell({
-                      children: [new Paragraph("单位地址"), new Paragraph("_____________")],
-                      width: { size: 40, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("邮编"), new Paragraph("_______")],
-                      width: { size: 15, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("电话"), new Paragraph("_______")],
-                      width: { size: 15, type: WidthType.PERCENTAGE },
-                    }),
-                    new TableCell({
-                      children: [new Paragraph("填制日期"), new Paragraph("_______")],
-                      width: { size: 30, type: WidthType.PERCENTAGE },
-                    }),
-                  ],
-                }),
-              ],
-            }),
-          ],
-        }],
-      });
-
-      // 生成并下载docx文件
-      const blob = await Packer.toBlob(doc);
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = '海关出口货物报关单模板.docx';
-      link.click();
-      
-      toast({
-        title: "模板下载完成",
-        description: "基础数据已导入，海关出口货物报关单模板已下载，打开后可另存为Word格式",
-      });
-      
-      setTimeout(() => {
-        handleNext();
-      }, 1500);
-    }, 1000);
+    setTimeout(() => {
+      handleNext();
+    }, 1500);
   };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        </tr>
+        <tr>
+            <td>贸易国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运抵国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>指运港<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>境内货源地<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>许可证号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>成交方式<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>运费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>保费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>杂费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>合同协议号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>件数<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>包装种类<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+        <tr>
+            <td>毛重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>净重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>集装箱号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+            <td>随附单证<br><span class="input-field" style="width:100%; height:40px;"></span></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td colspan="4">标记唛头及备注<br><span class="input-field" style="width:100%; height:60px;"></span></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr style="background-color: #f0f0f0;">
+            <th width="8%">项号</th>
+            <th width="12%">商品编号</th>
+            <th width="20%">商品名称、规格型号</th>
+            <th width="12%">数量及单位</th>
+            <th width="15%">最终目的国(地区)</th>
+            <th width="10%">单价</th>
+            <th width="10%">总价</th>
+            <th width="8%">币制</th>
+            <th width="5%">征免</th>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="height:40px;"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    
+    <table>
+        <tr>
+            <td width="33%">特殊关系确认：否</td>
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      setUploadedFile(file);
+    if (!file) return;
+
+    try {
+      // 创建 FormData 对象
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('experimentId', 'customs-declaration-export'); // 实验ID
+
+      // 上传文件到服务器
+      const response = await apiRequest("POST", "/api/upload", formData);
+      
+      if (response.ok) {
+        const uploadedFileData: UploadedFileMetadata = await response.json();
+        setUploadedFile(uploadedFileData);
+        
+        toast({
+          title: "文件上传成功",
+          description: `文件 ${file.name} 已上传到服务器`,
+        });
+      } else {
+        throw new Error('文件上传失败');
+      }
+    } catch (error) {
+      console.error('文件上传错误:', error);
       toast({
-        title: "文件上传成功",
-        description: `文件 ${file.name} 已上传`,
+        title: "文件上传失败",
+        description: "请重试上传文件",
+        variant: "destructive"
       });
     }
   };

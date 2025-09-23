@@ -430,6 +430,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // File download route
+  app.get("/api/files/:id/download", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      
+      // 获取文件信息
+      const uploadedFile = await storage.getUploadedFile(id);
+      if (!uploadedFile) {
+        return res.status(404).json({ message: "文件不存在" });
+      }
+      
+      // 权限检查：只有文件上传者、老师或管理员可以下载
+      const user = req.user!;
+      const canDownload = 
+        uploadedFile.uploadedBy === user.id || 
+        user.role === "teacher" || 
+        user.role === "admin";
+      
+      if (!canDownload) {
+        return res.status(403).json({ message: "无权限下载该文件" });
+      }
+      
+      // 检查文件是否在磁盘上存在
+      const filePath = path.join(process.cwd(), "attached_assets", "uploads", uploadedFile.filename);
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ message: "文件在服务器上不存在" });
+      }
+      
+      // 设置响应头
+      res.setHeader('Content-Type', uploadedFile.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(uploadedFile.originalName)}"`);
+      res.setHeader('Content-Length', uploadedFile.size || 0);
+      
+      // 流式传输文件
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+      
+      fileStream.on('error', (error) => {
+        console.error('文件流错误:', error);
+        if (!res.headersSent) {
+          res.status(500).json({ message: "文件下载失败" });
+        }
+      });
+      
+    } catch (error: any) {
+      console.error('文件下载错误:', error);
+      res.status(500).json({ message: error.message || "文件下载失败" });
+    }
+  });
+
   // E-port IC card application form submission
   app.post("/api/experiments/eport-ic-card/submit", authenticateToken, upload.fields([
     { name: "businessLicense_0", maxCount: 1 },

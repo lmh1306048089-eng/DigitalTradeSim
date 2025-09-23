@@ -121,6 +121,7 @@ export interface IStorage {
   
   // File uploads
   getUploadedFiles(userId?: string, experimentId?: string): Promise<UploadedFile[]>;
+  getUploadedFile(id: string): Promise<UploadedFile | undefined>;
   createUploadedFile(file: InsertUploadedFile): Promise<UploadedFile>;
   deleteUploadedFile(id: string): Promise<void>;
   
@@ -497,6 +498,11 @@ export class DatabaseStorage implements IStorage {
     }
     
     return query.orderBy(desc(uploadedFiles.createdAt));
+  }
+
+  async getUploadedFile(id: string): Promise<UploadedFile | undefined> {
+    const [file] = await db.select().from(uploadedFiles).where(eq(uploadedFiles.id, id));
+    return file;
   }
 
   async createUploadedFile(fileData: InsertUploadedFile): Promise<UploadedFile> {
