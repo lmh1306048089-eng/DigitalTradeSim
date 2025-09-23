@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +17,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { insertDeclarationFormSchema, type InsertDeclarationForm } from "@shared/schema";
 import { 
   ArrowLeft, 
   ArrowRight, 
@@ -90,33 +104,31 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [uploadedFile, setUploadedFile] = useState<UploadedFileMetadata | null>(null);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [selectedPreviewTask, setSelectedPreviewTask] = useState<DeclarationTask | null>(null);
-  const [formData, setFormData] = useState({
-    // 原有字段
-    declarationNo: '',
-    productName: '',
-    quantity: '',
-    unitPrice: '',
-    totalPrice: '',
-    hsCode: '',
-    originCountry: '',
-    notes: '',
-    // 新增海关申报字段
-    preEntryNo: '',
-    customsNo: '',
-    consignorConsignee: '',
-    productionSalesUnit: '',
-    declarationUnit: '',
-    filingNo: '',
-    exportPort: '',
-    transportMode: '',
-    transportName: '',
-    tradeCountry: '',
-    arrivalCountry: '',
-    currency: 'USD',
-    marksAndNotes: '',
-    inspectionQuarantine: false,
-    priceInfluenceFactor: false,
-    paymentSettlementUsage: false
+  // 设置react-hook-form
+  const form = useForm<InsertDeclarationForm>({
+    resolver: zodResolver(insertDeclarationFormSchema),
+    defaultValues: {
+      consignorConsignee: '',
+      exportPort: '',
+      transportMode: '1' as any,
+      currency: 'USD',
+      declareDate: new Date(),
+      userId: '',
+      status: 'draft',
+      // 其他可选字段
+      preEntryNo: '',
+      customsNo: '',
+      productionSalesUnit: '',
+      declarationUnit: '',
+      filingNo: '',
+      transportName: '',
+      tradeCountry: '',
+      arrivalCountry: '',
+      marksAndNotes: '',
+      inspectionQuarantine: false,
+      priceInfluenceFactor: false,
+      paymentSettlementUsage: false,
+    },
   });
 
   // 自动填充测试数据
