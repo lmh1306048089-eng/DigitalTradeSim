@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,7 +127,6 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       licenseNo: '',
       // 合同与发票信息
       contractNo: '',
-      invoiceNo: '',
       tradeTerms: 'FOB',
       // 贸易信息
       transportName: '',
@@ -171,7 +170,25 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       entryUnit: '',
       unitAddress: '',
       fillDate: new Date(),
+      // 商品明细数组
+      goods: [{
+        itemNo: 1,
+        goodsCode: '',
+        goodsNameSpec: '',
+        quantity1: 0,
+        unit1: '',
+        unitPrice: 0,
+        totalPrice: 0,
+        finalDestCountry: '',
+        exemption: '',
+      }],
     },
+  });
+
+  // 设置商品明细字段数组
+  const { fields: goodsFields, append: addGoods, remove: removeGoods } = useFieldArray({
+    control: form.control,
+    name: "goods"
   });
 
   // 自动填充测试数据
@@ -1748,9 +1765,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* 商品明细表格 - 标准9列格式 */}
+                  {/* 商品明细表格 - 动态9列格式 */}
                   <div className="border rounded-lg p-4 bg-gray-50">
-                    <div className="grid grid-cols-9 gap-2 text-xs font-semibold text-gray-700 mb-3 pb-2 border-b">
+                    <div className="grid grid-cols-10 gap-2 text-xs font-semibold text-gray-700 mb-3 pb-2 border-b">
                       <div>项号</div>
                       <div>商品编号</div>
                       <div>商品名称/规格型号</div>
@@ -1760,20 +1777,206 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       <div>总价</div>
                       <div>最终目的地国（地区）</div>
                       <div>征免</div>
+                      <div>操作</div>
                     </div>
-                    <div className="grid grid-cols-9 gap-2 text-sm">
-                      <Input placeholder="1" className="h-8" data-testid="input-item-no" />
-                      <Input placeholder="85071000" className="h-8" data-testid="input-product-code" />
-                      <Input placeholder="智能手机" className="h-8" data-testid="input-goods-name" />
-                      <Input placeholder="1" className="h-8" data-testid="input-quantity" />
-                      <Input placeholder="台" className="h-8" data-testid="input-unit" />
-                      <Input placeholder="999.00" className="h-8" data-testid="input-unit-price" />
-                      <Input placeholder="999.00" className="h-8" data-testid="input-total-price" />
-                      <Input placeholder="美国" className="h-8" data-testid="input-destination-country" />
-                      <Input placeholder="101" className="h-8" data-testid="input-exemption" />
-                    </div>
+                    
+                    {goodsFields.map((field, index) => (
+                      <div key={field.id} className="grid grid-cols-10 gap-2 text-sm mb-2">
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.itemNo`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number"
+                                  value={index + 1}
+                                  readOnly
+                                  className="h-8 bg-gray-100" 
+                                  data-testid={`input-item-no-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.goodsCode`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="85071000" 
+                                  className="h-8" 
+                                  data-testid={`input-product-code-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.goodsNameSpec`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="智能手机" 
+                                  className="h-8" 
+                                  data-testid={`input-goods-name-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.quantity1`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number"
+                                  placeholder="1" 
+                                  className="h-8" 
+                                  data-testid={`input-quantity-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.unit1`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="台" 
+                                  className="h-8" 
+                                  data-testid={`input-unit-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.unitPrice`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="999.00" 
+                                  className="h-8" 
+                                  data-testid={`input-unit-price-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.totalPrice`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="999.00" 
+                                  className="h-8" 
+                                  data-testid={`input-total-price-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.finalDestCountry`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="美国" 
+                                  className="h-8" 
+                                  data-testid={`input-destination-country-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`goods.${index}.exemption`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="101" 
+                                  className="h-8" 
+                                  data-testid={`input-exemption-${index}`} 
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="flex justify-center">
+                          {goodsFields.length > 1 && (
+                            <Button 
+                              type="button"
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => removeGoods(index)}
+                              className="h-8 w-8 p-0"
+                              data-testid={`button-remove-item-${index}`}
+                            >
+                              ×
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
                     <div className="mt-3 pt-3 border-t">
-                      <Button variant="outline" size="sm" data-testid="button-add-item">
+                      <Button 
+                        type="button"
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => addGoods({
+                          itemNo: goodsFields.length + 1,
+                          goodsCode: '',
+                          goodsNameSpec: '',
+                          quantity1: 0,
+                          unit1: '',
+                          unitPrice: 0,
+                          totalPrice: 0,
+                          finalDestCountry: '',
+                          exemption: '',
+                        })}
+                        data-testid="button-add-item"
+                      >
                         + 添加商品明细
                       </Button>
                     </div>

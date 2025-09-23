@@ -714,6 +714,19 @@ export const declarationTestData = pgTable("declaration_test_data", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// 商品明细字段Schema（用于表单验证）
+export const goodsLineSchema = z.object({
+  itemNo: z.coerce.number().int().positive("项号必须为正整数"),
+  goodsCode: z.string().regex(/^\d{8,10}$/, "商品编号(HS)必须为8-10位数字").optional(), // 商品编号
+  goodsNameSpec: z.string().min(1, "商品名称/规格型号不能为空"),
+  quantity1: z.coerce.number().positive("数量必须为正数"),
+  unit1: z.string().min(1, "单位不能为空"),
+  unitPrice: z.coerce.number().positive("单价必须为正数"),
+  totalPrice: z.coerce.number().positive("总价必须为正数"),
+  finalDestCountry: z.string().optional(), // 最终目的地国
+  exemption: z.string().optional(), // 征免
+});
+
 // 海关申报表单相关 schema
 export const insertDeclarationFormSchema = createInsertSchema(declarationForms).omit({
   id: true,
@@ -771,6 +784,9 @@ export const insertDeclarationFormSchema = createInsertSchema(declarationForms).
   entryUnit: z.string().min(2, "录入单位不能少于2个字符").optional(), // 录入单位
   unitAddress: z.string().optional(), // 单位地址
   fillDate: z.coerce.date().optional(), // 填制日期
+  
+  // 商品明细数组
+  goods: z.array(goodsLineSchema).min(1, "至少需要一个商品明细"),
 });
 
 export const insertDeclarationItemSchema = createInsertSchema(declarationItems).omit({
@@ -826,6 +842,9 @@ export type DeclarationItem = typeof declarationItems.$inferSelect;
 export type InsertDeclarationItem = z.infer<typeof insertDeclarationItemSchema>;
 export type DeclarationTestData = typeof declarationTestData.$inferSelect;
 export type InsertDeclarationTestData = z.infer<typeof insertDeclarationTestDataSchema>;
+
+// 商品明细类型导出
+export type GoodsLine = z.infer<typeof goodsLineSchema>;
 
 // 电商企业资质备案测试数据表
 export const ecommerceQualificationTestData = pgTable("ecommerce_qualification_test_data", {
