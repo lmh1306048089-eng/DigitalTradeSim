@@ -208,7 +208,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       // 创建 FormData 对象
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('experimentId', 'customs-declaration-export'); // 实验ID
+      formData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5g11f3c159g'); // 报关单模式出口申报实验ID
 
       // 上传文件到服务器
       const response = await apiRequest("POST", "/api/upload", formData);
