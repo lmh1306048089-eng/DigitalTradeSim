@@ -141,9 +141,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       totalAmountForeign: 0,
       totalAmountCNY: 0,
       exchangeRate: 0,
-      freight: 0,
-      insurance: 0,
-      otherCharges: 0,
+      freight: '0',
+      insurance: '0',
+      otherCharges: '0',
       // 包装信息
       packages: 0,
       packageType: '',
@@ -425,7 +425,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                 processedValue = String(value);
               }
               
-              updatedGoodsItem[key] = processedValue;
+              (updatedGoodsItem as any)[key] = processedValue;
             } catch (error) {
               console.warn(`无法设置商品字段 ${key}:`, error);
             }
@@ -1141,58 +1141,54 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                 <p className="text-gray-600">上传文件自动填充或手动填写完整的海关申报信息</p>
               </div>
 
-            {/* 第一优先级：文件上传与自动填充 */}
-            <Card className="border-2 border-blue-200">
-              <CardHeader className="bg-blue-50">
-                <CardTitle className="flex items-center space-x-2">
-                  <Upload className="h-5 w-5 text-blue-600" />
-                  <span>1. 文件上传与自动填充</span>
-                </CardTitle>
-                <CardDescription>上传DOCX/CSV/XLS/XLSX文件自动解析并填充表单数据</CardDescription>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50/50">
-                  <Upload className="h-16 w-16 mx-auto mb-4 text-blue-500" />
-                  <div className="space-y-3">
-                    <h4 className="text-lg font-semibold text-blue-700">拖拽文件或点击上传</h4>
-                    <p className="text-sm text-blue-600">支持 DOCX, CSV, XLS, XLSX 格式文件</p>
-                    <p className="text-xs text-blue-500">上传后将自动解析文件内容并填充下方表单</p>
+            {/* 紧凑的文件上传区域 */}
+            <Card className="border border-gray-200">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Upload className="h-4 w-4 text-gray-600" />
+                    <span className="font-medium text-sm">文件上传自动填充</span>
                   </div>
-                  <input
-                    type="file"
-                    accept=".docx,.csv,.xls,.xlsx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="file-upload"
-                    data-testid="input-file-upload"
-                  />
-                  <Label
-                    htmlFor="file-upload"
-                    className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 mt-6 transition-colors"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    选择文件上传
-                  </Label>
+                  <span className="text-xs text-gray-500">支持 DOCX, CSV, XLS, XLSX</span>
                 </div>
                 
-                {uploadedFile && (
-                  <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                {!uploadedFile ? (
+                  <div className="border border-dashed border-gray-300 rounded-md p-3 text-center bg-gray-50/30">
+                    <input
+                      type="file"
+                      accept=".docx,.csv,.xls,.xlsx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                      data-testid="input-file-upload"
+                    />
+                    <Label
+                      htmlFor="file-upload"
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm rounded-md cursor-pointer hover:bg-blue-700 transition-colors"
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      选择文件
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-2">上传后自动解析并填充表单</p>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-green-50 border border-green-200 rounded-md">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <FileText className="h-8 w-8 text-green-600" />
+                      <div className="flex items-center space-x-2">
+                        <FileText className="h-4 w-4 text-green-600" />
                         <div>
-                          <p className="font-medium text-green-700">{uploadedFile.originalName}</p>
-                          <p className="text-sm text-green-600">已成功上传并解析</p>
+                          <p className="text-sm font-medium text-green-700">{uploadedFile.originalName}</p>
+                          <p className="text-xs text-green-600">已解析并填充</p>
                         </div>
                       </div>
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => setUploadedFile(null)}
-                        className="text-red-600 border-red-200 hover:bg-red-50"
+                        className="text-red-600 hover:bg-red-50 h-6 px-2 text-xs"
                         data-testid="button-remove-file"
                       >
-                        移除文件
+                        移除
                       </Button>
                     </div>
                   </div>
@@ -1222,6 +1218,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="18110820180001"
                             data-testid="input-pre-entry-no"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1239,6 +1236,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="181108201800010001"
                             data-testid="input-customs-no"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1273,6 +1271,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="深圳市XX电子科技有限公司"
                             data-testid="input-production-sales-unit"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1290,6 +1289,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="深圳市XX报关有限公司"
                             data-testid="input-declaration-unit"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1307,6 +1307,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="44011234567"
                             data-testid="input-filing-no"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1441,6 +1442,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="CA123"
                             data-testid="input-transport-name"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1492,6 +1494,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="美国"
                             data-testid="input-trade-country"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1509,6 +1512,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="美国"
                             data-testid="input-arrival-country"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1658,6 +1662,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="150.00"
                             data-testid="input-freight"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1677,6 +1682,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="50.00"
                             data-testid="input-insurance"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1696,6 +1702,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="25.00"
                             data-testid="input-other-charges"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
