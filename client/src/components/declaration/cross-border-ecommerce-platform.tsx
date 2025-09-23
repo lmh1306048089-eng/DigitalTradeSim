@@ -304,7 +304,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
   // 文件解析和自动填充功能
   const parseFileAndAutoFill = async (file: File) => {
+    console.log('🔍 开始解析文件:', file.name, '大小:', file.size, '类型:', file.type);
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    console.log('📄 文件扩展名:', fileExtension);
     let parsedData: any = {};
 
     try {
@@ -455,15 +457,21 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         }
 
         toast({
-          title: "文件解析成功",
-          description: `从 ${file.name} 中解析出数据并自动填充表单`,
+          title: "✅ 文件解析成功",
+          description: `从 ${file.name} 中解析出 ${Object.keys(parsedData).length} 个字段并自动填充表单`,
+        });
+      } else {
+        toast({
+          title: "⚠️ 文件解析完成",
+          description: `文件 ${file.name} 解析完成，但未找到可识别的表单数据`,
+          variant: "destructive"
         });
       }
     } catch (error) {
       console.error('文件解析错误:', error);
       toast({
-        title: "文件解析失败",
-        description: `无法解析文件 ${file.name}，请检查文件格式`,
+        title: "❌ 文件解析失败", 
+        description: `无法解析文件 ${file.name}：${error instanceof Error ? error.message : '未知错误'}`,
         variant: "destructive"
       });
     }
@@ -517,18 +525,23 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
   // DOCX文件解析（使用mammoth库）
   const parseDOCXFile = (file: File): Promise<any> => {
+    console.log('📄 开始解析DOCX文件:', file.name);
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = async (e) => {
         try {
           const arrayBuffer = e.target?.result as ArrayBuffer;
+          console.log('📄 ArrayBuffer大小:', arrayBuffer.byteLength);
           
           // 使用mammoth解析DOCX文件
           const result = await mammoth.extractRawText({ arrayBuffer });
           const text = result.value;
+          console.log('📄 提取的文本内容长度:', text.length);
+          console.log('📄 文本内容前500字符:', text.substring(0, 500));
           
           // 解析文档中的表单数据
           const mappedData = parseDOCXContent(text);
+          console.log('📄 解析的数据:', mappedData);
           resolve(mappedData);
         } catch (error) {
           console.error('DOCX解析错误:', error);
@@ -1014,10 +1027,17 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     if (!file) return;
 
     try {
+      // 显示开始处理的提示
+      toast({
+        title: "开始处理文件",
+        description: `正在解析 ${file.name}...`,
+      });
+
       // 1. 解析文件并自动填充表单
       await parseFileAndAutoFill(file);
 
       // 2. 上传文件到服务器（用于存档）
+      console.log('📤 开始上传文件到服务器');
       const uploadFormData = new FormData();
       uploadFormData.append('file', file);
       uploadFormData.append('experimentId', 'df7e2bc1-4532-4f89-9db3-d5g11f3c159g'); // 报关单模式出口申报实验ID
@@ -1026,10 +1046,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       
       if (response.ok) {
         const uploadedFileData: UploadedFileMetadata = await response.json();
+        console.log('✅ 文件上传成功:', uploadedFileData);
         setUploadedFile(uploadedFileData);
       }
     } catch (error) {
-      console.error('文件处理错误:', error);
+      console.error('💥 文件处理错误:', error);
       toast({
         title: "文件处理失败",
         description: "请检查文件格式并重试",
