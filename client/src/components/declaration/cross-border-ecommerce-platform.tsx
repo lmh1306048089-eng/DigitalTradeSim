@@ -209,89 +209,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       handleNext();
     }, 1500);
   };
-        </tr>
-        <tr>
-            <td>贸易国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>运抵国（地区）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>指运港<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>境内货源地<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-        </tr>
-        <tr>
-            <td>许可证号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>成交方式<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>运费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>保费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-        </tr>
-        <tr>
-            <td>杂费<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>合同协议号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>件数<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>包装种类<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-        </tr>
-        <tr>
-            <td>毛重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>净重（千克）<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>集装箱号<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-            <td>随附单证<br><span class="input-field" style="width:100%; height:40px;"></span></td>
-        </tr>
-    </table>
-    
-    <table>
-        <tr>
-            <td colspan="4">标记唛头及备注<br><span class="input-field" style="width:100%; height:60px;"></span></td>
-        </tr>
-    </table>
-    
-    <table>
-        <tr style="background-color: #f0f0f0;">
-            <th width="8%">项号</th>
-            <th width="12%">商品编号</th>
-            <th width="20%">商品名称、规格型号</th>
-            <th width="12%">数量及单位</th>
-            <th width="15%">最终目的国(地区)</th>
-            <th width="10%">单价</th>
-            <th width="10%">总价</th>
-            <th width="8%">币制</th>
-            <th width="5%">征免</th>
-        </tr>
-        <tr>
-            <td style="height:40px;"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td style="height:40px;"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-        <tr>
-            <td style="height:40px;"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </table>
-    
-    <table>
-        <tr>
-            <td width="33%">特殊关系确认：否</td>
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -543,7 +461,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     <div className="flex items-center space-x-3">
                       <FileText className="h-8 w-8 text-blue-600" />
                       <div>
-                        <div className="font-medium">海关出口货物报关单模板.docx</div>
+                        <div className="font-medium">海关出口货物报关单模板.csv</div>
                         <div className="text-sm text-gray-500">中华人民共和国海关标准格式</div>
                       </div>
                     </div>
@@ -684,11 +602,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                     <Upload className="h-12 w-12 mx-auto mb-4 text-gray-400" />
                     <div className="space-y-2">
                       <p className="text-sm text-gray-600">拖拽文件到此处或点击选择文件</p>
-                      <p className="text-xs text-gray-500">支持 DOC, DOCX, PDF 格式</p>
+                      <p className="text-xs text-gray-500">支持 CSV, XLS, XLSX 格式</p>
                     </div>
                     <input
                       type="file"
-                      accept=".doc,.docx,.pdf"
+                      accept=".csv,.xls,.xlsx"
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
