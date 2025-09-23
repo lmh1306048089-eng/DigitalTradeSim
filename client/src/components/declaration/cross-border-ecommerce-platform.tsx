@@ -319,8 +319,24 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         case 'docx':
           parsedData = await parseDOCXFile(file);
           break;
+        case 'pdf':
+          parsedData = await parseWithAI(file, 'pdf');
+          break;
+        case 'jpg':
+        case 'jpeg':
+        case 'png':
+        case 'gif':
+        case 'bmp':
+        case 'webp':
+          parsedData = await parseWithAI(file, 'image');
+          break;
         default:
-          throw new Error('不支持的文件格式');
+          toast({
+            title: "不支持的文件格式",
+            description: `暂不支持 .${fileExtension} 格式文件。支持格式：CSV, Excel, DOCX, PDF, 图片`,
+            variant: "destructive"
+          });
+          return;
       }
 
       // 自动填充表单数据（使用react-hook-form）
@@ -824,6 +840,175 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     return mappedData;
   };
 
+  // 使用通义千问AI解析PDF和图片文档
+  const parseWithAI = async (file: File, type: 'pdf' | 'image'): Promise<any> => {
+    return new Promise(async (resolve) => {
+      try {
+        // 显示AI解析进度提示
+        toast({
+          title: "🤖 AI智能解析中",
+          description: `正在使用通义千问AI识别${type === 'pdf' ? 'PDF文档' : '图片'}内容...`,
+        });
+
+        // 将文件转换为base64
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const base64Data = (reader.result as string).split(',')[1]; // 移除data:xxx;base64,前缀
+            
+            // 调用后端AI解析API
+            const response = await apiRequest('POST', '/api/ai-parse', {
+              file: base64Data,
+              filename: file.name,
+              type: type,
+              mimeType: file.type
+            });
+            
+            if (response.ok) {
+              const aiResult = await response.json();
+              // 处理可能的数据结构差异
+              const extractedData = aiResult.extractedData || aiResult || {};
+              const mappedData = mapAIResultToFormFields(extractedData);
+              
+              toast({
+                title: "✅ AI解析成功",
+                description: `已从${type === 'pdf' ? 'PDF文档' : '图片'}中提取并填充 ${Object.keys(mappedData).length} 个字段`,
+                variant: "default"
+              });
+              
+              resolve(mappedData);
+            } else {
+              throw new Error('AI解析服务响应错误');
+            }
+          } catch (error) {
+            console.error('AI解析错误:', error);
+            toast({
+              title: "❌ AI解析失败",
+              description: "通义千问AI解析出现问题，请检查网络连接或稍后重试",
+              variant: "destructive"
+            });
+            resolve({});
+          }
+        };
+        
+        reader.onerror = () => {
+          console.error('文件读取错误');
+          toast({
+            title: "文件读取失败",
+            description: "无法读取文件内容，请重新选择文件",
+            variant: "destructive"
+          });
+          resolve({});
+        };
+        
+        reader.readAsDataURL(file);
+      } catch (error) {
+        console.error('AI解析初始化错误:', error);
+        resolve({});
+      }
+    });
+  };
+
+  // 将AI解析结果映射到表单字段
+  const mapAIResultToFormFields = (aiData: any): any => {
+    const mappedData: any = {};
+    
+    if (!aiData || typeof aiData !== 'object') {
+      return mappedData;
+    }
+    
+    // AI结果字段映射字典
+    const aiFieldMappings: { [key: string]: string[] } = {
+      preEntryNo: ['预录入编号', '预录入号', 'pre-entry', 'preentry', '录入编号'],
+      customsNo: ['海关编号', '海关号', 'customs', '报关编号'],
+      consignorConsignee: ['收发货人', '企业名称', '公司名称', '收货人', '发货人', 'consignor', 'consignee', 'company'],
+      productionSalesUnit: ['生产销售单位', '生产企业', '销售单位', 'production', 'sales'],
+      declarationUnit: ['申报单位', '申报企业', 'declaration', '申报公司'],
+      agentUnit: ['代理申报单位', '代理企业', 'agent', '代理公司'],
+      contractNo: ['合同协议号', '合同号', 'contract', '协议号'],
+      invoiceNo: ['发票号', '发票编号', 'invoice', '商业发票号'],
+      billNo: ['提运单号', '运单号', 'bill', 'waybill', '提单号'],
+      freight: ['运费', 'freight', '运输费用'],
+      insurance: ['保险费', 'insurance', '保险'],
+      otherCharges: ['杂费', '其他费用', 'other charges', 'misc'],
+      grossWeight: ['毛重', 'gross weight', '总重量'],
+      netWeight: ['净重', 'net weight'],
+      packages: ['件数', '包装件数', 'packages', '数量'],
+      packageType: ['包装种类', '包装方式', 'package type'],
+      transMode: ['运输方式', '运输工具', 'transport', 'shipping'],
+      transNo: ['运输工具名称', '船名', '航班号', 'vessel', 'flight'],
+      voyageNo: ['航次号', 'voyage', '班次'],
+      billDate: ['提运单日期', '运单日期', 'bill date'],
+      tradingCountry: ['贸易国', '交易国', 'trading country'],
+      destinationCountry: ['最终目的国', '目的国', 'destination'],
+      departureCiq: ['启运港', '出发地', 'departure', 'origin'],
+      arrivalCiq: ['入境口岸', '到达港', 'arrival', 'destination port'],
+      marksAndNotes: ['标记唛头', '备注', '标记', 'marks', 'notes', '唛头']
+    };
+    
+    // 遍历AI提取的数据，尝试匹配表单字段
+    for (const [aiKey, aiValue] of Object.entries(aiData)) {
+      if (!aiValue || aiValue === '' || aiValue === null || aiValue === undefined) {
+        continue;
+      }
+      
+      const normalizedAiKey = aiKey.toLowerCase().replace(/[_\s-]/g, '');
+      let mapped = false;
+      
+      // 尝试匹配字段映射
+      for (const [formField, aiKeywords] of Object.entries(aiFieldMappings)) {
+        for (const keyword of aiKeywords) {
+          const normalizedKeyword = keyword.toLowerCase().replace(/[_\s-]/g, '');
+          if (normalizedAiKey.includes(normalizedKeyword) || normalizedKeyword.includes(normalizedAiKey)) {
+            mappedData[formField] = String(aiValue).trim();
+            mapped = true;
+            break;
+          }
+        }
+        if (mapped) break;
+      }
+      
+      // 如果没有直接匹配，尝试智能推测
+      if (!mapped) {
+        // 智能推测货物信息
+        if (aiKey.includes('商品') || aiKey.includes('货物') || aiKey.includes('product') || aiKey.includes('goods')) {
+          if (!mappedData.goodsName) {
+            mappedData.goodsName = String(aiValue).trim();
+          }
+        }
+        // 智能推测数量信息
+        else if (aiKey.includes('数量') || aiKey.includes('quantity') || aiKey.includes('amount')) {
+          if (!mappedData.quantity && !isNaN(Number(aiValue))) {
+            mappedData.quantity = Number(aiValue);
+          }
+        }
+        // 智能推测价格信息
+        else if ((aiKey.includes('价格') || aiKey.includes('price') || aiKey.includes('金额') || aiKey.includes('amount')) && !isNaN(Number(aiValue))) {
+          if (!mappedData.totalPrice) {
+            mappedData.totalPrice = Number(aiValue);
+          }
+        }
+      }
+    }
+    
+    // 处理商品明细数据（如果AI识别出商品列表）
+    if (aiData.goods && Array.isArray(aiData.goods)) {
+      mappedData.goods = aiData.goods.map((item: any, index: number) => ({
+        itemNo: index + 1,
+        goodsCode: item.code || item.goodsCode || '',
+        goodsNameSpec: item.name || item.goodsName || item.description || '',
+        quantity1: item.quantity || item.qty || 0,
+        unit1: item.unit || '台',
+        unitPrice: item.unitPrice || item.price || 0,
+        totalPrice: item.totalPrice || (item.quantity * item.unitPrice) || 0,
+        finalDestCountry: item.destination || item.country || '',
+        exemption: item.exemption || '101'
+      }));
+    }
+    
+    return mappedData;
+  };
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1138,7 +1323,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               <div className="text-center mb-6">
                 <Upload className="h-12 w-12 mx-auto mb-4 text-amber-600" />
                 <h3 className="text-xl font-semibold mb-2">报关单申报表单</h3>
-                <p className="text-gray-600">上传文件自动填充或手动填写完整的海关申报信息</p>
+                <p className="text-gray-600">🤖 支持AI智能解析：PDF、图片文档 + 传统文件格式自动填充</p>
               </div>
 
             {/* 紧凑的文件上传区域 */}
@@ -1146,17 +1331,17 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-2">
-                    <Upload className="h-4 w-4 text-gray-600" />
-                    <span className="font-medium text-sm">文件上传自动填充</span>
+                    <Upload className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-sm">🤖 AI智能解析 + 文件上传</span>
                   </div>
-                  <span className="text-xs text-gray-500">支持 DOCX, CSV, XLS, XLSX</span>
+                  <span className="text-xs text-gray-500 font-medium">PDF图片AI智能识别 | DOCX/CSV/Excel传统解析</span>
                 </div>
                 
                 {!uploadedFile ? (
                   <div className="border border-dashed border-gray-300 rounded-md p-3 text-center bg-gray-50/30">
                     <input
                       type="file"
-                      accept=".docx,.csv,.xls,.xlsx"
+                      accept=".docx,.csv,.xls,.xlsx,.pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
                       onChange={handleFileUpload}
                       className="hidden"
                       id="file-upload"
@@ -1169,7 +1354,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       <Upload className="h-3 w-3 mr-1" />
                       选择文件
                     </Label>
-                    <p className="text-xs text-gray-500 mt-2">上传后自动解析并填充表单</p>
+                    <p className="text-xs text-gray-500 mt-2">AI智能识别PDF图片 + 传统格式解析自动填充</p>
                   </div>
                 ) : (
                   <div className="p-3 bg-green-50 border border-green-200 rounded-md">
@@ -1749,6 +1934,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="CT202509220001"
                             data-testid="input-contract-no"
                             {...field}
+                            value={field.value || ''}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1796,7 +1982,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       <FormItem>
                         <FormLabel>包装种类</FormLabel>
                         <FormControl>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
                             <SelectTrigger data-testid="select-package-type">
                               <SelectValue placeholder="选择包装种类" />
                             </SelectTrigger>
@@ -2111,6 +2297,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           className="min-h-[100px]"
                           data-testid="textarea-marks-notes"
                           {...field}
+                          value={field.value || ''}
                         />
                       </FormControl>
                       <FormDescription>

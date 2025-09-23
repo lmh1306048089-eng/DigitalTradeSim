@@ -42,6 +42,193 @@ import {
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
 
+// 通义千问AI API调用函数
+async function callQwenAPI(base64Data: string, filename: string, type: 'pdf' | 'image', mimeType: string, apiKey: string) {
+  try {
+    const isImage = type === 'image';
+    const endpoint = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation';
+    
+    // 构建通义千问API请求
+    const requestBody = {
+      model: 'qwen-vl-plus',
+      input: {
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                text: `请分析这个${isImage ? '图片' : 'PDF文档'}，提取其中的报关单或商业文档信息。请识别并提取以下关键字段（如果存在）：
+
+**基本信息：**
+- 预录入编号
+- 海关编号  
+- 收发货人/企业名称
+- 申报单位
+- 代理申报单位
+- 合同协议号
+- 发票号
+- 提运单号
+
+**货物信息：**
+- 商品编码
+- 商品名称及规格
+- 数量
+- 单位
+- 单价
+- 总价
+- 原产国
+- 最终目的国
+
+**费用信息：**
+- 运费
+- 保险费
+- 杂费
+
+**运输信息：**
+- 运输方式
+- 运输工具名称
+- 航次号
+- 提运单日期
+- 启运港
+- 入境口岸
+
+**其他信息：**
+- 毛重
+- 净重
+- 件数
+- 包装种类
+- 标记唛头
+- 备注
+
+请以JSON格式返回提取的信息，字段名使用中文，对于没有找到的字段请不要包含在结果中。如果识别出多个商品，请在"goods"数组中列出。`
+              },
+              {
+                [isImage ? 'image' : 'file']: `data:${mimeType};base64,${base64Data}`
+              }
+            ]
+          }
+        ]
+      },
+      parameters: {
+        result_format: 'message'
+      }
+    };
+
+    console.log(`正在调用通义千问API解析${type}文档: ${filename}`);
+    
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+      signal: AbortSignal.timeout(60000) // 60秒超时
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('通义千问API错误:', response.status, errorText);
+      throw new Error(`通义千问API调用失败: ${response.status} ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    // 简化日志输出，避免泄露敏感信息
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('通义千问API响应状态:', result.output ? '成功' : '失败');
+    }
+
+    // 解析API响应
+    if (result.output && result.output.choices && result.output.choices[0]) {
+      let content = result.output.choices[0].message.content;
+      
+      // 处理content为数组的情况（DashScope可能返回数组格式）
+      if (Array.isArray(content)) {
+        content = content
+          .filter(item => item.text || typeof item === 'string')
+          .map(item => item.text || item)
+          .join('\n');
+      }
+      
+      // 确保content是字符串
+      if (typeof content !== 'string') {
+        console.warn('通义千问API返回的content格式异常:', typeof content);
+        content = String(content || '');
+      }
+      
+      // 尝试提取JSON内容
+      try {
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
+                         content.match(/\{[\s\S]*\}/) || 
+                         [null, content];
+        
+        if (jsonMatch[1]) {
+          const extractedData = JSON.parse(jsonMatch[1]);
+          console.log('AI解析成功，提取了', Object.keys(extractedData).length, '个字段');
+          return extractedData;
+        } else {
+          // 如果没有JSON格式，尝试从文本中提取信息
+          return parseTextResponse(content);
+        }
+      } catch (parseError) {
+        console.error('JSON解析错误:', parseError);
+        // 安全地调用parseTextResponse
+        try {
+          return parseTextResponse(content);
+        } catch (textParseError) {
+          console.error('文本解析也失败:', textParseError);
+          return {};
+        }
+      }
+    } else {
+      console.error('通义千问API响应格式异常:', result);
+      throw new Error('AI返回数据格式异常');
+    }
+  } catch (error: any) {
+    console.error('调用通义千问API失败:', error.message);
+    throw new Error(`AI解析失败: ${error.message}`);
+  }
+}
+
+// 解析文本响应，提取关键信息
+function parseTextResponse(text: string): any {
+  const extractedData: any = {};
+  
+  // 定义关键字段的正则模式
+  const patterns = {
+    '预录入编号': /预录入编号[：:]\s*([^\s\n，,。.]+)/i,
+    '海关编号': /海关编号[：:]\s*([^\s\n，,。.]+)/i,
+    '企业名称': /(?:企业名称|公司名称|收发货人)[：:]\s*([^\n，,。.]+)/i,
+    '申报单位': /申报单位[：:]\s*([^\n，,。.]+)/i,
+    '合同协议号': /(?:合同协议号|合同号)[：:]\s*([^\s\n，,。.]+)/i,
+    '发票号': /(?:发票号|发票编号)[：:]\s*([^\s\n，,。.]+)/i,
+    '提运单号': /(?:提运单号|运单号)[：:]\s*([^\s\n，,。.]+)/i,
+    '商品名称': /(?:商品名称|货物名称)[：:]\s*([^\n，,。.]+)/i,
+    '数量': /数量[：:]\s*([0-9]+)/i,
+    '单价': /单价[：:]\s*([0-9.]+)/i,
+    '总价': /(?:总价|金额)[：:]\s*([0-9.]+)/i,
+    '运费': /运费[：:]\s*([0-9.]+)/i,
+    '保险费': /保险费[：:]\s*([0-9.]+)/i,
+    '毛重': /毛重[：:]\s*([0-9.]+)/i,
+    '净重': /净重[：:]\s*([0-9.]+)/i,
+    '件数': /件数[：:]\s*([0-9]+)/i,
+    '目的国': /(?:目的国|最终目的国)[：:]\s*([^\n，,。.]+)/i,
+    '启运港': /启运港[：:]\s*([^\n，,。.]+)/i,
+    '备注': /(?:备注|说明)[：:]\s*([^\n]+)/i
+  };
+
+  // 应用正则模式提取信息
+  for (const [key, pattern] of Object.entries(patterns)) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      extractedData[key] = match[1].trim();
+    }
+  }
+
+  console.log('从文本中提取的数据:', extractedData);
+  return extractedData;
+}
+
 // Configure multer for file uploads
 const uploadDir = path.join(process.cwd(), "attached_assets", "uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -60,7 +247,12 @@ const upload = multer({
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'image/jpeg',
       'image/png',
-      'image/gif'
+      'image/gif',
+      'image/bmp',
+      'image/webp',
+      'text/csv',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
@@ -417,6 +609,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('文件上传错误:', error);
       res.status(400).json({ message: error.message || "文件上传失败" });
+    }
+  });
+
+  // AI解析API端点
+  app.post("/api/ai-parse", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { file, filename, type, mimeType } = req.body;
+      
+      if (!file || !filename || !type) {
+        return res.status(400).json({ message: "缺少必要的参数" });
+      }
+
+      // 验证文件类型
+      const supportedTypes = ['pdf', 'image'];
+      if (!supportedTypes.includes(type)) {
+        return res.status(400).json({ message: "不支持的文件类型" });
+      }
+
+      // 检查QWEN_API_KEY环境变量
+      const qwenApiKey = process.env.QWEN_API_KEY;
+      if (!qwenApiKey) {
+        console.error('QWEN_API_KEY未配置');
+        return res.status(500).json({ message: "AI服务未配置" });
+      }
+
+      // 调用通义千问API进行文档解析
+      const aiResponse = await callQwenAPI(file, filename, type, mimeType, qwenApiKey);
+      
+      res.json({
+        success: true,
+        extractedData: aiResponse,
+        message: `AI解析完成，识别${type === 'pdf' ? 'PDF文档' : '图片'}内容成功`
+      });
+
+    } catch (error: any) {
+      console.error('AI解析错误:', error);
+      res.status(500).json({ 
+        message: "AI解析失败", 
+        error: error.message 
+      });
     }
   });
 
