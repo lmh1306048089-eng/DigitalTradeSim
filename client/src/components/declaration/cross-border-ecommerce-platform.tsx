@@ -1199,6 +1199,41 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       </FormItem>
                     )}
                   />
+                  <FormField
+                    control={form.control}
+                    name="licenseNo"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>许可证号</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="LIC20250922001"
+                            data-testid="input-license-no"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="declareDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>申报日期</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="datetime-local"
+                            data-testid="input-declare-date"
+                            value={field.value ? new Date(field.value).toISOString().slice(0, 16) : ''}
+                            onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -1599,23 +1634,6 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="invoiceNo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>发票号</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="INV202509220001"
-                            data-testid="input-invoice-no"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
               </CardContent>
             </Card>
@@ -1724,29 +1742,35 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Package className="h-5 w-5 text-purple-600" />
-                  <span>4. 商品信息明细</span>
+                  <span>6. 商品信息明细</span>
                 </CardTitle>
                 <CardDescription>详细的商品申报信息</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* 商品明细表格 - 这里将在下一个任务中实现动态表格 */}
+                  {/* 商品明细表格 - 标准9列格式 */}
                   <div className="border rounded-lg p-4 bg-gray-50">
-                    <div className="grid grid-cols-6 gap-2 text-sm font-semibold text-gray-700 mb-3 pb-2 border-b">
+                    <div className="grid grid-cols-9 gap-2 text-xs font-semibold text-gray-700 mb-3 pb-2 border-b">
                       <div>项号</div>
+                      <div>商品编号</div>
                       <div>商品名称/规格型号</div>
                       <div>数量</div>
                       <div>单位</div>
                       <div>单价</div>
                       <div>总价</div>
+                      <div>最终目的地国（地区）</div>
+                      <div>征免</div>
                     </div>
-                    <div className="grid grid-cols-6 gap-2 text-sm">
+                    <div className="grid grid-cols-9 gap-2 text-sm">
                       <Input placeholder="1" className="h-8" data-testid="input-item-no" />
+                      <Input placeholder="85071000" className="h-8" data-testid="input-product-code" />
                       <Input placeholder="智能手机" className="h-8" data-testid="input-goods-name" />
                       <Input placeholder="1" className="h-8" data-testid="input-quantity" />
                       <Input placeholder="台" className="h-8" data-testid="input-unit" />
                       <Input placeholder="999.00" className="h-8" data-testid="input-unit-price" />
                       <Input placeholder="999.00" className="h-8" data-testid="input-total-price" />
+                      <Input placeholder="美国" className="h-8" data-testid="input-destination-country" />
+                      <Input placeholder="101" className="h-8" data-testid="input-exemption" />
                     </div>
                     <div className="mt-3 pt-3 border-t">
                       <Button variant="outline" size="sm" data-testid="button-add-item">
@@ -1758,14 +1782,14 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               </CardContent>
             </Card>
 
-            {/* 第五部分：备案与备注 */}
+            {/* 第五部分：标记唛头及备注 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Settings className="h-5 w-5 text-gray-600" />
-                  <span>5. 备案与备注</span>
+                  <FileText className="h-5 w-5 text-purple-600" />
+                  <span>7. 标记唛头及备注</span>
                 </CardTitle>
-                <CardDescription>补充信息和备注说明</CardDescription>
+                <CardDescription>填写货物标记、唛头信息和确认声明</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <FormField
@@ -1773,97 +1797,50 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                   name="marksAndNotes"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>标记唛码及备注</FormLabel>
+                      <FormLabel>标记唛头及备注</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="商品标记、包装说明、特殊要求等"
-                          rows={4}
+                          placeholder="请输入标记唛头及备注信息&#10;例如：&#10;- 货物标记：FRAGILE&#10;- 包装要求：防潮处理&#10;- 特殊说明：易碎物品，轻拿轻放"
+                          className="min-h-[100px]"
                           data-testid="textarea-marks-notes"
                           {...field}
                         />
                       </FormControl>
+                      <FormDescription>
+                        包括但不限于：货物标记、唛头信息、包装说明、特殊要求等
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="inspectionQuarantine"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-inspection-quarantine"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          检验检疫
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="priceInfluenceFactor"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-price-influence"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          价格影响因素
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="paymentSettlementUsage"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-payment-settlement"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          支付/结汇方式
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="specialRelationshipConfirm"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            data-testid="checkbox-special-relationship"
-                          />
-                        </FormControl>
-                        <FormLabel className="text-sm font-normal">
-                          特殊关系确认
-                        </FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="priceInfluenceConfirm"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                
+                {/* 确认声明 */}
+                <div className="space-y-3">
+                  <FormLabel className="text-base font-medium">确认声明</FormLabel>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="specialRelationshipConfirm"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              data-testid="checkbox-special-relationship"
+                            />
+                          </FormControl>
+                          <FormLabel className="text-sm font-normal">
+                            特殊关系确认
+                          </FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="priceInfluenceConfirm"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
                           <Checkbox
                             checked={field.value}
@@ -1895,167 +1872,19 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                       </FormItem>
                     )}
                   />
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* 第七部分：申报相关信息 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Building className="h-5 w-5 text-blue-600" />
-                  <span>7. 申报相关信息</span>
-                </CardTitle>
-                <CardDescription>填写申报地点、人员和联系方式</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="declarationLocation"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>申报地点</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="深圳蛇口海关"
-                            data-testid="input-declaration-location"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="customsDistrict"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>关区代码</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="5130"
-                            data-testid="input-customs-district"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="declarationPerson"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>申报人员</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="张三"
-                            data-testid="input-declaration-person"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="declarationPhone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>申报联系电话</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="138-0000-0000"
-                            data-testid="input-declaration-phone"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="filingNo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>备案号</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="BA2025092200001"
-                            data-testid="input-filing-no"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="licenseNo"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>许可证号</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="LIC20250922001"
-                            data-testid="input-license-no"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
 
-            {/* 第八部分：标记唛码及备注 */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                  <span>8. 标记唛码及备注</span>
-                </CardTitle>
-                <CardDescription>填写货物标记、唛码和其他备注信息</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="marksAndNotes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>标记唛码及备注</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="请输入标记唛码及备注信息&#10;例如：&#10;- 货物标记：FRAGILE&#10;- 包装要求：防潮处理&#10;- 特殊说明：易碎物品，轻拿轻放"
-                          className="min-h-[100px]"
-                          data-testid="textarea-marks-and-notes"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        包括但不限于：货物标记、唛头信息、包装说明、特殊要求等
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
 
             {/* 第九部分：随附单证和录入信息 */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <FileCheck className="h-5 w-5 text-green-600" />
-                  <span>9. 随附单证和录入信息</span>
+                  <span>8. 随附单证和录入信息</span>
                 </CardTitle>
                 <CardDescription>填写随附单证信息和录入人员信息</CardDescription>
               </CardHeader>
