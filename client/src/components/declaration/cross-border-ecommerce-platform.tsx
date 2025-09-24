@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -97,6 +98,7 @@ interface UploadedFileMetadata {
 export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBorderEcommercePlatformProps) {
   const { toast } = useToast();
   const { user } = useAuth(); // 获取当前用户信息
+  const [, setLocation] = useLocation(); // 添加导航功能
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('booking');
   const [bookingData, setBookingData] = useState<BookingData>({
     orderNumber: '',
@@ -127,6 +129,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     submittedAt: string;
     message: string;
   } | null>(null);
+  
+  // 报关单提交状态
+  const [isSubmittingDeclaration, setIsSubmittingDeclaration] = useState(false);
   
   // 使用 useMemo 优化校验引擎实例化
   const customsValidator = useMemo(() => createCustomsValidator(), []);
@@ -1709,6 +1714,238 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         description: "自动修复过程中发生错误，请手动修改",
         variant: "destructive",
       });
+    }
+  };
+
+  // 报关单提交处理函数（先提交，后AI校验）
+  const handleDeclarationSubmission = async () => {
+    setIsSubmittingDeclaration(true);
+    setShowValidation(true);
+    
+    try {
+      // 1. 先进行AI海关校验
+      const formData = form.getValues();
+      
+      // 转换表单数据为校验引擎需要的格式
+      const declarationData = {
+        // 基础信息
+        preEntryNo: formData.preEntryNo || undefined,
+        customsNo: formData.customsNo || undefined,
+        consignorConsignee: formData.consignorConsignee || '',
+        declarationUnit: formData.declarationUnit || undefined,
+        filingNo: formData.filingNo || undefined,
+        licenseNo: formData.licenseNo || undefined,
+        
+        // 贸易信息
+        exportPort: formData.exportPort || '',
+        declareDate: formData.declareDate,
+        transportMode: formData.transportMode || '1',
+        transportName: formData.transportName || undefined,
+        billNo: formData.billNo || undefined,
+        supervisionMode: formData.supervisionMode || undefined,
+        exemptionNature: formData.exemptionNature || undefined,
+        tradeCountry: formData.tradeCountry || undefined,
+        arrivalCountry: formData.arrivalCountry || undefined,
+        originCountry: formData.originCountry || undefined,
+        
+        // 金融信息 - 确保数字类型正确转换
+        currency: formData.currency,
+        exchangeRate: formData.exchangeRate ? Number(formData.exchangeRate) : undefined,
+        totalAmountForeign: formData.totalAmountForeign ? Number(formData.totalAmountForeign) : 0,
+        totalAmountCNY: formData.totalAmountCNY ? Number(formData.totalAmountCNY) : undefined,
+        freight: formData.freight ? Number(formData.freight) : undefined,
+        insurance: formData.insurance ? Number(formData.insurance) : undefined,
+        otherCharges: formData.otherCharges ? Number(formData.otherCharges) : undefined,
+        
+        // 计量包装 - 确保数字类型正确转换
+        packages: formData.packages ? Number(formData.packages) : undefined,
+        packageType: formData.packageType || undefined,
+        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
+        netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
+        
+        // 商品明细 - 添加防御性回退确保安全
+        goods: (formData.goods ?? []).map((good, index) => ({
+          itemNo: index + 1,
+          goodsCode: good.goodsCode || '',
+          goodsNameSpec: good.goodsNameSpec || '',
+          quantity1: good.quantity1 ? Number(good.quantity1) : 0,
+          unit1: good.unit1 || '',
+          unitPrice: good.unitPrice ? Number(good.unitPrice) : 0,
+          totalPrice: good.totalPrice ? Number(good.totalPrice) : 0,
+          currency: formData.currency,
+          originCountry: formData.originCountry || undefined,
+          finalDestCountry: good.finalDestCountry || undefined
+        })) || [],
+        
+        // 申报声明
+        inspectionQuarantine: formData.inspectionQuarantine,
+        priceInfluenceFactor: formData.priceInfluenceFactor,
+        paymentSettlementUsage: formData.paymentSettlementUsage
+      };
+      
+      console.log('🔍 开始AI海关校验，数据:', declarationData);
+      
+      // 2. 执行校验
+      const result = await customsValidator.validateDeclaration(declarationData);
+      console.log('✅ 校验完成，结果:', result);
+      setValidationResult(result);
+      
+      // 3. 根据校验结果处理
+      if (result.overallStatus === 'pass') {
+        // 校验通过，提交到海关系统
+        toast({
+          title: "🎉 校验通过",
+          description: `申报数据符合海关标准，正在提交到海关系统...`,
+        });
+        
+        // 直接在这里提交到海关系统，而不是调用现有的函数
+        setIsSubmittingToCustoms(true);
+        
+        try {
+          const formData = form.getValues();
+          
+          // 准备提交数据
+          const submissionData = {
+            // 基本申报信息
+            preEntryNo: formData.preEntryNo,
+            consignorConsignee: formData.consignorConsignee,
+            exportPort: formData.exportPort,
+            transportMode: formData.transportMode,
+            currency: formData.currency,
+            
+            // 贸易信息
+            supervisionMode: formData.supervisionMode,
+            tradeCountry: formData.tradeCountry,
+            
+            // 金融信息
+            totalAmountForeign: formData.totalAmountForeign,
+            totalAmountCNY: formData.totalAmountCNY,
+            exchangeRate: formData.exchangeRate,
+            
+            // 计量包装
+            packages: formData.packages,
+            grossWeight: formData.grossWeight,
+            netWeight: formData.netWeight,
+            
+            // 商品明细
+            goods: formData.goods || [],
+            
+            // 申报人员信息
+            entryPersonnel: formData.entryPersonnel,
+            entryUnit: formData.entryUnit,
+            
+            // 校验结果
+            validationResult: result,
+            
+            // 关联信息
+            bookingData: bookingData
+          };
+
+          console.log('📤 开始提交申报数据到海关系统:', submissionData);
+
+          // 创建出口申报记录 - 确保title字段始终有效
+          const titleComponents = {
+            bookingOrderNumber: bookingData.orderNumber || formData.billNo || '',
+            preEntryNo: formData.preEntryNo || '',
+            customsNo: formData.customsNo || '',
+            titleSuffix: bookingData.orderNumber || formData.billNo || Date.now().toString(),
+            finalTitle: ''
+          };
+          
+          titleComponents.finalTitle = titleComponents.bookingOrderNumber 
+            ? `跨境电商报关单申报-${titleComponents.bookingOrderNumber}`
+            : `出口申报-${Date.now()}`;
+
+          console.log('🔍 生成title字段:', titleComponents);
+
+          const response = await fetch('/api/export-declarations', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: titleComponents.finalTitle,
+              body: JSON.stringify(submissionData),
+              headers: JSON.stringify({
+                validationTime: result.validationTime,
+                customsReady: result.customsReady,
+                passedChecks: result.passedCount,
+                totalChecks: result.totalChecks
+              })
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`提交失败: ${response.status}`);
+          }
+
+          const submitResult = await response.json();
+          console.log('✅ 海关提交成功:', submitResult);
+
+          // 设置提交结果
+          setSubmissionResult({
+            success: true,
+            declarationId: submitResult.id,
+            customsNumber: submitResult.customsNumber || `海关${Date.now()}`,
+            submittedAt: new Date().toISOString(),
+            message: "申报数据已成功推送至海关系统，等待海关审核"
+          });
+
+          toast({
+            title: "提交成功",
+            description: "申报数据已成功提交到海关系统，可以前往中国国际单一窗口查询结果。",
+          });
+          
+        } catch (error) {
+          console.error('海关提交失败:', error);
+          toast({
+            title: "海关提交失败",
+            description: "提交到海关系统时发生错误，请重试或联系技术支持",
+            variant: "destructive",
+          });
+        } finally {
+          setIsSubmittingToCustoms(false);
+        }
+        
+      } else {
+        // 校验未通过，显示错误和建议
+        const errorCount = result.errors.length;
+        const warningCount = result.warnings.length;
+        
+        if (errorCount > 0) {
+          toast({
+            title: "❌ 发现问题，需要修改",
+            description: `发现${errorCount}个错误${warningCount > 0 ? `和${warningCount}个警告` : ''}，请根据下方建议修改后重新提交。`,
+            variant: "destructive",
+          });
+        } else if (warningCount > 0) {
+          toast({
+            title: "⚠️ 存在警告",
+            description: `发现${warningCount}个警告项，建议优化后重新提交。`,
+            variant: "default",
+          });
+        }
+        
+        // 滚动到错误字段
+        scrollToFirstError(result.errors.concat(result.warnings));
+        
+        // 重要：校验失败时，不提交到海关系统，并重置提交状态
+        setIsSubmittingToCustoms(false);
+        setSubmissionResult(null);
+      }
+      
+    } catch (error) {
+      console.error('提交过程发生错误:', error);
+      toast({
+        title: "提交失败",
+        description: "提交过程中发生错误，请重试或联系技术支持",
+        variant: "destructive",
+      });
+      // 确保错误时重置所有提交状态
+      setIsSubmittingToCustoms(false);
+      setSubmissionResult(null);
+    } finally {
+      setIsSubmittingDeclaration(false);
     }
   };
 
@@ -3920,38 +4157,38 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                     </ul>
                                   </div>
                                   
-                                  {/* AI海关校验功能 */}
-                                  <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200">
+                                  {/* 提交报关单按钮 */}
+                                  <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200">
                                     <CardHeader>
-                                      <CardTitle className="flex items-center text-green-800">
-                                        <Shield className="h-5 w-5 mr-2" />
-                                        AI海关智能校验
-                                        <Badge className="ml-2 bg-green-100 text-green-800">
-                                          10秒快速校验
+                                      <CardTitle className="flex items-center text-blue-800">
+                                        <Send className="h-5 w-5 mr-2" />
+                                        提交报关单
+                                        <Badge className="ml-2 bg-blue-100 text-blue-800">
+                                          AI智能校验
                                         </Badge>
                                       </CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4">
-                                      <div className="text-sm text-green-700">
-                                        基于真实海关标准的智能校验系统，快速检查申报数据的完整性、逻辑性和合规性，确保申报成功率。
+                                      <div className="text-sm text-blue-700">
+                                        点击提交报关单，系统会自动进行AI海关校验。如有问题会提供具体的修改建议，通过后可直接提交到海关系统。
                                       </div>
                                       
                                       <div className="flex items-center space-x-3">
                                         <Button 
-                                          onClick={performCustomsValidation}
-                                          disabled={validationLoading}
-                                          className="bg-green-600 hover:bg-green-700"
-                                          data-testid="button-start-validation"
+                                          onClick={handleDeclarationSubmission}
+                                          disabled={isSubmittingDeclaration}
+                                          className="bg-blue-600 hover:bg-blue-700"
+                                          data-testid="button-submit-declaration"
                                         >
-                                          {validationLoading ? (
+                                          {isSubmittingDeclaration ? (
                                             <>
                                               <Clock className="h-4 w-4 mr-2 animate-spin" />
-                                              校验中...
+                                              提交中...
                                             </>
                                           ) : (
                                             <>
-                                              <Zap className="h-4 w-4 mr-2" />
-                                              开始智能校验
+                                              <Send className="h-4 w-4 mr-2" />
+                                              提交报关单
                                             </>
                                           )}
                                         </Button>
@@ -4025,11 +4262,12 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                                 </div>
                                                 <div className="mt-4 text-center">
                                                   <Button 
+                                                    onClick={() => window.open(`https://www.singlewindow.cn/query?declarationId=${submissionResult.customsNumber}`, '_blank')}
                                                     className="bg-blue-600 hover:bg-blue-700"
                                                     data-testid="button-view-result"
                                                   >
                                                     <FileCheck className="h-4 w-4 mr-2" />
-                                                    前往中国国际单一窗口
+                                                    前往中国国际单一窗口查询
                                                   </Button>
                                                 </div>
                                               </div>
