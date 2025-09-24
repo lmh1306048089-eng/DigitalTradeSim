@@ -1943,6 +1943,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="1550.00"
                             data-testid="input-total-amount-foreign"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1962,6 +1964,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="11160.00"
                             data-testid="input-total-amount-cny"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -1981,6 +1985,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="7.2000"
                             data-testid="input-exchange-rate"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2001,6 +2007,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             data-testid="input-freight"
                             {...field}
                             value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2021,6 +2028,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             data-testid="input-insurance"
                             {...field}
                             value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2041,6 +2049,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             data-testid="input-other-charges"
                             {...field}
                             value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2122,6 +2131,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="100"
                             data-testid="input-packages"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2168,6 +2179,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="250.500"
                             data-testid="input-gross-weight"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2187,6 +2200,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="200.000"
                             data-testid="input-net-weight"
                             {...field}
+                            value={field.value || ''}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2289,7 +2304,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   type="number"
                                   placeholder="1" 
                                   className="h-8" 
-                                  data-testid={`input-quantity-${index}`} 
+                                  data-testid={`input-quantity-${index}`}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                                 />
                               </FormControl>
                             </FormItem>
@@ -2325,7 +2342,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   step="0.01"
                                   placeholder="999.00" 
                                   className="h-8" 
-                                  data-testid={`input-unit-price-${index}`} 
+                                  data-testid={`input-unit-price-${index}`}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                 />
                               </FormControl>
                             </FormItem>
@@ -2344,7 +2363,9 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   step="0.01"
                                   placeholder="999.00" 
                                   className="h-8" 
-                                  data-testid={`input-total-price-${index}`} 
+                                  data-testid={`input-total-price-${index}`}
+                                  value={field.value || ''}
+                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                                 />
                               </FormControl>
                             </FormItem>
