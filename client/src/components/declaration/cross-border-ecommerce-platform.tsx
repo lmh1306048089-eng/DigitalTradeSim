@@ -140,7 +140,6 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       transportMode: '1', // 移除 as any，使用字符串类型
       currency: 'USD',
       declareDate: new Date(),
-      userId: '',
       status: 'draft',
       // 基本申报信息
       preEntryNo: '',
