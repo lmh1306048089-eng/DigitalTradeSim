@@ -57,6 +57,7 @@ import Papa from 'papaparse';
 import mammoth from 'mammoth';
 import { createCustomsValidator, type ValidationResult, type ValidationError } from "@/lib/customs-validation-engine";
 import { ValidationResults } from "@/components/customs/validation-results";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CrossBorderEcommercePlatformProps {
   onComplete?: (data: any) => void;
@@ -95,6 +96,7 @@ interface UploadedFileMetadata {
 
 export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBorderEcommercePlatformProps) {
   const { toast } = useToast();
+  const { user } = useAuth(); // 获取当前用户信息
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('booking');
   const [bookingData, setBookingData] = useState<BookingData>({
     orderNumber: '',
@@ -245,8 +247,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               
               // 运输和口岸信息
               exportPort: testData.departurePort || '深圳盐田港',
-              transportMode: testData.transportMode === '海运' ? '05' : '05',
-              supervisionMode: '0110', // 使用schema允许的值
+              transportMode: '5' as const,
+              supervisionMode: '0110' as const, // 使用schema允许的值
               transportName: testData.transportToolNumber || 'OOCL TOKYO',
               billNo: testData.bookingOrderNumber || 'BOOK2024030001',
               
@@ -265,7 +267,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
               freight: '0', // 字符串类型
               insurance: '0', // 字符串类型
               otherCharges: '0', // 字符串类型
-              tradeTerms: 'FOB',
+              tradeTerms: 'FOB' as const,
               
               // 合同和包装信息
               contractNo: `CT${new Date().getFullYear()}${String(Date.now()).slice(-6)}`,
@@ -1304,7 +1306,22 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       return;
     }
 
-    console.log('表单提交数据:', data);
+    if (!user?.id) {
+      toast({
+        title: "用户验证失败", 
+        description: "请重新登录后再试",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 添加userId到提交数据中
+    const submitData = {
+      ...data,
+      userId: user.id
+    };
+
+    console.log('表单提交数据:', submitData);
     
     toast({
       title: "申报数据提交成功",
