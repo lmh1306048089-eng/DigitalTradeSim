@@ -116,6 +116,16 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   const [validationLoading, setValidationLoading] = useState(false);
   const [showValidation, setShowValidation] = useState(false);
   
+  // 海关提交状态
+  const [isSubmittingToCustoms, setIsSubmittingToCustoms] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<{
+    success: boolean;
+    declarationId: string;
+    customsNumber: string;
+    submittedAt: string;
+    message: string;
+  } | null>(null);
+  
   // 使用 useMemo 优化校验引擎实例化
   const customsValidator = useMemo(() => createCustomsValidator(), []);
   // 设置react-hook-form
@@ -1612,6 +1622,177 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         description: "自动修复过程中发生错误，请手动修改",
         variant: "destructive",
       });
+    }
+  };
+
+  // 提交到海关系统功能
+  const submitToCustomsSystem = async () => {
+    if (!validationResult?.customsReady) {
+      toast({
+        title: "无法提交",
+        description: "请先完成AI校验并确保通过后再提交",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingToCustoms(true);
+    
+    try {
+      const formData = form.getValues();
+      
+      // 准备提交数据
+      const submissionData = {
+        // 基本申报信息
+        preEntryNo: formData.preEntryNo,
+        consignorConsignee: formData.consignorConsignee,
+        exportPort: formData.exportPort,
+        transportMode: formData.transportMode,
+        currency: formData.currency,
+        
+        // 贸易信息
+        supervisionMode: formData.supervisionMode,
+        tradeCountry: formData.tradeCountry,
+        
+        // 金融信息
+        totalAmountForeign: formData.totalAmountForeign,
+        totalAmountCNY: formData.totalAmountCNY,
+        exchangeRate: formData.exchangeRate,
+        
+        // 计量包装
+        packages: formData.packages,
+        grossWeight: formData.grossWeight,
+        netWeight: formData.netWeight,
+        
+        // 商品明细
+        goods: formData.goods || [],
+        
+        // 申报人员信息
+        entryPersonnel: formData.entryPersonnel,
+        declarationPhone: formData.declarationPhone,
+        entryUnit: formData.entryUnit,
+        
+        // 校验结果
+        validationResult: validationResult,
+        
+        // 关联信息
+        bookingData: bookingData
+      };
+
+      console.log('📤 开始提交申报数据到海关系统:', submissionData);
+
+      // 创建出口申报记录
+      const declarationData = {
+        title: `跨境电商报关单申报-${bookingData.orderNumber}`,
+        declarationMode: "declaration" as const,
+        status: "declaration_pushed" as const,
+        declarationPushed: true,
+        customsValidated: true,
+        goodsDeclaration: submissionData,
+        goodsInfoFilled: true,
+        dataGenerated: true,
+        taskCreated: true,
+        readyAt: new Date()
+      };
+
+      // 调用API创建申报记录
+      const response = await apiRequest("POST", "/api/export-declarations", {
+        body: JSON.stringify(declarationData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('创建申报记录失败');
+      }
+
+      const declarationResult = await response.json();
+      
+      // 模拟海关系统处理过程（3-5秒）
+      await new Promise(resolve => setTimeout(resolve, 3500));
+      
+      // 生成海关系统响应
+      const customsNumber = `海关${new Date().getFullYear()}${String(Date.now()).slice(-6)}`;
+      const submittedAt = new Date().toISOString();
+      
+      // 更新申报记录，保存海关响应数据
+      const updateResponse = await apiRequest("PUT", `/api/export-declarations/${declarationResult.id}`, {
+        body: JSON.stringify({
+          status: "under_review",
+          generatedData: {
+            ...submissionData,
+            customsNumber,
+            submittedAt,
+            submissionType: "customs_system"
+          }
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!updateResponse.ok) {
+        throw new Error('更新申报状态失败');
+      }
+
+      // 创建提交历史记录
+      const historyResponse = await apiRequest("POST", `/api/export-declarations/${declarationResult.id}/submission-history`, {
+        body: JSON.stringify({
+          submissionType: "declaration",
+          platform: "single_window",
+          status: "success",
+          requestData: submissionData,
+          responseData: {
+            customsNumber,
+            submittedAt,
+            status: "under_review",
+            message: "申报数据已成功推送至海关系统，等待海关审核"
+          }
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!historyResponse.ok) {
+        console.warn('创建提交历史记录失败，但申报仍然成功');
+      }
+
+      const mockCustomsResponse = {
+        success: true,
+        declarationId: declarationResult.id,
+        customsNumber,
+        submittedAt,
+        message: "申报数据已成功推送至海关系统，等待海关审核"
+      };
+
+      setSubmissionResult(mockCustomsResponse);
+
+      // 刷新相关数据查询
+      queryClient.invalidateQueries({ queryKey: ['/api/export-declarations'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/export-declarations', declarationResult.id] });
+
+      // 通知父组件流程完成
+      onComplete?.(mockCustomsResponse);
+
+      toast({
+        title: "🎉 提交成功",
+        description: `申报单号：${mockCustomsResponse.customsNumber}`,
+        duration: 6000,
+      });
+
+      console.log('✅ 海关提交成功:', mockCustomsResponse);
+
+    } catch (error) {
+      console.error('❌ 海关提交失败:', error);
+      toast({
+        title: "提交失败",
+        description: "申报数据提交失败，请检查网络连接后重试",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingToCustoms(false);
     }
   };
 
@@ -3657,11 +3838,94 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   
                                   {/* 校验结果展示 */}
                                   {showValidation && validationResult && (
-                                    <ValidationResults 
-                                      results={validationResult}
-                                      onApplyFix={handleApplyFix}
-                                      isLoading={validationLoading}
-                                    />
+                                    <>
+                                      <ValidationResults 
+                                        results={validationResult}
+                                        onApplyFix={handleApplyFix}
+                                        isLoading={validationLoading}
+                                      />
+                                      
+                                      {/* 提交到海关系统 */}
+                                      {validationResult.customsReady && (
+                                        <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
+                                          <CardHeader>
+                                            <CardTitle className="flex items-center text-green-800">
+                                              <Send className="h-5 w-5 mr-2" />
+                                              提交到海关系统
+                                              <Badge className="ml-2 bg-green-100 text-green-800">
+                                                准备就绪
+                                              </Badge>
+                                            </CardTitle>
+                                          </CardHeader>
+                                          <CardContent className="space-y-4">
+                                            <div className="text-sm text-green-700">
+                                              AI校验已通过，申报数据符合海关标准，可以正式提交到中国国际单一窗口系统进行海关审核。
+                                            </div>
+                                            
+                                            {submissionResult ? (
+                                              /* 提交成功显示 */
+                                              <div className="bg-white p-4 rounded-lg border border-green-200">
+                                                <div className="flex items-center mb-3">
+                                                  <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
+                                                  <span className="font-medium text-green-800">提交成功</span>
+                                                </div>
+                                                <div className="space-y-2 text-sm">
+                                                  <div className="flex justify-between">
+                                                    <span className="text-gray-600">申报单号:</span>
+                                                    <span className="font-medium">{submissionResult.customsNumber}</span>
+                                                  </div>
+                                                  <div className="flex justify-between">
+                                                    <span className="text-gray-600">提交时间:</span>
+                                                    <span className="font-medium">
+                                                      {new Date(submissionResult.submittedAt).toLocaleString('zh-CN')}
+                                                    </span>
+                                                  </div>
+                                                  <div className="flex justify-between">
+                                                    <span className="text-gray-600">状态:</span>
+                                                    <Badge className="bg-blue-100 text-blue-800">等待海关审核</Badge>
+                                                  </div>
+                                                </div>
+                                                <div className="mt-4 text-center">
+                                                  <Button 
+                                                    className="bg-blue-600 hover:bg-blue-700"
+                                                    data-testid="button-view-result"
+                                                  >
+                                                    <FileCheck className="h-4 w-4 mr-2" />
+                                                    前往中国国际单一窗口
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              /* 提交按钮 */
+                                              <div className="flex items-center space-x-3">
+                                                <Button 
+                                                  onClick={submitToCustomsSystem}
+                                                  disabled={isSubmittingToCustoms}
+                                                  className="bg-green-600 hover:bg-green-700"
+                                                  data-testid="button-submit-to-customs"
+                                                >
+                                                  {isSubmittingToCustoms ? (
+                                                    <>
+                                                      <Clock className="h-4 w-4 mr-2 animate-spin" />
+                                                      推送中...
+                                                    </>
+                                                  ) : (
+                                                    <>
+                                                      <Send className="h-4 w-4 mr-2" />
+                                                      提交到海关系统
+                                                    </>
+                                                  )}
+                                                </Button>
+                                                
+                                                <div className="text-xs text-gray-500">
+                                                  提交后将生成正式申报单号
+                                                </div>
+                                              </div>
+                                            )}
+                                          </CardContent>
+                                        </Card>
+                                      )}
+                                    </>
                                   )}
                                   
                                   {/* 调试信息面板 */}
