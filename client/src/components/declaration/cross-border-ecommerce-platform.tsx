@@ -2941,12 +2941,16 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                     </CardHeader>
                                     <CardContent>
                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                                        {Object.entries(generateRealDeclarationData(selectedPreviewTask)).map(([key, value]) => (
+                                        {selectedPreviewTask ? Object.entries(generateRealDeclarationData(selectedPreviewTask)).map(([key, value]) => (
                                           <div key={key} className="flex flex-col space-y-1">
                                             <span className="text-gray-600 text-xs">{key}</span>
                                             <span className="font-medium bg-gray-50 p-2 rounded border">{value}</span>
                                           </div>
-                                        ))}
+                                        )) : (
+                                          <div className="col-span-full text-center text-gray-500">
+                                            预览任务数据加载中...
+                                          </div>
+                                        )}
                                       </div>
                                     </CardContent>
                                   </Card>
