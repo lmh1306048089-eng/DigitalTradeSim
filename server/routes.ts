@@ -1576,6 +1576,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hasTitle: 'title' in req.body
       });
       
+      // 🛠️ 服务器端fallback保护：确保title字段始终有效
+      if (!req.body.title || req.body.title === 'undefined' || typeof req.body.title !== 'string') {
+        const fallbackTitle = `出口申报-${Date.now()}`;
+        console.log('🔧 服务器端使用fallback title:', fallbackTitle);
+        req.body.title = fallbackTitle;
+      }
+      
       const declarationData = insertExportDeclarationSchema.parse({
         ...req.body,
         userId
