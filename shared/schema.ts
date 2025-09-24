@@ -90,7 +90,7 @@ export const studentProgress = pgTable("student_progress", {
   experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => experiments.id, { onDelete: "cascade" }),
   businessRoleId: varchar("business_role_id", { length: 36 }).references(() => businessRoles.id), // 当前扮演的业务角色
   sceneId: varchar("scene_id", { length: 36 }).references(() => virtualScenes.id),
-  status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, in_progress, completed
+  status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, in_progress, submitted, completed
   progress: integer("progress").notNull().default(0), // 0-100
   currentStep: integer("current_step").default(0),
   startedAt: timestamp("started_at"),
