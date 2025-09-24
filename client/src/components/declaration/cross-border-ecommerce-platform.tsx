@@ -2102,6 +2102,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="18110820180001"
                             data-testid="input-pre-entry-no"
+                            className={form.formState.errors.preEntryNo ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value || ''}
                           />
@@ -2120,6 +2121,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="181108201800010001"
                             data-testid="input-customs-no"
+                            className={form.formState.errors.customsNo ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value || ''}
                           />
@@ -2138,6 +2140,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="深圳市XX贸易有限公司"
                             data-testid="input-consignor-consignee"
+                            className={form.formState.errors.consignorConsignee ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                           />
                         </FormControl>
@@ -2155,6 +2158,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="深圳市XX电子科技有限公司"
                             data-testid="input-production-sales-unit"
+                            className={form.formState.errors.productionSalesUnit ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value || ''}
                           />
@@ -2259,6 +2263,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="深圳"
                             data-testid="input-export-port"
+                            className={form.formState.errors.exportPort ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                           />
                         </FormControl>
@@ -2274,7 +2279,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                         <FormLabel>运输方式 *</FormLabel>
                         <FormControl>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
-                            <SelectTrigger data-testid="select-transport-mode">
+                            <SelectTrigger data-testid="select-transport-mode" className={form.formState.errors.transportMode ? 'border-red-500 ring-red-500 ring-1' : ''}>
                               <SelectValue placeholder="选择运输方式" />
                             </SelectTrigger>
                             <SelectContent>
@@ -2326,6 +2331,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                           <Input
                             placeholder="CA123"
                             data-testid="input-transport-name"
+                            className={form.formState.errors.transportName ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value || ''}
                           />
@@ -2489,6 +2495,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             step="0.01"
                             placeholder="1550.00"
                             data-testid="input-total-amount-foreign"
+                            className={form.formState.errors.totalAmountForeign ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value?.toString() || ''}
                             onChange={(e) => {
@@ -2513,6 +2520,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             step="0.01"
                             placeholder="11160.00"
                             data-testid="input-total-amount-cny"
+                            className={form.formState.errors.totalAmountCNY ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value?.toString() || ''}
                             onChange={(e) => {
@@ -2537,6 +2545,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             step="0.000001"
                             placeholder="7.2000"
                             data-testid="input-exchange-rate"
+                            className={form.formState.errors.exchangeRate ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value?.toString() || ''}
                             onChange={(e) => {
@@ -2561,6 +2570,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             step="0.01"
                             placeholder="150.00"
                             data-testid="input-freight"
+                            className={form.formState.errors.freight ? 'border-red-500 ring-red-500 ring-1' : ''}
                             {...field}
                             value={field.value?.toString() || ''}
                             onChange={(e) => {
@@ -2842,7 +2852,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                 <Input 
                                   {...field} 
                                   placeholder="85071000" 
-                                  className="h-8" 
+                                  className={`h-8 ${form.formState.errors.goods?.[index]?.goodsCode ? 'border-red-500 ring-red-500 ring-1' : ''}`}
                                   data-testid={`input-product-code-${index}`} 
                                 />
                               </FormControl>
@@ -2859,7 +2869,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                 <Input 
                                   {...field} 
                                   placeholder="智能手机" 
-                                  className="h-8" 
+                                  className={`h-8 ${form.formState.errors.goods?.[index]?.goodsNameSpec ? 'border-red-500 ring-red-500 ring-1' : ''}`}
                                   data-testid={`input-goods-name-${index}`} 
                                 />
                               </FormControl>
@@ -2877,7 +2887,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   {...field} 
                                   type="number"
                                   placeholder="1" 
-                                  className="h-8" 
+                                  className={`h-8 ${form.formState.errors.goods?.[index]?.quantity1 ? 'border-red-500 ring-red-500 ring-1' : ''}`}
                                   data-testid={`input-quantity-${index}`}
                                   value={field.value?.toString() || ''}
                                   onChange={(e) => {
@@ -2918,7 +2928,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   type="number"
                                   step="0.01"
                                   placeholder="999.00" 
-                                  className="h-8" 
+                                  className={`h-8 ${form.formState.errors.goods?.[index]?.unitPrice ? 'border-red-500 ring-red-500 ring-1' : ''}`}
                                   data-testid={`input-unit-price-${index}`}
                                   value={field.value?.toString() || ''}
                                   onChange={(e) => {
