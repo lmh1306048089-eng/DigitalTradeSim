@@ -1187,28 +1187,76 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     setPreviewDialogOpen(true);
   };
 
-  const generateMockDeclarationData = (task: DeclarationTask) => {
-    const formValues = form.watch();
-    return {
-      预录入编号: `CB${new Date().getFullYear()}${(Math.random() * 10000).toFixed(0).padStart(4, '0')}`,
-      海关编号: `${new Date().getFullYear()}${(Math.random() * 1000000).toFixed(0).padStart(6, '0')}`,
-      收发货人: formValues.consignorConsignee || '深圳进出口有限公司',
-      出口口岸: '上海浦东机场',
-      出口日期: new Date().toISOString().split('T')[0],
-      申报日期: new Date().toISOString().split('T')[0],
-      生产销售单位: '上海贸易有限公司',
-      运输方式: '5(航空运输)',
-      运输工具名称: 'CA1234',
-      商品名称: '智能手机配件',
-      数量: '100台',
-      单价: '15.50 USD',
-      总价: '1550.00 USD',
-      HS编码: '8517120000',
-      原产国: '中国',
-      监管方式: '9610',
-      贸易方式: '跨境电商B2C出口',
-      备注: '手机及配件'
-    };
+  const generateRealDeclarationData = (task: DeclarationTask) => {
+    const formValues = form.getValues();
+    const goods = formValues.goods && formValues.goods.length > 0 ? formValues.goods[0] : {};
+    
+    // 创建显示用的真实申报数据
+    const declarationData: { [key: string]: string } = {};
+    
+    // 基本申报信息
+    if (formValues.preEntryNo) declarationData['预录入编号'] = formValues.preEntryNo;
+    if (formValues.customsNo) declarationData['海关编号'] = formValues.customsNo;
+    if (formValues.consignorConsignee) declarationData['收发货人'] = formValues.consignorConsignee;
+    if (formValues.productionSalesUnit) declarationData['生产销售单位'] = formValues.productionSalesUnit;
+    if (formValues.declarationUnit) declarationData['申报单位'] = formValues.declarationUnit;
+    if (formValues.exportPort) declarationData['出口口岸'] = formValues.exportPort;
+    if (formValues.declareDate) declarationData['申报日期'] = new Date(formValues.declareDate).toLocaleDateString('zh-CN');
+    
+    // 运输信息
+    if (formValues.transportMode) declarationData['运输方式'] = formValues.transportMode;
+    if (formValues.transportName) declarationData['运输工具名称'] = formValues.transportName;
+    
+    // 贸易信息
+    if (formValues.tradeCountry) declarationData['贸易国'] = formValues.tradeCountry;
+    if (formValues.arrivalCountry) declarationData['运抵国'] = formValues.arrivalCountry;
+    if (formValues.currency) declarationData['币制'] = formValues.currency;
+    if (formValues.exemptionNature) declarationData['征免性质'] = formValues.exemptionNature;
+    
+    // 金额信息
+    if (formValues.totalAmountForeign) declarationData['外币总价'] = `${formValues.totalAmountForeign} ${formValues.currency || 'USD'}`;
+    if (formValues.totalAmountCNY) declarationData['人民币总价'] = `${formValues.totalAmountCNY} CNY`;
+    if (formValues.exchangeRate) declarationData['汇率'] = formValues.exchangeRate.toString();
+    if (formValues.freight) declarationData['运费'] = `${formValues.freight} ${formValues.currency || 'USD'}`;
+    if (formValues.insurance) declarationData['保险费'] = `${formValues.insurance} ${formValues.currency || 'USD'}`;
+    if (formValues.otherCharges) declarationData['杂费'] = `${formValues.otherCharges} ${formValues.currency || 'USD'}`;
+    
+    // 贸易条款
+    if (formValues.tradeTerms) declarationData['成交方式'] = formValues.tradeTerms;
+    if (formValues.contractNo) declarationData['合同协议号'] = formValues.contractNo;
+    
+    // 包装信息
+    if (formValues.packages) declarationData['件数'] = formValues.packages.toString();
+    if (formValues.packageType) declarationData['包装种类'] = formValues.packageType;
+    if (formValues.grossWeight) declarationData['毛重'] = `${formValues.grossWeight} KG`;
+    if (formValues.netWeight) declarationData['净重'] = `${formValues.netWeight} KG`;
+    
+    // 其他信息
+    if (formValues.marksAndNotes) declarationData['标记唛头'] = formValues.marksAndNotes;
+    if (formValues.declarationLocation) declarationData['申报地点'] = formValues.declarationLocation;
+    if (formValues.customsDistrict) declarationData['关区代码'] = formValues.customsDistrict;
+    if (formValues.declarationPerson) declarationData['申报人员'] = formValues.declarationPerson;
+    if (formValues.declarationPhone) declarationData['申报联系电话'] = formValues.declarationPhone;
+    
+    // 商品信息（第一个商品）
+    if (goods && typeof goods === 'object') {
+      const goodsItem = goods as any; // Type assertion for flexibility
+      if (goodsItem.goodsCode) declarationData['商品编码'] = goodsItem.goodsCode;
+      if (goodsItem.goodsNameSpec) declarationData['商品名称及规格'] = goodsItem.goodsNameSpec;
+      if (goodsItem.quantity1) declarationData['数量'] = goodsItem.quantity1.toString();
+      if (goodsItem.unit1) declarationData['计量单位'] = goodsItem.unit1;
+      if (goodsItem.unitPrice) declarationData['单价'] = `${goodsItem.unitPrice} ${formValues.currency || 'USD'}`;
+      if (goodsItem.totalPrice) declarationData['总价'] = `${goodsItem.totalPrice} ${formValues.currency || 'USD'}`;
+      if (goodsItem.finalDestCountry) declarationData['最终目的地国'] = goodsItem.finalDestCountry;
+      if (goodsItem.exemption) declarationData['征免'] = goodsItem.exemption;
+    }
+    
+    // 如果所有字段都为空，显示提示信息
+    if (Object.keys(declarationData).length === 0) {
+      declarationData['提示'] = '请先填写申报信息';
+    }
+    
+    return declarationData;
   };
 
   const renderCurrentStep = () => {
@@ -2809,7 +2857,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                     </CardHeader>
                                     <CardContent>
                                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
-                                        {Object.entries(generateMockDeclarationData(selectedPreviewTask)).map(([key, value]) => (
+                                        {Object.entries(generateRealDeclarationData(selectedPreviewTask)).map(([key, value]) => (
                                           <div key={key} className="flex flex-col space-y-1">
                                             <span className="text-gray-600 text-xs">{key}</span>
                                             <span className="font-medium bg-gray-50 p-2 rounded border">{value}</span>
@@ -2822,7 +2870,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   <div className="bg-blue-50 p-4 rounded-lg">
                                     <h4 className="font-medium mb-2 text-blue-800">数据说明：</h4>
                                     <ul className="text-sm text-blue-700 space-y-1">
-                                      <li>• 该数据基于您填写的申报信息自动生成</li>
+                                      <li>• 显示您实际填写的完整申报信息</li>
+                                      <li>• 包含通过文件上传解析的数据</li>
                                       <li>• 符合海关跨境电商出口申报标准格式</li>
                                       <li>• 数据已完成合规性检查，可直接用于申报</li>
                                       <li>• 推送后将进入海关审核流程</li>
