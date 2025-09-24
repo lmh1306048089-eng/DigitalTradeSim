@@ -1788,9 +1788,15 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       console.error('❌ 海关提交失败:', error);
       
       let errorMessage = "申报数据提交失败，请稍后重试";
+      let shouldReload = false;
       
+      // 检查是否是认证过期错误
+      if (error?.isAuthExpired || (error?.status === 401 && error?.message?.includes('认证已过期'))) {
+        errorMessage = "登录状态已过期，即将自动跳转到登录页面";
+        shouldReload = true;
+      }
       // 检查是否是网络错误或服务器错误
-      if (error instanceof TypeError && error.message.includes('fetch')) {
+      else if (error instanceof TypeError && error.message.includes('fetch')) {
         errorMessage = "网络连接失败，请检查网络后重试";
       } else if (error.response) {
         // 服务器返回的错误
@@ -1819,6 +1825,13 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         description: errorMessage,
         variant: "destructive",
       });
+      
+      // 如果是认证过期，3秒后刷新页面到登录页
+      if (shouldReload) {
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 3000);
+      }
     } finally {
       setIsSubmittingToCustoms(false);
     }

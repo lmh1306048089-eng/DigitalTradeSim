@@ -109,9 +109,34 @@ export async function apiRequest(
         
         await throwIfResNotOk(retryRes);
         return retryRes;
+      } else {
+        // Refresh token failed, clear all tokens and indicate auth failure
+        console.warn('Refresh token expired or invalid, clearing auth tokens');
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        
+        // Throw a special auth error that can be handled by the UI
+        const error = new Error('认证已过期，请重新登录');
+        (error as any).status = 401;
+        (error as any).isAuthExpired = true;
+        throw error;
       }
     } catch (error) {
       console.warn('Auto token refresh failed:', error);
+      
+      // If it's already our auth error, re-throw it
+      if ((error as any)?.isAuthExpired) {
+        throw error;
+      }
+      
+      // Otherwise, clear tokens and create auth error
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      const authError = new Error('认证已过期，请重新登录');
+      (authError as any).status = 401;
+      (authError as any).isAuthExpired = true;
+      throw authError;
     }
   }
 
