@@ -1191,6 +1191,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     const formValues = form.getValues();
     const goods = formValues.goods && formValues.goods.length > 0 ? formValues.goods[0] : {};
     
+    // 调试：打印表单数据结构
+    console.log('🔍 调试 - 完整表单数据:', formValues);
+    console.log('🔍 调试 - 商品数据:', goods);
+    console.log('🔍 调试 - 表单字段名:', Object.keys(formValues));
+    
     // 创建显示用的真实申报数据
     const declarationData: { [key: string]: string } = {};
     
