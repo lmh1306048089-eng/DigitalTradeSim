@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useParams } from "wouter";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, FlaskConical, CheckCircle, Clock, AlertCircle, Users, Play, Building, FileText, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/header";
-import { ExperimentStatusManager } from "@/components/experiments/experiment-status-manager";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
@@ -13,185 +15,163 @@ import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { OverseasWarehouseForm } from "@/components/enterprise/overseas-warehouse-form";
 import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
 import { CrossBorderEcommercePlatform } from "@/components/declaration/cross-border-ecommerce-platform";
-import { apiRequest } from "@/lib/queryClient";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
   const [, setLocation] = useLocation();
   const { id } = useParams();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // 简化状态管理 - 只需要一个状态控制表单显示
-  const [activeForm, setActiveForm] = useState<string | null>(null);
+  const [showCustomsForm, setShowCustomsForm] = useState(false);
+  const [showEportForm, setShowEportForm] = useState(false);
+  const [showEnterpriseQualificationForm, setShowEnterpriseQualificationForm] = useState(false);
+  const [showTransportIdForm, setShowTransportIdForm] = useState(false);
+  const [showOverseasWarehouseForm, setShowOverseasWarehouseForm] = useState(false);
+  const [showCustomsDeclarationForm, setShowCustomsDeclarationForm] = useState(false);
+  const [showListDeclarationForm, setShowListDeclarationForm] = useState(false);
+  const [showCrossBorderPlatform, setShowCrossBorderPlatform] = useState(false);
 
   // 根据实验ID映射到对应的场景
   const getSceneFromExperimentId = (experimentId: string): string => {
     const experimentSceneMap: Record<string, string> = {
-      // 电商企业场景实验
-      "exp001": "enterprise_scene",
-      "exp002": "enterprise_scene", 
-      "exp003": "enterprise_scene",
-      // 海关场景实验  
-      "exp004": "customs_scene",
-      "exp005": "customs_scene",
-      // 报关单实验
-      "exp006": "customs_scene"
+      '873e1fe1-0430-4f47-9db2-c4f00e2b048f': 'enterprise_scene', // 海关企业资质备案
+      'b2e8f3c1-1234-4567-8901-234567890abc': 'enterprise_scene', // 电子口岸IC卡申请
+      'ec901234-5678-9012-3456-789abcdef012': 'enterprise_scene', // 电商企业资质备案
+      'transmission-id-application': 'enterprise_scene', // 传输ID申请
+      'overseas-warehouse-registration': 'customs_scene', // 海外仓业务模式备案
+      'df7e2bc1-4532-4f89-9db3-d5g11f3c159g': 'enterprise_scene', // 出口申报
     };
-    return experimentSceneMap[experimentId] || "enterprise_scene";
+    return experimentSceneMap[experimentId] || 'overview';
   };
 
-  // 生成返回场景的URL
+  // 构建返回场景的URL
   const getBackToSceneUrl = () => {
-    if (!id) return "/scenes";
-    const sceneId = getSceneFromExperimentId(id);
-    return `/scenes/${sceneId}`;
+    if (!id) return '/';
+    const sceneCode = getSceneFromExperimentId(id);
+    if (sceneCode === 'overview') return '/';
+    return `/?section=${sceneCode}`;
   };
 
-  // 获取实验数据
-  const { data: experiment, isLoading: experimentLoading, error: experimentError } = useQuery<Experiment>({
-    queryKey: ["/api/experiments", id],
-    enabled: !!id
+  // Fetch experiment data
+  const { data: experiments = [], isLoading: experimentsLoading, error: experimentsError } = useQuery<Experiment[]>({
+    queryKey: ["/api/experiments"],
   });
 
-  // 获取进度数据
-  const { data: experimentProgress, isLoading: progressLoading } = useQuery<StudentProgress>({
-    queryKey: ["/api/progress", id],
-    enabled: !!id
+  const { data: progress = [], isLoading: progressLoading, error: progressError } = useQuery<StudentProgress[]>({
+    queryKey: ["/api/progress"],
   });
 
-  // 实验启动处理 - 正确的状态驱动模式
-  const handleStartExperiment = async () => {
-    if (!id || !experiment) return;
+  const experiment = experiments?.find(exp => exp.id === id);
+  const experimentProgress = progress?.find(p => p.experimentId === id);
+
+
+  // 移除自动显示表单的逻辑，让用户先看到实验详情页
+
+  // 检查认证错误 - 更健壮的错误检测
+  const isAuthError = (error: any): boolean => {
+    if (!error) return false;
     
-    const formMap: Record<string, string> = {
-      "海关企业资质备案": "customs-qualification",
-      "电子口岸IC卡申请": "eport-ic-card",
-      "电商企业资质备案": "enterprise-qualification",
-      "传输ID申请": "transport-id",
-      "海外仓业务模式备案": "overseas-warehouse",
-      "报关单模式出口申报": "cross-border-platform"
-    };
+    // Check for status code
+    if (error.status === 401) return true;
     
-    const formType = formMap[experiment.name];
-    if (!formType) return;
-    
-    try {
-      // 使用apiRequest发起进度更新
-      const response = await apiRequest('POST', '/api/progress', {
-        experimentId: id,
-        status: 'in_progress',
-        progress: 0
-      });
-      
-      if (response.ok) {
-        // 使缓存失效，触发重新获取
-        await queryClient.invalidateQueries({
-          queryKey: ["/api/progress", id],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["/api/experiments", id],
-        });
-        
-        // 设置表单显示状态
-        setActiveForm(formType);
-        
-        toast({
-          title: "实验已开始",
-          description: "您可以开始填写实验表单了",
-        });
-      } else {
-        throw new Error('更新进度失败');
-      }
-    } catch (error: any) {
-      toast({
-        title: "启动实验失败",
-        description: error.message || "无法启动实验，请稍后重试",
-        variant: "destructive",
-      });
-    }
+    // Check for auth-related messages
+    const message = error.message || '';
+    return /访问令牌|未授权|刷新令牌|token|401/i.test(message);
   };
 
-  // 实验完成处理
-  const handleExperimentComplete = (data: any) => {
-    console.log("实验完成:", data);
-    setActiveForm(null); // 关闭表单
-    // 让ExperimentStatusManager处理状态变化
-  };
-
-  // 渲染对应的实验表单组件
-  const renderExperimentForm = () => {
-    if (!activeForm) return null;
-    
-    switch (activeForm) {
-      case "customs-qualification":
-        return (
-          <CustomsQualificationForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      case "eport-ic-card":
-        return (
-          <IcCardApplicationForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      case "enterprise-qualification":
-        return (
-          <EnterpriseQualificationForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      case "transport-id":
-        return (
-          <TransportIdForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      case "overseas-warehouse":
-        return (
-          <OverseasWarehouseForm
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      case "cross-border-platform":
-        return (
-          <CrossBorderEcommercePlatform
-            onComplete={handleExperimentComplete}
-            onCancel={() => setActiveForm(null)}
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  // 加载状态
-  if (experimentLoading || progressLoading) {
+  const hasAuthError = isAuthError(experimentsError) || isAuthError(progressError);
+  
+  if (hasAuthError) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header />
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation('/')}
+            data-testid="button-back-home"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回首页
+          </Button>
+        </Header>
         <div className="container mx-auto py-8">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-            <h2 className="text-xl font-semibold mt-4">加载中...</h2>
-            <p className="text-muted-foreground">正在获取实验数据</p>
+            <AlertCircle className="h-16 w-16 text-orange-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold mb-4">登录已过期</h2>
+            <p className="text-muted-foreground mb-6">请重新登录后继续使用</p>
+            <Button onClick={() => setLocation('/login')}>
+              重新登录
+            </Button>
           </div>
         </div>
       </div>
     );
   }
 
-  // 错误状态
-  if (experimentError || !experiment) {
+  // 如果数据还在加载中，显示加载状态
+  if (experimentsLoading || progressLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-        <Header />
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回场景
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">加载实验信息中...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 只有在没有加载中、没有认证错误且确实找不到实验时才显示"实验未找到"
+  if (!experimentsLoading && !progressLoading && !hasAuthError && !experiment) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回场景
+          </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">实验未找到</h2>
+            <p className="text-muted-foreground mb-6">请检查实验ID是否正确</p>
+            <Button onClick={() => setLocation(getBackToSceneUrl())}>
+              返回场景
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 处理非认证错误
+  if ((experimentsError && !isAuthError(experimentsError)) || (progressError && !isAuthError(progressError))) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
+            onClick={() => setLocation(getBackToSceneUrl())}
+            data-testid="button-back-to-scene"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回场景
+          </Button>
+        </Header>
         <div className="container mx-auto py-8">
           <div className="text-center">
             <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
@@ -206,38 +186,729 @@ export default function ExperimentDetailPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header />
-      
-      <div className="container mx-auto py-8">
-        {/* 返回按钮 */}
-        <div className="mb-6">
-          <Button
-            variant="outline"
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed": return "bg-green-100 text-green-800 border-green-200";
+      case "in_progress": return "bg-blue-100 text-blue-800 border-blue-200";
+      default: return "bg-gray-100 text-gray-600 border-gray-200";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed": return "已完成";
+      case "in_progress": return "进行中";
+      default: return "未开始";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed": return <CheckCircle className="h-4 w-4" />;
+      case "in_progress": return <Clock className="h-4 w-4" />;
+      default: return <Play className="h-4 w-4" />;
+    }
+  };
+
+  const handleStartExperiment = () => {
+    if (experiment?.name === "海关企业资质备案") {
+      setShowCustomsForm(true);
+    } else if (experiment?.name === "电子口岸IC卡申请") {
+      setShowEportForm(true);
+    } else if (experiment?.name === "电商企业资质备案") {
+      setShowEnterpriseQualificationForm(true);
+    } else if (experiment?.name === "传输ID申请") {
+      setShowTransportIdForm(true);
+    } else if (experiment?.name === "海外仓业务模式备案") {
+      setShowOverseasWarehouseForm(true);
+    } else if (experiment?.name === "报关单模式出口申报") {
+      // 直接启动跨境电商综合服务平台
+      setShowCrossBorderPlatform(true);
+    }
+  };
+
+  const handleExperimentComplete = (data: any) => {
+    console.log("实验完成:", data);
+    // 可以在这里处理实验完成逻辑，比如更新进度
+    // 直接跳转到任务列表页，不显示中间的实验详情页
+    setLocation(getBackToSceneUrl());
+  };
+
+  // 步骤图标辅助函数
+  const getStepIcon = (type: string) => {
+    switch (type) {
+      case 'form': return "📋";
+      case 'upload': return "📄";
+      case 'submit': return "✅";
+      case 'instruction': return "📖";
+      default: return "🔷";
+    }
+  };
+
+  const getStepBgColor = (index: number) => {
+    const colors = [
+      "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
+      "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
+      "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
+      "from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30",
+      "from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30",
+      "from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/30"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepBorderColor = (index: number) => {
+    const colors = [
+      "border-blue-200 dark:border-blue-700",
+      "border-green-200 dark:border-green-700",
+      "border-purple-200 dark:border-purple-700",
+      "border-orange-200 dark:border-orange-700",
+      "border-teal-200 dark:border-teal-700",
+      "border-rose-200 dark:border-rose-700"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepTextColor = (index: number) => {
+    const colors = [
+      "text-blue-800 dark:text-blue-100",
+      "text-green-800 dark:text-green-100",
+      "text-purple-800 dark:text-purple-100",
+      "text-orange-800 dark:text-orange-100",
+      "text-teal-800 dark:text-teal-100",
+      "text-rose-800 dark:text-rose-100"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepDescColor = (index: number) => {
+    const colors = [
+      "text-blue-700 dark:text-blue-200",
+      "text-green-700 dark:text-green-200",
+      "text-purple-700 dark:text-purple-200",
+      "text-orange-700 dark:text-orange-200",
+      "text-teal-700 dark:text-teal-200",
+      "text-rose-700 dark:text-rose-200"
+    ];
+    return colors[index % colors.length];
+  };
+
+  const getStepIconBgColor = (index: number) => {
+    const colors = [
+      "from-blue-500 to-blue-600",
+      "from-green-500 to-green-600",
+      "from-purple-500 to-purple-600",
+      "from-orange-500 to-orange-600",
+      "from-teal-500 to-teal-600",
+      "from-rose-500 to-rose-600"
+    ];
+    return colors[index % colors.length];
+  };
+
+  // 从实验元数据获取步骤配置
+  const getExperimentSteps = () => {
+    // 优先使用数据库中的实验步骤元数据
+    if (experiment?.steps && Array.isArray(experiment.steps)) {
+      return experiment.steps.map((step, index) => ({
+        id: step.id || index + 1,
+        title: step.title || `步骤 ${index + 1}`,
+        description: step.description || "",
+        icon: getStepIcon(step.type || step.action),
+        iconText: step.title?.slice(0, 4) || `步骤${index + 1}`,
+        bgColor: getStepBgColor(index),
+        borderColor: getStepBorderColor(index),
+        textColor: getStepTextColor(index),
+        descColor: getStepDescColor(index),
+        iconBgColor: getStepIconBgColor(index)
+      }));
+    }
+    
+    // 仅作为备用的硬编码步骤
+    if (experiment?.name === "电子口岸IC卡申请") {
+      return [
+        {
+          id: 1,
+          title: "访问电子口岸平台",
+          description: "登录中国电子口岸数据中心平台，进入电子口岸入网模块",
+          icon: "🌐",
+          iconText: "平台登录",
+          bgColor: "from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30",
+          borderColor: "border-blue-200 dark:border-blue-700",
+          textColor: "text-blue-800 dark:text-blue-100",
+          descColor: "text-blue-700 dark:text-blue-200",
+          iconBgColor: "from-blue-500 to-blue-600"
+        },
+        {
+          id: 2,
+          title: "新企业申请入网",
+          description: "在电子口岸入网模块中启动新企业申请入网操作流程",
+          icon: "🏢",
+          iconText: "入网申请",
+          bgColor: "from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30",
+          borderColor: "border-green-200 dark:border-green-700",
+          textColor: "text-green-800 dark:text-green-100",
+          descColor: "text-green-700 dark:text-green-200",
+          iconBgColor: "from-green-500 to-green-600"
+        },
+        {
+          id: 3,
+          title: "填写企业基本信息",
+          description: "完整填写企业名称、统一社会信用代码、注册地址、法定代表人等基本信息",
+          icon: "📋",
+          iconText: "信息填写",
+          bgColor: "from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30",
+          borderColor: "border-purple-200 dark:border-purple-700",
+          textColor: "text-purple-800 dark:text-purple-100",
+          descColor: "text-purple-700 dark:text-purple-200",
+          iconBgColor: "from-purple-500 to-purple-600"
+        },
+        {
+          id: 4,
+          title: "提交营业执照",
+          description: "上传企业营业执照副本复印件（加盖企业公章）",
+          icon: "📄",
+          iconText: "营业执照",
+          bgColor: "from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30",
+          borderColor: "border-orange-200 dark:border-orange-700",
+          textColor: "text-orange-800 dark:text-orange-100",
+          descColor: "text-orange-700 dark:text-orange-200",
+          iconBgColor: "from-orange-500 to-orange-600"
+        },
+        {
+          id: 5,
+          title: "提交操作员身份证",
+          description: "上传IC卡操作员身份证原件复印件",
+          icon: "🆔",
+          iconText: "身份证明",
+          bgColor: "from-teal-50 to-teal-100 dark:from-teal-900/30 dark:to-teal-800/30",
+          borderColor: "border-teal-200 dark:border-teal-700",
+          textColor: "text-teal-800 dark:text-teal-100",
+          descColor: "text-teal-700 dark:text-teal-200",
+          iconBgColor: "from-teal-500 to-teal-600"
+        },
+        {
+          id: 6,
+          title: "提交备案证明材料",
+          description: "上传海关签发的《报关人员备案证明》、《对外贸易经营者备案登记表》原件",
+          icon: "📑",
+          iconText: "备案证明",
+          bgColor: "from-rose-50 to-rose-100 dark:from-rose-900/30 dark:to-rose-800/30",
+          borderColor: "border-rose-200 dark:border-rose-700",
+          textColor: "text-rose-800 dark:text-rose-100",
+          descColor: "text-rose-700 dark:text-rose-200",
+          iconBgColor: "from-rose-500 to-rose-600"
+        },
+        {
+          id: 7,
+          title: "提交备案回执",
+          description: "上传海关进出口货物收发人备案回执等相关文件",
+          icon: "📋",
+          iconText: "备案回执",
+          bgColor: "from-indigo-50 to-indigo-100 dark:from-indigo-900/30 dark:to-indigo-800/30",
+          borderColor: "border-indigo-200 dark:border-indigo-700",
+          textColor: "text-indigo-800 dark:text-indigo-100",
+          descColor: "text-indigo-700 dark:text-indigo-200",
+          iconBgColor: "from-indigo-500 to-indigo-600"
+        },
+        {
+          id: 8,
+          title: "完成IC卡申请办理",
+          description: "确认所有材料无误后提交申请，完成电子口岸IC卡申请办理流程",
+          icon: "✅",
+          iconText: "申请完成",
+          bgColor: "from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30",
+          borderColor: "border-emerald-200 dark:border-emerald-700",
+          textColor: "text-emerald-800 dark:text-emerald-100",
+          descColor: "text-emerald-700 dark:text-emerald-200",
+          iconBgColor: "from-emerald-500 to-emerald-600"
+        }
+      ];
+    } else {
+      // 默认为海关企业资质备案步骤
+      return [
+        {
+          id: 1,
+          title: "企业基本信息填写",
+          description: "填写企业名称、统一社会信用代码、注册地址、经营范围等基础信息",
+          icon: "📋",
+          iconText: "企业信息",
+          bgColor: "from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50",
+          borderColor: "border-slate-200 dark:border-slate-700",
+          textColor: "text-slate-800 dark:text-slate-100",
+          descColor: "text-slate-600 dark:text-slate-300",
+          iconBgColor: "from-blue-500 to-blue-600"
+        },
+        {
+          id: 2,
+          title: "企业经营资质",
+          description: "提供企业营业执照、税务登记证、组织机构代码证相关资质证明",
+          icon: "📄",
+          iconText: "资质证明",
+          bgColor: "from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30",
+          borderColor: "border-emerald-200 dark:border-emerald-700",
+          textColor: "text-emerald-800 dark:text-emerald-100",
+          descColor: "text-emerald-700 dark:text-emerald-200",
+          iconBgColor: "from-emerald-500 to-emerald-600"
+        },
+        {
+          id: 3,
+          title: "上传备案材料",
+          description: "提交相关证明文件，包括报关单位备案信息表、营业执照副本、法定代表人身份证等",
+          icon: "📤",
+          iconText: "文件上传",
+          bgColor: "from-violet-50 to-violet-100 dark:from-violet-900/30 dark:to-violet-800/30",
+          borderColor: "border-violet-200 dark:border-violet-700",
+          textColor: "text-violet-800 dark:text-violet-100",
+          descColor: "text-violet-700 dark:text-violet-200",
+          iconBgColor: "from-violet-500 to-violet-600"
+        },
+        {
+          id: 4,
+          title: "确认提交申请",
+          description: "核对所有填写信息和上传材料，确认数据准确性并承担法律责任，最终提交备案申请",
+          icon: "✅",
+          iconText: "备案提交",
+          bgColor: "from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/30",
+          borderColor: "border-amber-200 dark:border-amber-700",
+          textColor: "text-amber-800 dark:text-amber-100",
+          descColor: "text-amber-700 dark:text-amber-200",
+          iconBgColor: "from-amber-500 to-amber-600"
+        }
+      ];
+    }
+  };
+
+  // 如果正在显示海关备案表单，直接渲染表单
+  if (showCustomsForm && experiment?.name === "海关企业资质备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="海关企业资质备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowCustomsForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <CustomsQualificationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowCustomsForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示电子口岸IC卡申请表单，直接渲染表单
+  if (showEportForm && experiment?.name === "电子口岸IC卡申请") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="电子口岸IC卡申请实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEportForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <IcCardApplicationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowEportForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示电商企业资质备案表单，直接渲染表单
+  if (showEnterpriseQualificationForm && experiment?.name === "电商企业资质备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="电商企业资质备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEnterpriseQualificationForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <EnterpriseQualificationForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowEnterpriseQualificationForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示传输ID申请表单，直接渲染表单
+  if (showTransportIdForm && experiment?.name === "传输ID申请") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="传输ID申请实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTransportIdForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <TransportIdForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowTransportIdForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示海外仓业务模式备案表单，直接渲染表单
+  if (showOverseasWarehouseForm && experiment?.name === "海外仓业务模式备案") {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="海外仓业务模式备案实验">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowOverseasWarehouseForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <OverseasWarehouseForm
+            onComplete={handleExperimentComplete}
+            onCancel={() => setShowOverseasWarehouseForm(false)}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // 如果正在显示跨境电商综合服务平台，直接渲染平台
+  if (showCrossBorderPlatform && experiment?.name === "报关单模式出口申报") {
+    return (
+      <CrossBorderEcommercePlatform
+        onComplete={handleExperimentComplete}
+        onCancel={() => setShowCrossBorderPlatform(false)}
+      />
+    );
+  }
+
+  // 如果正在显示清单模式申报表单，直接渲染表单
+  if (showListDeclarationForm && experiment?.name === "报关单模式出口申报") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900">
+        <Header title="清单模式出口申报">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowListDeclarationForm(false)}
+            data-testid="button-back-to-experiment"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回实验详情
+          </Button>
+        </Header>
+        <div className="container mx-auto py-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl text-white font-bold">📋</span>
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">清单模式出口申报</h2>
+              <p className="text-gray-600 dark:text-gray-400">适用于跨境电商零售出口的简化申报流程</p>
+            </div>
+            <div className="space-y-6">
+              <div className="p-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-700/50">
+                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4">清单申报特点</h3>
+                <ul className="space-y-2 text-green-700 dark:text-green-300">
+                  <li className="flex items-center"><span className="mr-2">✓</span>适用于B2C跨境电商零售出口</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>简化的申报流程和数据要求</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>支持批量清单汇总申报</li>
+                  <li className="flex items-center"><span className="mr-2">✓</span>实时数据推送和状态查询</li>
+                </ul>
+              </div>
+              <div className="text-center">
+                <Button 
+                  size="lg" 
+                  onClick={() => {
+                    toast({
+                      title: "功能开发中",
+                      description: "清单模式申报功能正在开发中，敬请期待。",
+                    });
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
+                  data-testid="button-start-list-declaration"
+                >
+                  <FileText className="mr-3 h-5 w-5" />
+                  开始清单申报
+                </Button>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                  预计完成时间：15-20分钟
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 确保experiment存在才渲染主要内容
+  if (!experiment) {
+    return (
+      <div className="min-h-screen bg-muted">
+        <Header title="实验详情">
+          <Button 
+            variant="outline" 
             onClick={() => setLocation(getBackToSceneUrl())}
-            className="flex items-center gap-2"
             data-testid="button-back-to-scene"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             返回场景
           </Button>
+        </Header>
+        <div className="container mx-auto py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">加载中...</p>
+          </div>
         </div>
+      </div>
+    );
+  }
 
-        {/* 主要内容 */}
-        <div className="max-w-4xl mx-auto">
-          {activeForm ? (
-            // 显示实验表单
-            renderExperimentForm()
-          ) : (
-            // 显示状态管理器
-            <ExperimentStatusManager
-              experiment={experiment}
-              progress={experimentProgress}
-              onStartExperiment={handleStartExperiment}
-              onBackToScene={() => setLocation(getBackToSceneUrl())}
-            />
-          )}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-blue-950/30 dark:to-indigo-950/50">
+      <Header title="实验详情">
+        <Button 
+          variant="outline" 
+          onClick={() => setLocation(getBackToSceneUrl())}
+          className="hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
+          data-testid="button-back-to-scene"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          返回场景
+        </Button>
+      </Header>
+
+      <div className="container mx-auto py-8 px-6 max-w-6xl">
+        <div className="space-y-8">
+        {/* 实验基本信息 */}
+        <Card className="overflow-hidden border-0 shadow-lg bg-gradient-to-r from-white to-blue-50/50 dark:from-slate-800 dark:to-blue-950/30">
+          <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white pb-8">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-6">
+                <div className="p-4 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30">
+                  <FlaskConical className="h-10 w-10 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-3xl font-bold mb-3">{experiment.name}</CardTitle>
+                  <p className="text-blue-100 text-lg leading-relaxed">{experiment.description || "专业的跨境电商实训体验，模拟真实业务场景，提升实践能力"}</p>
+                </div>
+              </div>
+              <Badge className={`${getStatusColor(experimentProgress?.status || "not_started")} shadow-lg border-0 px-4 py-2 text-sm font-medium`}>
+                {getStatusIcon(experimentProgress?.status || "not_started")}
+                <span className="ml-2">{getStatusText(experimentProgress?.status || "not_started")}</span>
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border border-purple-200/50 dark:border-purple-700/50">
+                <div className="p-3 rounded-lg bg-purple-600 text-white">
+                  <Building className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-purple-900 dark:text-purple-100">实验类别</h4>
+                  <p className="text-purple-700 dark:text-purple-300 font-medium">{experiment.category}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/50 dark:to-emerald-900/50 border border-green-200/50 dark:border-green-700/50">
+                <div className="p-3 rounded-lg bg-green-600 text-white">
+                  <CheckCircle className="h-5 w-5" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-green-900 dark:text-green-100">完成进度</h4>
+                  <div className="space-y-2 mt-1">
+                    <div className="flex justify-between text-sm font-medium text-green-700 dark:text-green-300">
+                      <span>当前进度</span>
+                      <span>{experimentProgress?.progress || 0}%</span>
+                    </div>
+                    <Progress value={experimentProgress?.progress || 0} className="h-2" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50 dark:to-orange-900/50 border border-orange-200/50 dark:border-orange-700/50">
+                <div className="p-3 rounded-lg bg-orange-600 text-white">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-orange-900 dark:text-orange-100">预计时间</h4>
+                  <p className="text-orange-700 dark:text-orange-300 font-medium">30-45分钟</p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 核心实验流程 */}
+        <Card className="border-0 shadow-lg bg-white dark:bg-slate-800">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 border-b border-slate-200 dark:border-slate-600">
+            <CardTitle className="flex items-center space-x-3 text-xl">
+              <div className="p-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                <FlaskConical className="h-5 w-5" />
+              </div>
+              <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent font-bold">核心实验流程</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            {/* 说明文字 */}
+            <div className="mb-8 p-4 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-200/50 dark:border-blue-700/50">
+              <p className="text-blue-800 dark:text-blue-200 text-sm leading-relaxed">
+                {experiment?.name === "电子口岸IC卡申请" ? (
+                  "🎯 用户在电商企业场景中，依照任务要求，模拟前往中国电子口岸数据中心平台办理IC卡。通过在电子口岸入网模块中进行新企业申请入网操作，提交营业执照、操作员身份证、报关人员备案证明、对外贸易经营者备案登记表及海关进出口货物收发人备案回执等文件，完成IC卡的申请办理。"
+                ) : experiment?.name === "报关单模式出口申报" ? (
+                  "🎯 选择申报模式完成出口货物申报流程。系统支持报关单模式和清单模式两种申报方式，请根据业务需求选择合适的申报模式。"
+                ) : (
+                  "🎯 按照真实跨境电商出口海外仓业务流程设计的海关企业资质备案实验，涵盖完整的备案申请流程，通过模拟真实场景，让您掌握企业资质备案的核心技能。"
+                )}
+              </p>
+            </div>
+
+            {/* 对于出口申报实验，显示两种申报模式选择 */}
+            {experiment?.name === "报关单模式出口申报" ? (
+              <div className="space-y-6 mb-8">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">📝 选择申报模式</h3>
+                  <p className="text-gray-600 dark:text-gray-400">请选择您希望使用的申报模式进行出口申报实验</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                  {/* 报关单模式申报 */}
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border border-blue-200/50 dark:border-blue-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+                       onClick={() => setShowCrossBorderPlatform(true)}
+                       data-testid="mode-customs-declaration">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-2xl text-white font-bold">📜</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-blue-800 dark:text-blue-100 mb-2">报关单模式申报</h4>
+                        <p className="text-blue-700 dark:text-blue-200 text-sm leading-relaxed">
+                          适用于一般贸易出口申报，完整的报关单申报流程，包括订仓单推送、基础数据导入、数据申报管理等全部步骤。
+                        </p>
+                      </div>
+                      <div className="pt-3 border-t border-blue-200/50 dark:border-blue-700/50">
+                        <span className="text-blue-600 dark:text-blue-300 text-sm font-medium group-hover:text-blue-800 dark:group-hover:text-blue-100 transition-colors">
+                          👉 点击开始申报
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* 清单模式申报 */}
+                  <div className="p-6 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border border-green-200/50 dark:border-green-700/50 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer group"
+                       onClick={() => setShowListDeclarationForm(true)}
+                       data-testid="mode-list-declaration">
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300">
+                        <span className="text-2xl text-white font-bold">📋</span>
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-bold text-green-800 dark:text-green-100 mb-2">清单模式申报</h4>
+                        <p className="text-green-700 dark:text-green-200 text-sm leading-relaxed">
+                          适用于跨境电商零售出口，简化的清单申报流程，通过清单类型的申报方式完成跨境电商出口申报。
+                        </p>
+                      </div>
+                      <div className="pt-3 border-t border-green-200/50 dark:border-green-700/50">
+                        <span className="text-green-600 dark:text-green-300 text-sm font-medium group-hover:text-green-800 dark:group-hover:text-green-100 transition-colors">
+                          👉 点击开始申报
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* 其他实验的正常步骤显示 */
+              <div className="space-y-6 mb-8">
+                <div className={`grid grid-cols-1 ${getExperimentSteps().length > 4 ? 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' : 'md:grid-cols-2'} gap-6`}>
+                  {getExperimentSteps().map((step) => (
+                <div 
+                  key={step.id}
+                  className={`min-h-[12rem] p-4 rounded-xl bg-gradient-to-br ${step.bgColor} border ${step.borderColor} flex flex-col hover:shadow-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer`}
+                  data-testid={`step-iccard-${step.title}`}
+                >
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br ${step.iconBgColor} flex items-center justify-center shadow-md`}>
+                      <span className="text-lg font-bold text-white">{step.id}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className={`font-bold text-lg ${step.textColor} mb-2`}>{step.title}</h4>
+                      <p className={`${step.descColor} text-sm leading-relaxed`}>
+                        {step.description}
+                      </p>
+                    </div>
+                  </div>
+                  <div className={`mt-auto pt-3 border-t ${step.borderColor}`}>
+                    <div className={`text-center text-sm ${step.descColor} font-medium`}>
+                      {step.icon} {step.iconText}
+                    </div>
+                  </div>
+                </div>
+                  ))}
+                </div>
+                
+                {/* 开始实验按钮 - 自然融入设计 */}
+            <div className="mt-8 text-center">
+              <Button 
+                size="lg" 
+                onClick={handleStartExperiment}
+                disabled={experimentProgress?.status === "completed"}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                data-testid="button-start-experiment"
+              >
+                {experimentProgress?.status === "completed" ? (
+                  <>
+                    <CheckCircle className="mr-3 h-5 w-5" />
+                    实验已完成
+                  </>
+                ) : experimentProgress?.status === "in_progress" ? (
+                  <>
+                    <Play className="mr-3 h-5 w-5" />
+                    继续实验
+                  </>
+                ) : (
+                  <>
+                    <FlaskConical className="mr-3 h-5 w-5" />
+                    开始实验
+                  </>
+                )}
+              </Button>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
+                预计完成时间：30-45分钟
+                </p>
+              </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         </div>
       </div>
     </div>
