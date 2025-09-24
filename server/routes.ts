@@ -1977,7 +1977,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 14. 单一窗口状态查询端点
+  // 14. 海关审核状态模拟端点
+  app.post("/api/customs/simulate-review", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { forceTrigger } = req.body; // 可选：强制触发审核
+      
+      // 获取所有状态为 "under_review" 的申报记录
+      const declarations = await storage.getExportDeclarations(userId);
+      const underReviewDeclarations = declarations.filter(d => d.status === "under_review");
+      
+      if (underReviewDeclarations.length === 0) {
+        return res.json({ 
+          message: "没有待审核的申报记录",
+          processed: 0
+        });
+      }
+      
+      const results = [];
+      
+      for (const declaration of underReviewDeclarations) {
+        // 检查申报是否已经提交足够长时间（模拟审核时间）
+        const submittedTime = new Date(declaration.generatedData?.submittedAt || declaration.readyAt);
+        const now = new Date();
+        const timeDiffMinutes = (now.getTime() - submittedTime.getTime()) / (1000 * 60);
+        
+        // 模拟审核条件：提交超过5分钟或强制触发
+        if (timeDiffMinutes >= 5 || forceTrigger) {
+          // 随机决定审核结果（70%通过，30%拒绝）
+          const isApproved = Math.random() > 0.3;
+          const newStatus = isApproved ? "approved" : "rejected";
+          
+          // 更新申报状态
+          await storage.updateExportDeclaration(declaration.id, {
+            status: newStatus
+          }, userId);
+          
+          // 创建审核历史记录
+          const auditResult = {
+            submissionType: "customs_audit",
+            platform: "single_window",
+            status: "success",
+            requestData: {
+              declarationId: declaration.id,
+              auditType: "automated_review"
+            },
+            responseData: {
+              result: newStatus,
+              auditTime: now.toISOString(),
+              auditScore: isApproved ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 60) + 20,
+              feedback: isApproved 
+                ? "申报数据完整，符合海关要求，准予放行" 
+                : "申报数据存在问题，需要补充相关材料后重新申报",
+              auditOfficer: `审核员${Math.floor(Math.random() * 999) + 1}`,
+              riskLevel: isApproved ? "低风险" : "高风险"
+            }
+          };
+          
+          try {
+            await storage.createSubmissionHistory({
+              ...auditResult,
+              declarationId: declaration.id
+            }, userId);
+          } catch (historyError) {
+            console.warn('创建审核历史记录失败:', historyError);
+          }
+          
+          results.push({
+            declarationId: declaration.id,
+            title: declaration.title,
+            oldStatus: "under_review",
+            newStatus,
+            auditTime: now.toISOString(),
+            timeTaken: `${Math.round(timeDiffMinutes)}分钟`
+          });
+        }
+      }
+      
+      res.json({
+        message: `处理了 ${results.length} 个申报记录`,
+        processed: results.length,
+        results
+      });
+    } catch (error: any) {
+      console.error("海关审核模拟失败:", error);
+      res.status(500).json({ 
+        message: error.message || "审核模拟失败" 
+      });
+    }
+  });
+
+  // 15. 单一窗口状态查询端点
   app.get("/api/single-window/status/:declarationId", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const userId = req.user!.id;

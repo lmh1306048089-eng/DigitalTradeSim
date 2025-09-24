@@ -169,6 +169,7 @@ export interface IStorage {
   
   // Export declaration operations（报关单模式业务流程）
   getExportDeclarations(userId: string): Promise<ExportDeclaration[]>;
+  getAllUnderReviewDeclarations(): Promise<ExportDeclaration[]>;
   getExportDeclaration(id: string, userId: string): Promise<ExportDeclaration | undefined>;
   createExportDeclaration(declaration: InsertExportDeclaration): Promise<ExportDeclaration>;
   updateExportDeclaration(id: string, updates: Partial<ExportDeclaration>, userId: string): Promise<ExportDeclaration>;
@@ -917,6 +918,12 @@ export class DatabaseStorage implements IStorage {
   async getExportDeclarations(userId: string): Promise<ExportDeclaration[]> {
     return await db.select().from(exportDeclarations)
       .where(eq(exportDeclarations.userId, userId))
+      .orderBy(desc(exportDeclarations.createdAt));
+  }
+
+  async getAllUnderReviewDeclarations(): Promise<ExportDeclaration[]> {
+    return await db.select().from(exportDeclarations)
+      .where(eq(exportDeclarations.status, "under_review"))
       .orderBy(desc(exportDeclarations.createdAt));
   }
 

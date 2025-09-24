@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,8 +16,11 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
-  Calendar
+  Calendar,
+  Gavel
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ExportDeclaration } from "@shared/schema";
 
 interface CustomsDeclarationQueryProps {
@@ -36,12 +39,49 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQueryProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const { toast } = useToast();
 
   // 获取用户的申报记录列表
   const { data: declarations, isLoading, isError, error, refetch } = useQuery<ExportDeclaration[]>({
     queryKey: ['/api/export-declarations'],
     refetchInterval: 30000, // 每30秒自动刷新
     retry: 3, // 失败时重试3次
+  });
+
+  // 海关审核模拟mutation
+  const customsReviewMutation = useMutation({
+    mutationFn: async ({ forceTrigger = false }: { forceTrigger?: boolean } = {}) => {
+      const response = await apiRequest("POST", "/api/customs/simulate-review", {
+        body: JSON.stringify({ forceTrigger }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('海关审核模拟失败');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "🏛️ 海关审核模拟完成",
+        description: data.message,
+        duration: 5000,
+      });
+      
+      // 刷新申报列表
+      queryClient.invalidateQueries({ queryKey: ['/api/export-declarations'] });
+    },
+    onError: (error) => {
+      console.error('海关审核模拟失败:', error);
+      toast({
+        title: "审核模拟失败",
+        description: "海关审核模拟失败，请稍后重试",
+        variant: "destructive",
+      });
+    }
   });
 
   const filteredDeclarations = declarations?.filter(decl => {
@@ -53,6 +93,39 @@ export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQu
     
     return matchesSearch && matchesTab;
   }) || [];
+
+  // 计算待审核的申报数量
+  const underReviewCount = declarations?.filter(d => d.status === "under_review").length || 0;
+
+  // 自动审核轮询 - 每60秒检查一次是否有可以自动审核的申报
+  useEffect(() => {
+    if (underReviewCount === 0) return;
+
+    const autoReviewInterval = setInterval(async () => {
+      try {
+        // 静默触发审核检查（不强制，只处理符合时间条件的）
+        const response = await apiRequest("POST", "/api/customs/simulate-review", {
+          body: JSON.stringify({ forceTrigger: false }),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          // 如果有申报被处理，刷新数据
+          if (result.processed > 0) {
+            queryClient.invalidateQueries({ queryKey: ['/api/export-declarations'] });
+          }
+        }
+      } catch (error) {
+        // 静默失败，不影响用户体验
+        console.log('自动审核检查失败:', error);
+      }
+    }, 60000); // 每60秒检查一次
+
+    return () => clearInterval(autoReviewInterval);
+  }, [underReviewCount]); // 只依赖申报数量
 
   const formatDateTime = (dateValue: string | Date | null | undefined) => {
     if (!dateValue) return "-";
@@ -173,16 +246,44 @@ export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQu
               <div className="text-xl font-semibold text-blue-900">申报结果查询</div>
               <div className="text-sm text-gray-500">中国国际贸易单一窗口</div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refetch()}
-              data-testid="button-refresh"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              刷新
-            </Button>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => customsReviewMutation.mutate({ forceTrigger: false })}
+                  disabled={customsReviewMutation.isPending || underReviewCount === 0}
+                  data-testid="button-simulate-review"
+                  className="border-orange-200 text-orange-700 hover:bg-orange-50 disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  {customsReviewMutation.isPending ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Gavel className="h-4 w-4 mr-2" />
+                  )}
+                  海关审核模拟
+                </Button>
+                {underReviewCount > 0 && (
+                  <Badge 
+                    variant="outline" 
+                    className="bg-yellow-50 text-yellow-700 border-yellow-200"
+                    data-testid="badge-under-review-count"
+                  >
+                    {underReviewCount}个待审核
+                  </Badge>
+                )}
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => refetch()}
+                data-testid="button-refresh"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                刷新
+              </Button>
+            </div>
           </div>
         </div>
       </div>
