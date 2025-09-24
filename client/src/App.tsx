@@ -13,6 +13,7 @@ import TeacherDashboard from "@/pages/teacher-dashboard";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ExperimentDetailPage from "@/pages/experiment-detail";
 import NotFound from "@/pages/not-found";
+import CustomsDeclarationQuery from "@/pages/customs-declaration-query";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
@@ -103,6 +104,9 @@ function Router() {
                 window.location.href = "/";
               }}
             />
+          </Route>
+          <Route path="/customs-declaration-query">
+            <CustomsDeclarationQuery />
           </Route>
         </>
       )}
