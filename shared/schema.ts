@@ -732,6 +732,9 @@ export const insertDeclarationFormSchema = createInsertSchema(declarationForms).
   id: true,
   createdAt: true,
   updatedAt: true,
+  userId: true,
+  experimentId: true,
+  resultId: true,
 }).extend({
   consignorConsignee: z.string().min(2, "收发货人不能少于2个字符"),
   exportPort: z.string().min(2, "出口口岸不能为空"),
