@@ -1372,33 +1372,33 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         arrivalCountry: formData.arrivalCountry || undefined,
         originCountry: formData.originCountry || undefined,
         
-        // 金融信息
+        // 金融信息 - 确保数字类型正确转换
         currency: formData.currency,
-        exchangeRate: formData.exchangeRate,
-        totalAmountForeign: formData.totalAmountForeign ?? 0,
-        totalAmountCNY: formData.totalAmountCNY,
-        freight: formData.freight,
-        insurance: formData.insurance,
-        otherCharges: formData.otherCharges,
+        exchangeRate: formData.exchangeRate ? Number(formData.exchangeRate) : undefined,
+        totalAmountForeign: formData.totalAmountForeign ? Number(formData.totalAmountForeign) : 0,
+        totalAmountCNY: formData.totalAmountCNY ? Number(formData.totalAmountCNY) : undefined,
+        freight: formData.freight ? Number(formData.freight) : undefined,
+        insurance: formData.insurance ? Number(formData.insurance) : undefined,
+        otherCharges: formData.otherCharges ? Number(formData.otherCharges) : undefined,
         
-        // 计量包装
-        packages: formData.packages,
-        packageType: formData.packageType,
-        grossWeight: formData.grossWeight,
-        netWeight: formData.netWeight,
+        // 计量包装 - 确保数字类型正确转换
+        packages: formData.packages ? Number(formData.packages) : undefined,
+        packageType: formData.packageType || undefined,
+        grossWeight: formData.grossWeight ? Number(formData.grossWeight) : undefined,
+        netWeight: formData.netWeight ? Number(formData.netWeight) : undefined,
         
         // 商品明细 - 添加防御性回退确保安全
         goods: (formData.goods ?? []).map((good, index) => ({
           itemNo: index + 1,
           goodsCode: good.goodsCode || '',
           goodsNameSpec: good.goodsNameSpec || '',
-          quantity1: good.quantity1 || 0,
+          quantity1: good.quantity1 ? Number(good.quantity1) : 0,
           unit1: good.unit1 || '',
-          unitPrice: good.unitPrice || 0,
-          totalPrice: good.totalPrice || 0,
+          unitPrice: good.unitPrice ? Number(good.unitPrice) : 0,
+          totalPrice: good.totalPrice ? Number(good.totalPrice) : 0,
           currency: formData.currency,
-          originCountry: formData.originCountry,
-          finalDestCountry: good.finalDestCountry
+          originCountry: formData.originCountry || undefined,
+          finalDestCountry: good.finalDestCountry || undefined
         })) || [],
         
         // 申报声明
@@ -2368,8 +2368,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="1550.00"
                             data-testid="input-total-amount-foreign"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2389,8 +2392,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="11160.00"
                             data-testid="input-total-amount-cny"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2410,8 +2416,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="7.2000"
                             data-testid="input-exchange-rate"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2431,8 +2440,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="150.00"
                             data-testid="input-freight"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2452,8 +2464,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="50.00"
                             data-testid="input-insurance"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2473,8 +2488,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="25.00"
                             data-testid="input-other-charges"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2556,8 +2574,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="100"
                             data-testid="input-packages"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseInt(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2604,8 +2625,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="250.500"
                             data-testid="input-gross-weight"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2625,8 +2649,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             placeholder="200.000"
                             data-testid="input-net-weight"
                             {...field}
-                            value={field.value || ''}
-                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            value={field.value?.toString() || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              field.onChange(value === '' ? undefined : parseFloat(value));
+                            }}
                           />
                         </FormControl>
                         <FormMessage />
@@ -2730,8 +2757,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   placeholder="1" 
                                   className="h-8" 
                                   data-testid={`input-quantity-${index}`}
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                                  value={field.value?.toString() || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    field.onChange(value === '' ? undefined : parseInt(value));
+                                  }}
                                 />
                               </FormControl>
                             </FormItem>
@@ -2768,8 +2798,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   placeholder="999.00" 
                                   className="h-8" 
                                   data-testid={`input-unit-price-${index}`}
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                  value={field.value?.toString() || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    field.onChange(value === '' ? undefined : parseFloat(value));
+                                  }}
                                 />
                               </FormControl>
                             </FormItem>
@@ -2789,8 +2822,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                   placeholder="999.00" 
                                   className="h-8" 
                                   data-testid={`input-total-price-${index}`}
-                                  value={field.value || ''}
-                                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                                  value={field.value?.toString() || ''}
+                                  onChange={(e) => {
+                                    const value = e.target.value;
+                                    field.onChange(value === '' ? undefined : parseFloat(value));
+                                  }}
                                 />
                               </FormControl>
                             </FormItem>
