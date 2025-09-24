@@ -3213,6 +3213,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             <Input
                               placeholder="请输入录入单位名称"
                               data-testid="input-entry-unit"
+                              className={form.formState.errors.entryUnit ? 'border-red-500 ring-red-500 ring-1' : ''}
                               {...field}
                             />
                           </FormControl>
