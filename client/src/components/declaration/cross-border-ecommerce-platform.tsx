@@ -345,21 +345,83 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       if (Object.keys(parsedData).length > 0) {
         const allowedKeys = Object.keys(form.getValues()) as (keyof InsertDeclarationForm)[];
         
-        // 商品字段映射（需要特殊处理的嵌套字段）
+        // 商品字段映射（需要特殊处理的嵌套字段）- 扩展版本
         const goodsFieldMap: { [key: string]: string } = {
+          // 商品名称相关
           'productName': 'goodsNameSpec',
           'goodsName': 'goodsNameSpec', 
           'goodsNameSpec': 'goodsNameSpec',
+          'name': 'goodsNameSpec',
+          'description': 'goodsNameSpec',
+          'specification': 'goodsNameSpec',
+          'product': 'goodsNameSpec',
+          '商品名称': 'goodsNameSpec',
+          '商品规格': 'goodsNameSpec',
+          '产品名称': 'goodsNameSpec',
+          '品名': 'goodsNameSpec',
+          
+          // 数量相关
           'quantity': 'quantity1',
           'quantity1': 'quantity1',
+          'qty': 'quantity1',
+          'amount': 'quantity1',
+          'count': 'quantity1',
+          '数量': 'quantity1',
+          '件数': 'quantity1',
+          
+          // 单位相关
           'unit': 'unit1',
           'unit1': 'unit1',
+          'uom': 'unit1',
+          'measure': 'unit1',
+          '单位': 'unit1',
+          '计量单位': 'unit1',
+          
+          // 价格相关
           'unitPrice': 'unitPrice',
+          'price': 'unitPrice',
+          'singlePrice': 'unitPrice',
+          '单价': 'unitPrice',
+          '价格': 'unitPrice',
           'totalPrice': 'totalPrice',
+          'totalAmount': 'totalPrice',
+          'total': 'totalPrice',
+          '总价': 'totalPrice',
+          '总金额': 'totalPrice',
+          
+          // 商品编码相关
           'hsCode': 'goodsCode',
           'goodsCode': 'goodsCode',
+          'code': 'goodsCode',
+          'itemCode': 'goodsCode',
+          'productCode': 'goodsCode',
+          'commodityCode': 'goodsCode',
+          '商品编码': 'goodsCode',
+          'HS编码': 'goodsCode',
+          '税则号列': 'goodsCode',
+          
+          // 目的国相关
           'finalDestCountry': 'finalDestCountry',
-          'exemption': 'exemption'
+          'destination': 'finalDestCountry',
+          'destCountry': 'finalDestCountry',
+          'country': 'finalDestCountry',
+          '最终目的国': 'finalDestCountry',
+          '目的国': 'finalDestCountry',
+          
+          // 征免相关
+          'exemption': 'exemption',
+          'taxExemption': 'exemption',
+          'dutyExemption': 'exemption',
+          '征免': 'exemption',
+          '征免性质': 'exemption',
+          
+          // 第二计量单位相关
+          'quantity2': 'quantity2',
+          'unit2': 'unit2',
+          'secondUnit': 'unit2',
+          'additionalUnit': 'unit2',
+          '第二数量': 'quantity2',
+          '第二单位': 'unit2'
         };
         
         // 收集商品相关字段
@@ -368,6 +430,11 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
         
         Object.entries(parsedData).forEach(([key, value]) => {
           if (value !== null && value !== undefined && value !== '') {
+            // 跳过goods数组，稍后单独处理
+            if (key === 'goods') {
+              return;
+            }
+            
             if (goodsFieldMap[key]) {
               // 商品字段
               const mappedKey = goodsFieldMap[key];
@@ -385,9 +452,10 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
             // 类型强制转换
             let processedValue: any = value;
             
-            // 处理布尔字段
+            // 处理布尔字段 - 修复：正确解析true/false值
             if (['inspectionQuarantine', 'priceInfluenceFactor', 'paymentSettlementUsage'].includes(key)) {
-              processedValue = Boolean(value) || String(value).toLowerCase() === 'true';
+              const stringValue = String(value).toLowerCase().trim();
+              processedValue = ['true', 'yes', '1', 'on', 'checked'].includes(stringValue);
             }
             // 处理日期字段
             else if (key === 'declareDate') {
@@ -418,8 +486,42 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
           }
         });
         
-        // 设置商品字段到goods[0]
-        if (Object.keys(goodsData).length > 0) {
+        // 处理商品数据 - 优先使用AI解析的goods数组，其次使用单个字段构建
+        if (parsedData.goods && Array.isArray(parsedData.goods) && parsedData.goods.length > 0) {
+          // 使用AI解析的完整商品数组
+          console.log('🔍 AI解析发现商品数组，包含', parsedData.goods.length, '个商品');
+          const processedGoods = parsedData.goods.map((goodsItem: any, index: number) => {
+            const processedItem: any = {
+              itemNo: index + 1, // 确保项号从1开始
+              goodsCode: goodsItem.goodsCode || goodsItem.code || '',
+              goodsNameSpec: goodsItem.goodsNameSpec || goodsItem.name || goodsItem.description || '',
+              quantity1: goodsItem.quantity1 || goodsItem.quantity || goodsItem.qty || 0,
+              unit1: goodsItem.unit1 || goodsItem.unit || '台',
+              unitPrice: goodsItem.unitPrice || goodsItem.price || 0,
+              totalPrice: goodsItem.totalPrice || (goodsItem.quantity * goodsItem.unitPrice) || 0,
+              finalDestCountry: goodsItem.finalDestCountry || goodsItem.destination || goodsItem.country || '',
+              exemption: goodsItem.exemption || '101'
+            };
+            
+            // 数值字段类型转换
+            ['quantity1', 'unitPrice', 'totalPrice'].forEach(field => {
+              if (processedItem[field] !== undefined) {
+                const numValue = parseFloat(String(processedItem[field]));
+                if (!isNaN(numValue)) {
+                  processedItem[field] = numValue;
+                }
+              }
+            });
+            
+            return processedItem;
+          });
+          
+          form.setValue('goods', processedGoods);
+          console.log('✅ 已设置', processedGoods.length, '个商品到表单');
+        }
+        // 如果没有goods数组，使用传统的单个字段构建方式
+        else if (Object.keys(goodsData).length > 0) {
+          console.log('🔍 使用单个字段构建商品数据');
           const currentGoods = form.getValues('goods') || [{}];
           const updatedGoodsItem = { ...currentGoods[0] };
           
@@ -454,6 +556,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
           
           // 更新商品数组
           form.setValue('goods', [updatedGoodsItem]);
+          console.log('✅ 已设置单个商品到表单');
         }
 
         toast({
@@ -930,33 +1033,71 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       return mappedData;
     }
     
-    // AI结果字段映射字典
+    // AI结果字段映射字典 - 扩展版本，包含更多字段变体
     const aiFieldMappings: { [key: string]: string[] } = {
-      preEntryNo: ['预录入编号', '预录入号', 'pre-entry', 'preentry', '录入编号'],
-      customsNo: ['海关编号', '海关号', 'customs', '报关编号'],
-      consignorConsignee: ['收发货人', '企业名称', '公司名称', '收货人', '发货人', 'consignor', 'consignee', 'company'],
-      productionSalesUnit: ['生产销售单位', '生产企业', '销售单位', 'production', 'sales'],
-      declarationUnit: ['申报单位', '申报企业', 'declaration', '申报公司'],
-      agentUnit: ['代理申报单位', '代理企业', 'agent', '代理公司'],
-      contractNo: ['合同协议号', '合同号', 'contract', '协议号'],
-      invoiceNo: ['发票号', '发票编号', 'invoice', '商业发票号'],
-      billNo: ['提运单号', '运单号', 'bill', 'waybill', '提单号'],
-      freight: ['运费', 'freight', '运输费用'],
-      insurance: ['保险费', 'insurance', '保险'],
-      otherCharges: ['杂费', '其他费用', 'other charges', 'misc'],
-      grossWeight: ['毛重', 'gross weight', '总重量'],
-      netWeight: ['净重', 'net weight'],
-      packages: ['件数', '包装件数', 'packages', '数量'],
-      packageType: ['包装种类', '包装方式', 'package type'],
-      transMode: ['运输方式', '运输工具', 'transport', 'shipping'],
-      transNo: ['运输工具名称', '船名', '航班号', 'vessel', 'flight'],
-      voyageNo: ['航次号', 'voyage', '班次'],
-      billDate: ['提运单日期', '运单日期', 'bill date'],
-      tradingCountry: ['贸易国', '交易国', 'trading country'],
-      destinationCountry: ['最终目的国', '目的国', 'destination'],
-      departureCiq: ['启运港', '出发地', 'departure', 'origin'],
-      arrivalCiq: ['入境口岸', '到达港', 'arrival', 'destination port'],
-      marksAndNotes: ['标记唛头', '备注', '标记', 'marks', 'notes', '唛头']
+      // 基本申报信息
+      preEntryNo: ['预录入编号', '预录入号', 'pre-entry', 'preentry', '录入编号', '预申报编号'],
+      customsNo: ['海关编号', '海关号', 'customs', '报关编号', '海关代码', '关区代码'],
+      consignorConsignee: ['收发货人', '企业名称', '公司名称', '收货人', '发货人', 'consignor', 'consignee', 'company', '申报企业', '经营单位'],
+      productionSalesUnit: ['生产销售单位', '生产企业', '销售单位', 'production', 'sales', '制造商', '生产商'],
+      declarationUnit: ['申报单位', '申报企业', 'declaration', '申报公司', '报关单位'],
+      agentUnit: ['代理申报单位', '代理企业', 'agent', '代理公司', '报关代理'],
+      
+      // 合同发票信息
+      contractNo: ['合同协议号', '合同号', 'contract', '协议号', '合同编号', '协议编号'],
+      invoiceNo: ['发票号', '发票编号', 'invoice', '商业发票号', '发票号码'],
+      
+      // 运输信息
+      billNo: ['提运单号', '运单号', 'bill', 'waybill', '提单号', '航空运单', '海运提单'],
+      transportMode: ['运输方式', '运输工具', 'transport mode', 'shipping method', '运输代码'],
+      transportName: ['运输工具名称', '船名', '航班号', 'vessel', 'flight', '车牌号', '船舶名称'],
+      voyageNo: ['航次号', 'voyage', '班次', '航次', '车次'],
+      
+      // 费用信息
+      freight: ['运费', 'freight', '运输费用', '运输费'],
+      insurance: ['保险费', 'insurance', '保险', '保险金额'],
+      otherCharges: ['杂费', '其他费用', 'other charges', 'misc', '附加费用', '额外费用'],
+      
+      // 重量包装信息
+      grossWeight: ['毛重', 'gross weight', '总重量', '毛重量'],
+      netWeight: ['净重', 'net weight', '净重量'],
+      packages: ['件数', '包装件数', 'packages', '数量', '包装数量', '总件数'],
+      packageType: ['包装种类', '包装方式', 'package type', '包装类型'],
+      
+      // 贸易条款
+      tradeTerms: ['成交方式', '贸易条款', 'trade terms', 'incoterms', '交货条件'],
+      
+      // 金额汇率信息
+      currency: ['币制', '货币', 'currency', '币种'],
+      exchangeRate: ['汇率', 'exchange rate', '折算汇率'],
+      totalAmountForeign: ['外币总价', '外币金额', 'foreign amount', '外币总额'],
+      totalAmountCNY: ['人民币总价', '人民币金额', 'cny amount', '人民币总额'],
+      
+      // 日期信息
+      declareDate: ['申报日期', '报关日期', 'declare date', '申报时间'],
+      exportDate: ['出口日期', 'export date', '出境日期'],
+      billDate: ['提运单日期', '运单日期', 'bill date', '开单日期'],
+      
+      // 地区信息
+      tradeCountry: ['贸易国', '交易国', 'trading country', '贸易国家'],
+      arrivalCountry: ['运抵国', '到达国', 'arrival country', '目的国家'],
+      transitPort: ['指运港', '目的港', 'destination port', '卸货港'],
+      domesticSource: ['境内货源地', '货源地', 'source', '产地'],
+      exportPort: ['出口口岸', '出境口岸', 'export port', '离境口岸'],
+      
+      // 监管信息
+      supervisionMode: ['监管方式', '监管代码', 'supervision mode', '监管类型'],
+      exemptionNature: ['征免性质', '征免代码', 'exemption nature', '征免类型'],
+      
+      // 许可证信息
+      filingNo: ['备案号', '备案编号', 'filing number', '登记号'],
+      licenseNo: ['许可证号', '许可证编号', 'license number', '证书号'],
+      
+      // 其他信息
+      marksAndNotes: ['标记唛头', '备注', '标记', 'marks', 'notes', '唛头', '标识', '说明'],
+      declarationLocation: ['申报地点', '报关地点', 'declaration location', '申报口岸'],
+      declarationPerson: ['申报人员', '报关员', 'declarant', '申报人'],
+      declarationPhone: ['申报联系电话', '联系电话', 'phone', '电话号码', '联系方式']
     };
     
     // 遍历AI提取的数据，尝试匹配表单字段
@@ -1191,41 +1332,95 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     const formValues = form.getValues();
     const goodsList = formValues.goods || [];
     
+    console.log('🔍 生成预览数据，表单值:', formValues);
+    console.log('🔍 商品列表:', goodsList);
+    
     // 创建显示用的真实申报数据
     const declarationData: { [key: string]: string } = {};
     
     // 辅助函数：检查值是否有效（非空、非0、非空字符串）
     const isValidValue = (value: any): boolean => {
       if (value === null || value === undefined) return false;
-      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'string') return value.trim() !== '' && value.trim() !== '0';
       if (typeof value === 'number') return value !== 0;
       if (typeof value === 'boolean') return true;
       return false;
     };
     
-    // 基本申报信息
-    if (isValidValue(formValues.preEntryNo) && formValues.preEntryNo !== '海关编号：') {
-      declarationData['预录入编号'] = formValues.preEntryNo!;
-    }
-    if (isValidValue(formValues.customsNo) && formValues.customsNo !== '收发货人') {
-      declarationData['海关编号'] = formValues.customsNo!;
-    }
-    if (isValidValue(formValues.consignorConsignee)) declarationData['收发货人'] = formValues.consignorConsignee!;
-    if (isValidValue(formValues.productionSalesUnit)) declarationData['生产销售单位'] = formValues.productionSalesUnit!;
-    if (isValidValue(formValues.declarationUnit)) declarationData['申报单位'] = formValues.declarationUnit!;
-    if (isValidValue(formValues.exportPort)) declarationData['出口口岸'] = formValues.exportPort!;
-    if (isValidValue(formValues.filingNo)) declarationData['备案号'] = formValues.filingNo!;
-    if (isValidValue(formValues.licenseNo)) declarationData['许可证号'] = formValues.licenseNo!;
+    // 辅助函数：格式化值显示
+    const formatValue = (value: any, type?: 'currency' | 'weight' | 'date' | 'number'): string => {
+      if (!isValidValue(value)) return '';
+      
+      switch (type) {
+        case 'currency':
+          return `${value} ${formValues.currency || 'USD'}`;
+        case 'weight':
+          return `${value} KG`;
+        case 'date':
+          return value instanceof Date ? value.toLocaleDateString('zh-CN') : new Date(value).toLocaleDateString('zh-CN');
+        case 'number':
+          return String(value);
+        default:
+          return String(value).trim();
+      }
+    };
+    
+    // 基本申报信息 - 使用优化的验证和格式化
+    const basicFields = [
+      { key: 'preEntryNo', label: '预录入编号', exclude: ['海关编号：', '预录入编号'] },
+      { key: 'customsNo', label: '海关编号', exclude: ['收发货人', '海关编号'] },
+      { key: 'consignorConsignee', label: '收发货人' },
+      { key: 'productionSalesUnit', label: '生产销售单位' },
+      { key: 'declarationUnit', label: '申报单位' },
+      { key: 'agentUnit', label: '代理申报单位' },
+      { key: 'exportPort', label: '出口口岸' },
+      { key: 'filingNo', label: '备案号' },
+      { key: 'licenseNo', label: '许可证号' },
+      { key: 'customsDistrict', label: '关区代码' },
+      { key: 'declarationLocation', label: '申报地点' },
+      { key: 'declarationPerson', label: '申报人员' },
+      { key: 'declarationPhone', label: '申报联系电话' }
+    ];
+    
+    basicFields.forEach(({ key, label, exclude }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        // 排除占位符文本
+        if (exclude && exclude.some(ex => String(value).includes(ex))) {
+          return;
+        }
+        declarationData[label] = formatValue(value);
+      }
+    });
     
     // 日期信息
-    if (formValues.declareDate) {
-      declarationData['申报日期'] = new Date(formValues.declareDate).toLocaleDateString('zh-CN');
-    }
-    if (formValues.exportDate) {
-      declarationData['出口日期'] = new Date(formValues.exportDate).toLocaleDateString('zh-CN');
-    }
+    const dateFields = [
+      { key: 'declareDate', label: '申报日期' },
+      { key: 'exportDate', label: '出口日期' }
+    ];
     
-    // 运输信息
+    dateFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        declarationData[label] = formatValue(value, 'date');
+      }
+    });
+    
+    // 运输信息 - 优化处理
+    const transportFields = [
+      { key: 'transportName', label: '运输工具名称' },
+      { key: 'billNo', label: '提运单号' },
+      { key: 'voyageNo', label: '航次号' }
+    ];
+    
+    transportFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        declarationData[label] = formatValue(value);
+      }
+    });
+    
+    // 运输方式 - 特殊处理代码映射
     if (isValidValue(formValues.transportMode)) {
       const transportModes: { [key: string]: string } = {
         '1': '1-江海运输',
@@ -1240,104 +1435,169 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       };
       declarationData['运输方式'] = transportModes[formValues.transportMode!] || formValues.transportMode!;
     }
-    if (isValidValue(formValues.transportName)) declarationData['运输工具名称'] = formValues.transportName!;
-    if (isValidValue(formValues.billNo)) declarationData['提运单号'] = formValues.billNo!;
     
     // 监管信息
-    if (isValidValue(formValues.supervisionMode)) declarationData['监管方式'] = formValues.supervisionMode!;
-    if (isValidValue(formValues.exemptionNature)) declarationData['征免性质'] = formValues.exemptionNature!;
+    const regulatoryFields = [
+      { key: 'supervisionMode', label: '监管方式' },
+      { key: 'exemptionNature', label: '征免性质' }
+    ];
+    
+    regulatoryFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        declarationData[label] = formatValue(value);
+      }
+    });
     
     // 地区信息
-    if (isValidValue(formValues.tradeCountry)) declarationData['贸易国(地区)'] = formValues.tradeCountry!;
-    if (isValidValue(formValues.arrivalCountry)) declarationData['运抵国(地区)'] = formValues.arrivalCountry!;
-    if (isValidValue(formValues.transitPort)) declarationData['指运港'] = formValues.transitPort!;
-    if (isValidValue(formValues.domesticSource)) declarationData['境内货源地'] = formValues.domesticSource!;
+    const locationFields = [
+      { key: 'tradeCountry', label: '贸易国(地区)' },
+      { key: 'arrivalCountry', label: '运抵国(地区)' },
+      { key: 'transitPort', label: '指运港' },
+      { key: 'domesticSource', label: '境内货源地' }
+    ];
+    
+    locationFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        declarationData[label] = formatValue(value);
+      }
+    });
     
     // 贸易条款
-    if (isValidValue(formValues.tradeTerms)) declarationData['成交方式'] = formValues.tradeTerms!;
-    if (isValidValue(formValues.contractNo)) declarationData['合同协议号'] = formValues.contractNo!;
+    const tradeFields = [
+      { key: 'tradeTerms', label: '成交方式' },
+      { key: 'contractNo', label: '合同协议号' },
+      { key: 'invoiceNo', label: '发票号' }
+    ];
     
-    // 金额信息
-    if (isValidValue(formValues.currency)) declarationData['币制'] = formValues.currency!;
+    tradeFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value)) {
+        declarationData[label] = formatValue(value);
+      }
+    });
+    
+    // 金额信息 - 使用格式化函数
+    if (isValidValue(formValues.currency)) declarationData['币制'] = formatValue(formValues.currency);
     if (isValidValue(formValues.totalAmountForeign)) {
-      declarationData['外币总价'] = `${formValues.totalAmountForeign} ${formValues.currency || 'USD'}`;
+      declarationData['外币总价'] = formatValue(formValues.totalAmountForeign, 'currency');
     }
     if (isValidValue(formValues.totalAmountCNY)) {
       declarationData['人民币总价'] = `${formValues.totalAmountCNY} CNY`;
     }
-    if (isValidValue(formValues.exchangeRate)) declarationData['汇率'] = formValues.exchangeRate!.toString();
-    if (isValidValue(formValues.freight) && formValues.freight !== "0") {
-      declarationData['运费'] = `${formValues.freight} ${formValues.currency || 'USD'}`;
+    if (isValidValue(formValues.exchangeRate)) {
+      declarationData['汇率'] = formatValue(formValues.exchangeRate, 'number');
     }
-    if (isValidValue(formValues.insurance) && formValues.insurance !== "0") {
-      declarationData['保险费'] = `${formValues.insurance} ${formValues.currency || 'USD'}`;
-    }
-    if (isValidValue(formValues.otherCharges) && formValues.otherCharges !== "0") {
-      declarationData['杂费'] = `${formValues.otherCharges} ${formValues.currency || 'USD'}`;
-    }
+    
+    // 费用信息
+    const costFields = [
+      { key: 'freight', label: '运费' },
+      { key: 'insurance', label: '保险费' },
+      { key: 'otherCharges', label: '杂费' }
+    ];
+    
+    costFields.forEach(({ key, label }) => {
+      const value = (formValues as any)[key];
+      if (isValidValue(value) && String(value) !== "0") {
+        declarationData[label] = formatValue(value, 'currency');
+      }
+    });
     
     // 包装信息
-    if (isValidValue(formValues.packages)) declarationData['件数'] = formValues.packages!.toString();
-    if (isValidValue(formValues.packageType)) declarationData['包装种类'] = formValues.packageType!;
-    if (isValidValue(formValues.grossWeight)) declarationData['毛重'] = `${formValues.grossWeight} KG`;
-    if (isValidValue(formValues.netWeight)) declarationData['净重'] = `${formValues.netWeight} KG`;
+    if (isValidValue(formValues.packages)) {
+      declarationData['件数'] = formatValue(formValues.packages, 'number');
+    }
+    if (isValidValue(formValues.packageType)) {
+      declarationData['包装种类'] = formatValue(formValues.packageType);
+    }
+    if (isValidValue(formValues.grossWeight)) {
+      declarationData['毛重'] = formatValue(formValues.grossWeight, 'weight');
+    }
+    if (isValidValue(formValues.netWeight)) {
+      declarationData['净重'] = formatValue(formValues.netWeight, 'weight');
+    }
     
     // 其他申报信息
-    if (isValidValue(formValues.marksAndNotes)) declarationData['标记唛头及备注'] = formValues.marksAndNotes!;
-    if (isValidValue(formValues.declarationLocation)) declarationData['申报地点'] = formValues.declarationLocation!;
-    if (isValidValue(formValues.customsDistrict)) declarationData['关区代码'] = formValues.customsDistrict!;
-    if (isValidValue(formValues.declarationPerson)) declarationData['申报人员'] = formValues.declarationPerson!;
-    if (isValidValue(formValues.declarationPhone)) declarationData['申报联系电话'] = formValues.declarationPhone!;
+    if (isValidValue(formValues.marksAndNotes)) {
+      declarationData['标记唛头及备注'] = formatValue(formValues.marksAndNotes);
+    }
     
-    // 商品信息（处理所有商品条目）
+    // 商品信息（处理所有商品条目）- 优化版本
     if (goodsList && goodsList.length > 0) {
       declarationData['商品总数'] = goodsList.length.toString();
+      console.log('🔍 处理商品信息，总数:', goodsList.length);
+      
+      // 统计有效商品数量
+      const validGoods = goodsList.filter((item: any) => 
+        isValidValue(item.goodsCode) || isValidValue(item.goodsNameSpec) || 
+        isValidValue(item.quantity1) || isValidValue(item.unitPrice)
+      );
+      
+      if (validGoods.length > 0) {
+        declarationData['有效商品数'] = validGoods.length.toString();
+      }
       
       goodsList.forEach((goodsItem: any, index: number) => {
         const itemPrefix = goodsList.length > 1 ? `商品${index + 1}-` : '';
+        console.log(`🔍 处理商品${index + 1}:`, goodsItem);
         
-        if (isValidValue(goodsItem.goodsCode)) {
-          declarationData[`${itemPrefix}商品编码`] = goodsItem.goodsCode;
-        }
-        if (isValidValue(goodsItem.goodsNameSpec)) {
-          declarationData[`${itemPrefix}商品名称及规格`] = goodsItem.goodsNameSpec;
-        }
-        if (isValidValue(goodsItem.quantity1)) {
-          declarationData[`${itemPrefix}数量`] = goodsItem.quantity1.toString();
-        }
-        if (isValidValue(goodsItem.unit1)) {
-          declarationData[`${itemPrefix}计量单位`] = goodsItem.unit1;
-        }
-        if (isValidValue(goodsItem.unitPrice)) {
-          declarationData[`${itemPrefix}单价`] = `${goodsItem.unitPrice} ${formValues.currency || 'USD'}`;
-        }
-        if (isValidValue(goodsItem.totalPrice)) {
-          declarationData[`${itemPrefix}总价`] = `${goodsItem.totalPrice} ${formValues.currency || 'USD'}`;
-        }
-        if (isValidValue(goodsItem.finalDestCountry)) {
-          declarationData[`${itemPrefix}最终目的地国`] = goodsItem.finalDestCountry;
-        }
-        if (isValidValue(goodsItem.exemption)) {
-          declarationData[`${itemPrefix}征免`] = goodsItem.exemption;
-        }
+        // 商品基本信息
+        const goodsFields = [
+          { key: 'goodsCode', label: '商品编码' },
+          { key: 'goodsNameSpec', label: '商品名称及规格' },
+          { key: 'unit1', label: '计量单位' },
+          { key: 'finalDestCountry', label: '最终目的地国' },
+          { key: 'exemption', label: '征免' },
+          { key: 'unit2', label: '第二计量单位' }
+        ];
         
-        // 如果有第二计量单位相关字段
-        if (isValidValue(goodsItem.quantity2)) {
-          declarationData[`${itemPrefix}第二数量`] = goodsItem.quantity2.toString();
-        }
-        if (isValidValue(goodsItem.unit2)) {
-          declarationData[`${itemPrefix}第二计量单位`] = goodsItem.unit2;
-        }
+        goodsFields.forEach(({ key, label }) => {
+          if (isValidValue(goodsItem[key])) {
+            declarationData[`${itemPrefix}${label}`] = formatValue(goodsItem[key]);
+          }
+        });
+        
+        // 数值字段特殊处理
+        const numericFields = [
+          { key: 'quantity1', label: '数量', type: 'number' as const },
+          { key: 'quantity2', label: '第二数量', type: 'number' as const },
+          { key: 'unitPrice', label: '单价', type: 'currency' as const },
+          { key: 'totalPrice', label: '总价', type: 'currency' as const }
+        ];
+        
+        numericFields.forEach(({ key, label, type }) => {
+          if (isValidValue(goodsItem[key])) {
+            declarationData[`${itemPrefix}${label}`] = formatValue(goodsItem[key], type);
+          }
+        });
       });
+    } else {
+      console.log('⚠️ 未找到有效商品信息');
+      declarationData['商品信息'] = '未填写商品信息';
     }
     
     // 显示表单当前状态信息
     declarationData['表单状态'] = formValues.status === 'draft' ? '草稿' : formValues.status === 'submitted' ? '已提交' : '已完成';
     
-    // 如果所有有效字段都为空，显示提示信息
-    const validFields = Object.keys(declarationData).filter(key => key !== '表单状态');
+    // 统计有效字段数量
+    const validFields = Object.keys(declarationData).filter(key => 
+      !['表单状态', '商品总数', '有效商品数', '商品信息'].includes(key)
+    );
+    
+    console.log('🔍 生成的申报数据字段数:', Object.keys(declarationData).length);
+    console.log('🔍 有效数据字段数:', validFields.length);
+    
+    // 如果没有足够的有效字段，添加调试信息
+    if (validFields.length < 5) {
+      declarationData['调试信息'] = '检测到数据较少，可能是文件解析未完成或表单未填写';
+      declarationData['默认值统计'] = `运输方式:${formValues.transportMode || '无'}, 币制:${formValues.currency || '无'}, 成交方式:${formValues.tradeTerms || '无'}`;
+    }
+    
+    // 如果完全没有有效字段，显示提示信息
     if (validFields.length === 0) {
-      declarationData['提示'] = '请先填写申报信息';
+      declarationData['提示'] = '请先填写申报信息或上传包含申报数据的文件';
+      declarationData['建议'] = '支持上传CSV、Excel、PDF、图片格式的申报单据';
     }
     
     return declarationData;
@@ -2986,6 +3246,64 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                       <li>• 推送后将进入海关审核流程</li>
                                     </ul>
                                   </div>
+                                  
+                                  {/* 调试信息面板 */}
+                                  {(() => {
+                                    const currentFormValues = form.getValues();
+                                    const goodsList = currentFormValues.goods || [];
+                                    const previewData = selectedPreviewTask ? generateRealDeclarationData(selectedPreviewTask) : {};
+                                    const validFields = Object.keys(previewData).filter(key => 
+                                      !['表单状态', '商品总数', '有效商品数', '商品信息', '调试信息', '默认值统计', '提示', '建议'].includes(key)
+                                    );
+                                    
+                                    // 检查是否需要显示调试信息
+                                    const shouldShowDebug = validFields.length < 10 || previewData['调试信息'];
+                                    
+                                    return shouldShowDebug ? (
+                                      <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                                        <h4 className="font-medium mb-2 text-yellow-800 flex items-center">
+                                          <span className="mr-2">🔍</span>
+                                          数据诊断信息
+                                        </h4>
+                                        <div className="text-sm text-yellow-700 space-y-2">
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                              <div className="font-medium mb-1">表单状态检查：</div>
+                                              <ul className="space-y-1 text-xs">
+                                                <li>• 有效数据字段数：{validFields.length}</li>
+                                                <li>• 商品项目数：{goodsList.length}</li>
+                                                <li>• 表单状态：{currentFormValues.status || '未知'}</li>
+                                                <li>• 币制设置：{currentFormValues.currency || '未设置'}</li>
+                                                <li>• 运输方式：{currentFormValues.transportMode || '未设置'}</li>
+                                              </ul>
+                                            </div>
+                                            <div>
+                                              <div className="font-medium mb-1">可能的原因：</div>
+                                              <ul className="space-y-1 text-xs">
+                                                {validFields.length < 5 && (
+                                                  <li>• 数据字段较少，可能文件解析未完成</li>
+                                                )}
+                                                {goodsList.length === 1 && !goodsList[0].goodsNameSpec && (
+                                                  <li>• 商品信息为空，请检查文件是否包含商品数据</li>
+                                                )}
+                                                {!uploadedFile && (
+                                                  <li>• 未检测到已上传文件</li>
+                                                )}
+                                                <li>• 预览显示的是表单中实际存储的数据</li>
+                                                <li>• 如果刚上传文件，请等待解析完成</li>
+                                              </ul>
+                                            </div>
+                                          </div>
+                                          <div className="mt-3 p-2 bg-yellow-100 rounded text-xs">
+                                            <strong>提示：</strong>如果数据显示不正确，请确保：
+                                            1) 上传的文件格式支持（CSV、Excel、PDF、图片）；
+                                            2) 文件包含明确的申报字段标识；
+                                            3) 等待AI解析完成后再查看预览。
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ) : null;
+                                  })()}
                                 </div>
                               )}
                             </DialogContent>
