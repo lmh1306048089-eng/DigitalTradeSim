@@ -1189,75 +1189,154 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
   const generateRealDeclarationData = (task: DeclarationTask) => {
     const formValues = form.getValues();
-    const goods = formValues.goods && formValues.goods.length > 0 ? formValues.goods[0] : {};
-    
-    // 调试：打印表单数据结构
-    console.log('🔍 调试 - 完整表单数据:', formValues);
-    console.log('🔍 调试 - 商品数据:', goods);
-    console.log('🔍 调试 - 表单字段名:', Object.keys(formValues));
+    const goodsList = formValues.goods || [];
     
     // 创建显示用的真实申报数据
     const declarationData: { [key: string]: string } = {};
     
+    // 辅助函数：检查值是否有效（非空、非0、非空字符串）
+    const isValidValue = (value: any): boolean => {
+      if (value === null || value === undefined) return false;
+      if (typeof value === 'string') return value.trim() !== '';
+      if (typeof value === 'number') return value !== 0;
+      if (typeof value === 'boolean') return true;
+      return false;
+    };
+    
     // 基本申报信息
-    if (formValues.preEntryNo) declarationData['预录入编号'] = formValues.preEntryNo;
-    if (formValues.customsNo) declarationData['海关编号'] = formValues.customsNo;
-    if (formValues.consignorConsignee) declarationData['收发货人'] = formValues.consignorConsignee;
-    if (formValues.productionSalesUnit) declarationData['生产销售单位'] = formValues.productionSalesUnit;
-    if (formValues.declarationUnit) declarationData['申报单位'] = formValues.declarationUnit;
-    if (formValues.exportPort) declarationData['出口口岸'] = formValues.exportPort;
-    if (formValues.declareDate) declarationData['申报日期'] = new Date(formValues.declareDate).toLocaleDateString('zh-CN');
+    if (isValidValue(formValues.preEntryNo) && formValues.preEntryNo !== '海关编号：') {
+      declarationData['预录入编号'] = formValues.preEntryNo!;
+    }
+    if (isValidValue(formValues.customsNo) && formValues.customsNo !== '收发货人') {
+      declarationData['海关编号'] = formValues.customsNo!;
+    }
+    if (isValidValue(formValues.consignorConsignee)) declarationData['收发货人'] = formValues.consignorConsignee!;
+    if (isValidValue(formValues.productionSalesUnit)) declarationData['生产销售单位'] = formValues.productionSalesUnit!;
+    if (isValidValue(formValues.declarationUnit)) declarationData['申报单位'] = formValues.declarationUnit!;
+    if (isValidValue(formValues.exportPort)) declarationData['出口口岸'] = formValues.exportPort!;
+    if (isValidValue(formValues.filingNo)) declarationData['备案号'] = formValues.filingNo!;
+    if (isValidValue(formValues.licenseNo)) declarationData['许可证号'] = formValues.licenseNo!;
     
-    // 运输信息
-    if (formValues.transportMode) declarationData['运输方式'] = formValues.transportMode;
-    if (formValues.transportName) declarationData['运输工具名称'] = formValues.transportName;
-    
-    // 贸易信息
-    if (formValues.tradeCountry) declarationData['贸易国'] = formValues.tradeCountry;
-    if (formValues.arrivalCountry) declarationData['运抵国'] = formValues.arrivalCountry;
-    if (formValues.currency) declarationData['币制'] = formValues.currency;
-    if (formValues.exemptionNature) declarationData['征免性质'] = formValues.exemptionNature;
-    
-    // 金额信息
-    if (formValues.totalAmountForeign) declarationData['外币总价'] = `${formValues.totalAmountForeign} ${formValues.currency || 'USD'}`;
-    if (formValues.totalAmountCNY) declarationData['人民币总价'] = `${formValues.totalAmountCNY} CNY`;
-    if (formValues.exchangeRate) declarationData['汇率'] = formValues.exchangeRate.toString();
-    if (formValues.freight) declarationData['运费'] = `${formValues.freight} ${formValues.currency || 'USD'}`;
-    if (formValues.insurance) declarationData['保险费'] = `${formValues.insurance} ${formValues.currency || 'USD'}`;
-    if (formValues.otherCharges) declarationData['杂费'] = `${formValues.otherCharges} ${formValues.currency || 'USD'}`;
-    
-    // 贸易条款
-    if (formValues.tradeTerms) declarationData['成交方式'] = formValues.tradeTerms;
-    if (formValues.contractNo) declarationData['合同协议号'] = formValues.contractNo;
-    
-    // 包装信息
-    if (formValues.packages) declarationData['件数'] = formValues.packages.toString();
-    if (formValues.packageType) declarationData['包装种类'] = formValues.packageType;
-    if (formValues.grossWeight) declarationData['毛重'] = `${formValues.grossWeight} KG`;
-    if (formValues.netWeight) declarationData['净重'] = `${formValues.netWeight} KG`;
-    
-    // 其他信息
-    if (formValues.marksAndNotes) declarationData['标记唛头'] = formValues.marksAndNotes;
-    if (formValues.declarationLocation) declarationData['申报地点'] = formValues.declarationLocation;
-    if (formValues.customsDistrict) declarationData['关区代码'] = formValues.customsDistrict;
-    if (formValues.declarationPerson) declarationData['申报人员'] = formValues.declarationPerson;
-    if (formValues.declarationPhone) declarationData['申报联系电话'] = formValues.declarationPhone;
-    
-    // 商品信息（第一个商品）
-    if (goods && typeof goods === 'object') {
-      const goodsItem = goods as any; // Type assertion for flexibility
-      if (goodsItem.goodsCode) declarationData['商品编码'] = goodsItem.goodsCode;
-      if (goodsItem.goodsNameSpec) declarationData['商品名称及规格'] = goodsItem.goodsNameSpec;
-      if (goodsItem.quantity1) declarationData['数量'] = goodsItem.quantity1.toString();
-      if (goodsItem.unit1) declarationData['计量单位'] = goodsItem.unit1;
-      if (goodsItem.unitPrice) declarationData['单价'] = `${goodsItem.unitPrice} ${formValues.currency || 'USD'}`;
-      if (goodsItem.totalPrice) declarationData['总价'] = `${goodsItem.totalPrice} ${formValues.currency || 'USD'}`;
-      if (goodsItem.finalDestCountry) declarationData['最终目的地国'] = goodsItem.finalDestCountry;
-      if (goodsItem.exemption) declarationData['征免'] = goodsItem.exemption;
+    // 日期信息
+    if (formValues.declareDate) {
+      declarationData['申报日期'] = new Date(formValues.declareDate).toLocaleDateString('zh-CN');
+    }
+    if (formValues.exportDate) {
+      declarationData['出口日期'] = new Date(formValues.exportDate).toLocaleDateString('zh-CN');
     }
     
-    // 如果所有字段都为空，显示提示信息
-    if (Object.keys(declarationData).length === 0) {
+    // 运输信息
+    if (isValidValue(formValues.transportMode)) {
+      const transportModes: { [key: string]: string } = {
+        '1': '1-江海运输',
+        '2': '2-铁路运输', 
+        '3': '3-公路运输',
+        '4': '4-航空运输',
+        '5': '5-邮政运输',
+        '6': '6-固定运输设备',
+        '7': '7-管道运输',
+        '8': '8-内陆水运',
+        '9': '9-其他运输'
+      };
+      declarationData['运输方式'] = transportModes[formValues.transportMode!] || formValues.transportMode!;
+    }
+    if (isValidValue(formValues.transportName)) declarationData['运输工具名称'] = formValues.transportName!;
+    if (isValidValue(formValues.billNo)) declarationData['提运单号'] = formValues.billNo!;
+    
+    // 监管信息
+    if (isValidValue(formValues.supervisionMode)) declarationData['监管方式'] = formValues.supervisionMode!;
+    if (isValidValue(formValues.exemptionNature)) declarationData['征免性质'] = formValues.exemptionNature!;
+    
+    // 地区信息
+    if (isValidValue(formValues.tradeCountry)) declarationData['贸易国(地区)'] = formValues.tradeCountry!;
+    if (isValidValue(formValues.arrivalCountry)) declarationData['运抵国(地区)'] = formValues.arrivalCountry!;
+    if (isValidValue(formValues.transitPort)) declarationData['指运港'] = formValues.transitPort!;
+    if (isValidValue(formValues.domesticSource)) declarationData['境内货源地'] = formValues.domesticSource!;
+    
+    // 贸易条款
+    if (isValidValue(formValues.tradeTerms)) declarationData['成交方式'] = formValues.tradeTerms!;
+    if (isValidValue(formValues.contractNo)) declarationData['合同协议号'] = formValues.contractNo!;
+    
+    // 金额信息
+    if (isValidValue(formValues.currency)) declarationData['币制'] = formValues.currency!;
+    if (isValidValue(formValues.totalAmountForeign)) {
+      declarationData['外币总价'] = `${formValues.totalAmountForeign} ${formValues.currency || 'USD'}`;
+    }
+    if (isValidValue(formValues.totalAmountCNY)) {
+      declarationData['人民币总价'] = `${formValues.totalAmountCNY} CNY`;
+    }
+    if (isValidValue(formValues.exchangeRate)) declarationData['汇率'] = formValues.exchangeRate!.toString();
+    if (isValidValue(formValues.freight) && formValues.freight !== "0") {
+      declarationData['运费'] = `${formValues.freight} ${formValues.currency || 'USD'}`;
+    }
+    if (isValidValue(formValues.insurance) && formValues.insurance !== "0") {
+      declarationData['保险费'] = `${formValues.insurance} ${formValues.currency || 'USD'}`;
+    }
+    if (isValidValue(formValues.otherCharges) && formValues.otherCharges !== "0") {
+      declarationData['杂费'] = `${formValues.otherCharges} ${formValues.currency || 'USD'}`;
+    }
+    
+    // 包装信息
+    if (isValidValue(formValues.packages)) declarationData['件数'] = formValues.packages!.toString();
+    if (isValidValue(formValues.packageType)) declarationData['包装种类'] = formValues.packageType!;
+    if (isValidValue(formValues.grossWeight)) declarationData['毛重'] = `${formValues.grossWeight} KG`;
+    if (isValidValue(formValues.netWeight)) declarationData['净重'] = `${formValues.netWeight} KG`;
+    
+    // 其他申报信息
+    if (isValidValue(formValues.marksAndNotes)) declarationData['标记唛头及备注'] = formValues.marksAndNotes!;
+    if (isValidValue(formValues.declarationLocation)) declarationData['申报地点'] = formValues.declarationLocation!;
+    if (isValidValue(formValues.customsDistrict)) declarationData['关区代码'] = formValues.customsDistrict!;
+    if (isValidValue(formValues.declarationPerson)) declarationData['申报人员'] = formValues.declarationPerson!;
+    if (isValidValue(formValues.declarationPhone)) declarationData['申报联系电话'] = formValues.declarationPhone!;
+    
+    // 商品信息（处理所有商品条目）
+    if (goodsList && goodsList.length > 0) {
+      declarationData['商品总数'] = goodsList.length.toString();
+      
+      goodsList.forEach((goodsItem: any, index: number) => {
+        const itemPrefix = goodsList.length > 1 ? `商品${index + 1}-` : '';
+        
+        if (isValidValue(goodsItem.goodsCode)) {
+          declarationData[`${itemPrefix}商品编码`] = goodsItem.goodsCode;
+        }
+        if (isValidValue(goodsItem.goodsNameSpec)) {
+          declarationData[`${itemPrefix}商品名称及规格`] = goodsItem.goodsNameSpec;
+        }
+        if (isValidValue(goodsItem.quantity1)) {
+          declarationData[`${itemPrefix}数量`] = goodsItem.quantity1.toString();
+        }
+        if (isValidValue(goodsItem.unit1)) {
+          declarationData[`${itemPrefix}计量单位`] = goodsItem.unit1;
+        }
+        if (isValidValue(goodsItem.unitPrice)) {
+          declarationData[`${itemPrefix}单价`] = `${goodsItem.unitPrice} ${formValues.currency || 'USD'}`;
+        }
+        if (isValidValue(goodsItem.totalPrice)) {
+          declarationData[`${itemPrefix}总价`] = `${goodsItem.totalPrice} ${formValues.currency || 'USD'}`;
+        }
+        if (isValidValue(goodsItem.finalDestCountry)) {
+          declarationData[`${itemPrefix}最终目的地国`] = goodsItem.finalDestCountry;
+        }
+        if (isValidValue(goodsItem.exemption)) {
+          declarationData[`${itemPrefix}征免`] = goodsItem.exemption;
+        }
+        
+        // 如果有第二计量单位相关字段
+        if (isValidValue(goodsItem.quantity2)) {
+          declarationData[`${itemPrefix}第二数量`] = goodsItem.quantity2.toString();
+        }
+        if (isValidValue(goodsItem.unit2)) {
+          declarationData[`${itemPrefix}第二计量单位`] = goodsItem.unit2;
+        }
+      });
+    }
+    
+    // 显示表单当前状态信息
+    declarationData['表单状态'] = formValues.status === 'draft' ? '草稿' : formValues.status === 'submitted' ? '已提交' : '已完成';
+    
+    // 如果所有有效字段都为空，显示提示信息
+    const validFields = Object.keys(declarationData).filter(key => key !== '表单状态');
+    if (validFields.length === 0) {
       declarationData['提示'] = '请先填写申报信息';
     }
     
