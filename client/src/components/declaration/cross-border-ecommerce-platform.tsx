@@ -217,36 +217,107 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
   useEffect(() => {
     const loadTestData = async () => {
       try {
-        const response = await apiRequest("GET", "/api/test-data/customs-declaration-export");
+        const response = await apiRequest("GET", "/api/test-data/customs-declaration-export/默认测试企业");
         if (response.ok) {
           const testData = await response.json();
-          if (testData && testData.length > 0) {
-            const data = testData[0];
+          if (testData) {
+            // 设置订仓数据
             setBookingData({
-              orderNumber: data.orderNumber || 'CB202509220001',
-              customerName: data.customerName || '上海跨境贸易有限公司',
-              destinationCountry: data.destinationCountry || '美国',
-              productDetails: data.productDetails || '电子产品 - 智能手机配件',
-              weight: data.weight || '2.5',
-              value: data.value || '1500.00'
+              orderNumber: testData.bookingOrderNumber || 'BOOK2024030001',
+              customerName: testData.companyName || '深圳市跨境通电子商务有限公司',
+              destinationCountry: '美国',
+              productDetails: testData.goodsDescription || '无线蓝牙耳机',
+              weight: testData.grossWeight?.toString() || '125.5',
+              value: testData.totalValue?.toString() || '12750.00'
             });
+
+            // 自动填充完整的表单数据（静默填充）
+            const formData = {
+              // 基本申报信息（使用正确的字段名称）
+              preEntryNo: testData.arrivalReportNumber || 'ARR2024030001',
+              customsNo: testData.customsCode || '5144',
+              consignorConsignee: `${testData.consignorName || testData.companyName}/${testData.consigneeName || 'TechWorld Electronics Inc.'}`,
+              productionSalesUnit: testData.companyName || '深圳市跨境通电子商务有限公司',
+              declarationUnit: testData.companyName || '深圳市跨境通电子商务有限公司',
+              filingNo: testData.businessLicense || 'GL440300123456789012345',
+              licenseNo: testData.unifiedCreditCode || '91440300MA5DA1234X',
+              declareDate: new Date(), // 使用Date对象
+              
+              // 运输和口岸信息
+              exportPort: testData.departurePort || '深圳盐田港',
+              transportMode: testData.transportMode === '海运' ? '05' : '05',
+              supervisionMode: '0110', // 使用schema允许的值
+              transportName: testData.transportToolNumber || 'OOCL TOKYO',
+              billNo: testData.bookingOrderNumber || 'BOOK2024030001',
+              
+              // 贸易相关信息
+              exemptionNature: testData.exemptionMethod || '1',
+              tradeCountry: 'CN',
+              arrivalCountry: 'US',
+              currency: testData.currency || 'USD',
+              transitPort: testData.destinationPort || '洛杉矶港',
+              domesticSource: '不适用',
+              
+              // 金额信息（数字类型用于主要金额字段）
+              totalAmountForeign: parseFloat(testData.totalValue) || 12750,
+              totalAmountCNY: (parseFloat(testData.totalValue) || 12750) * 7.2,
+              exchangeRate: 7.2,
+              freight: '0', // 字符串类型
+              insurance: '0', // 字符串类型
+              otherCharges: '0', // 字符串类型
+              tradeTerms: 'FOB',
+              
+              // 合同和包装信息
+              contractNo: `CT${new Date().getFullYear()}${String(Date.now()).slice(-6)}`,
+              packages: parseInt(testData.packageQuantity) || 10, // 确保数字类型
+              packageType: testData.packageType || '纸箱',
+              grossWeight: parseFloat(testData.grossWeight) || 125.5, // 数字类型
+              netWeight: parseFloat(testData.netWeight) || 100.0, // 数字类型
+              
+              // 货物信息 - 使用数组格式
+              goods: [{
+                itemNo: 1,
+                goodsCode: testData.hsCode || '8518300000',
+                goodsNameSpec: testData.goodsDescription || '无线蓝牙耳机',
+                quantity1: parseFloat(testData.quantity) || 500,
+                unit1: testData.unit || '个',
+                unitPrice: parseFloat(testData.unitPrice) || 25.5,
+                totalPrice: parseFloat(testData.totalValue) || 12750,
+                finalDestCountry: 'US',
+                exemption: testData.exemptionMethod || '1'
+              }],
+              
+              // 确认选项保持为false（按照要求）
+              specialRelationshipConfirm: false,
+              priceInfluenceConfirm: false,
+              royaltyPaymentConfirm: false,
+              
+              // 其他信息
+              supportingDocuments: '发票、装箱单、合同',
+              entryPersonnel: testData.contactPerson || '李四',
+              entryUnit: testData.companyName || '深圳市跨境通电子商务有限公司',
+              fillDate: new Date()
+            };
+
+            // 静默填充表单，不显示任何通知
+            form.reset(formData);
           }
         }
       } catch (error) {
-        console.log("测试数据加载失败，使用默认数据");
+        // 静默失败，使用默认数据
         setBookingData({
-          orderNumber: 'CB202509220001',
-          customerName: '上海跨境贸易有限公司',
+          orderNumber: 'BOOK2024030001',
+          customerName: '深圳市跨境通电子商务有限公司',
           destinationCountry: '美国',
-          productDetails: '电子产品 - 智能手机配件',
-          weight: '2.5',
-          value: '1500.00'
+          productDetails: '无线蓝牙耳机',
+          weight: '125.5',
+          value: '12750.00'
         });
       }
     };
 
     loadTestData();
-  }, []);
+  }, [form]);
 
   const steps = [
     { id: 'booking', title: '订仓单数据推送', icon: Ship, description: '推送订仓单数据到综合服务平台' },
