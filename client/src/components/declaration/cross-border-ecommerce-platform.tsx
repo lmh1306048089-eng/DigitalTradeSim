@@ -1681,9 +1681,29 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
       console.log('📤 开始提交申报数据到海关系统:', submissionData);
 
-      // 创建出口申报记录
+      // 创建出口申报记录 - 确保title字段始终有效
+      const titleSuffix = bookingData?.orderNumber || formData.preEntryNo || formData.customsNo || `申报${Date.now()}`;
+      const titleValue = `跨境电商报关单申报-${titleSuffix}`;
+      
+      console.log('🔍 生成title字段:', {
+        bookingOrderNumber: bookingData?.orderNumber,
+        preEntryNo: formData.preEntryNo,
+        customsNo: formData.customsNo,
+        titleSuffix,
+        finalTitle: titleValue
+      });
+      
+      // 额外验证：确保title不为空
+      if (!titleValue || titleValue === 'undefined' || titleValue.includes('undefined')) {
+        console.error('❌ Title字段无效，使用fallback值');
+        const fallbackTitle = `跨境电商报关单申报-${Date.now()}`;
+        console.log('🔧 使用fallback title:', fallbackTitle);
+      }
+      
+      const finalTitle = titleValue && !titleValue.includes('undefined') ? titleValue : `跨境电商报关单申报-${Date.now()}`;
+      
       const declarationData = {
-        title: `跨境电商报关单申报-${bookingData?.orderNumber || formData.preEntryNo || new Date().getTime()}`,
+        title: finalTitle,
         declarationMode: "declaration" as const,
         status: "declaration_pushed" as const,
         declarationPushed: true,

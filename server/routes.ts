@@ -1567,6 +1567,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/export-declarations", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const userId = req.user!.id;
+      
+      // 调试日志：查看接收到的数据
+      console.log('🔍 服务器接收到的申报数据:', {
+        title: req.body.title,
+        titleType: typeof req.body.title,
+        bodyKeys: Object.keys(req.body),
+        hasTitle: 'title' in req.body
+      });
+      
       const declarationData = insertExportDeclarationSchema.parse({
         ...req.body,
         userId
