@@ -1235,14 +1235,136 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
     }, 1500);
   };
 
-  // 表单提交失败处理函数
+  // 表单提交失败处理函数 - 优化显示具体错误信息
   const onFormError = (errors: any) => {
     console.error('表单验证错误:', errors);
+    
+    // 提取主要错误信息
+    const errorMessages: string[] = [];
+    
+    // 处理基础字段错误
+    const fieldErrors = Object.keys(errors).filter(key => key !== 'goods');
+    fieldErrors.forEach(field => {
+      if (errors[field]?.message) {
+        const fieldName = getFieldDisplayName(field);
+        errorMessages.push(`${fieldName}: ${errors[field].message}`);
+      }
+    });
+    
+    // 处理商品明细错误
+    if (errors.goods && Array.isArray(errors.goods)) {
+      errors.goods.forEach((goodError: any, index: number) => {
+        if (goodError && typeof goodError === 'object') {
+          Object.keys(goodError).forEach(field => {
+            if (goodError[field]?.message) {
+              const fieldName = getGoodsFieldDisplayName(field);
+              errorMessages.push(`商品${index + 1} ${fieldName}: ${goodError[field].message}`);
+            }
+          });
+        }
+      });
+    }
+    
+    // 限制显示的错误数量，避免信息过载
+    const displayMessages = errorMessages.slice(0, 5);
+    const hasMoreErrors = errorMessages.length > 5;
+    
+    const description = displayMessages.length > 0 
+      ? displayMessages.join('\n') + (hasMoreErrors ? `\n...还有${errorMessages.length - 5}个其他错误` : '')
+      : "请检查并填写所有必填字段";
+    
     toast({
-      title: "表单验证失败",
-      description: "请检查并填写所有必填字段",
+      title: `表单验证失败 (${errorMessages.length}个错误)`,
+      description: description,
       variant: "destructive"
     });
+    
+    // 自动滚动到第一个错误字段
+    scrollToFirstError(errors);
+  };
+  
+  // 滚动到第一个错误字段的辅助函数
+  const scrollToFirstError = (errors: any) => {
+    // 定义字段优先级顺序（从上到下）
+    const fieldPriority = [
+      'preEntryNo', 'customsNo', 'consignorConsignee', 'declarationUnit',
+      'exportPort', 'declareDate', 'transportMode', 'transportName',
+      'totalAmountForeign', 'totalAmountCNY', 'exchangeRate', 'freight',
+      'packages', 'grossWeight', 'netWeight', 'goods',
+      'declarationPhone', 'entryPersonnel', 'entryUnit'
+    ];
+    
+    for (const field of fieldPriority) {
+      if (errors[field]) {
+        const element = document.querySelector(`[data-testid*="${field}"], [data-testid*="${field.replace(/([A-Z])/g, '-$1').toLowerCase()}"]`);
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+          // 添加临时高亮效果
+          element.classList.add('ring-2', 'ring-red-500', 'ring-opacity-75');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-75');
+          }, 3000);
+          break;
+        }
+      }
+    }
+    
+    // 如果是商品错误，滚动到商品表格
+    if (errors.goods && Array.isArray(errors.goods)) {
+      const goodsTable = document.querySelector('[data-testid*="goods"], .goods-table, [data-testid*="product"]');
+      if (goodsTable) {
+        goodsTable.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        // 高亮商品表格
+        goodsTable.classList.add('ring-2', 'ring-red-500', 'ring-opacity-75');
+        setTimeout(() => {
+          goodsTable.classList.remove('ring-2', 'ring-red-500', 'ring-opacity-75');
+        }, 3000);
+      }
+    }
+  };
+  
+  // 字段名称映射
+  const getFieldDisplayName = (field: string): string => {
+    const fieldNameMap: Record<string, string> = {
+      'consignorConsignee': '收发货人',
+      'exportPort': '出口口岸',
+      'exchangeRate': '汇率',
+      'totalAmountForeign': '外币总价',
+      'totalAmountCNY': '人民币总价',
+      'packages': '件数',
+      'grossWeight': '毛重',
+      'netWeight': '净重',
+      'declarationPhone': '申报联系电话',
+      'entryPersonnel': '录入人员',
+      'entryUnit': '录入单位',
+      'preEntryNo': '预录入编号',
+      'customsNo': '海关编号',
+      'declarationUnit': '申报单位',
+      'freight': '运费',
+      'insurance': '保险费',
+      'otherCharges': '杂费'
+    };
+    return fieldNameMap[field] || field;
+  };
+  
+  // 商品字段名称映射
+  const getGoodsFieldDisplayName = (field: string): string => {
+    const goodsFieldNameMap: Record<string, string> = {
+      'goodsCode': '商品编号(HS)',
+      'goodsNameSpec': '商品名称/规格型号',
+      'quantity1': '数量',
+      'unit1': '单位',
+      'unitPrice': '单价',
+      'totalPrice': '总价',
+      'finalDestCountry': '最终目的地国'
+    };
+    return goodsFieldNameMap[field] || field;
   };
 
   const handleCreateTask = () => {
