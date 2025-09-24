@@ -3176,6 +3176,26 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                             <Input
                               placeholder="请输入录入人员姓名"
                               data-testid="input-entry-personnel"
+                              className={form.formState.errors.entryPersonnel ? 'border-red-500 ring-red-500 ring-1' : ''}
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="declarationPhone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>申报联系电话 *</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="请输入11位手机号"
+                              data-testid="input-declaration-phone"
+                              className={form.formState.errors.declarationPhone ? 'border-red-500 ring-red-500 ring-1' : ''}
+                              maxLength={11}
                               {...field}
                             />
                           </FormControl>
