@@ -1683,7 +1683,7 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
       // 创建出口申报记录
       const declarationData = {
-        title: `跨境电商报关单申报-${bookingData.orderNumber}`,
+        title: `跨境电商报关单申报-${bookingData?.orderNumber || formData.preEntryNo || new Date().getTime()}`,
         declarationMode: "declaration" as const,
         status: "declaration_pushed" as const,
         declarationPushed: true,
@@ -1784,11 +1784,39 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
       console.log('✅ 海关提交成功:', mockCustomsResponse);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ 海关提交失败:', error);
+      
+      let errorMessage = "申报数据提交失败，请稍后重试";
+      
+      // 检查是否是网络错误或服务器错误
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = "网络连接失败，请检查网络后重试";
+      } else if (error.response) {
+        // 服务器返回的错误
+        try {
+          const errorData = await error.response.json();
+          if (errorData.message) {
+            errorMessage = errorData.message;
+            
+            // 对于验证错误，显示更友好的消息
+            if (errorData.message.includes('数据验证失败') && errorData.errors) {
+              const fieldErrors = errorData.errors.map((e: any) => 
+                e.path && e.path.length > 0 ? `${e.path.join('.')}: ${e.message}` : e.message
+              ).join(', ');
+              errorMessage = `数据验证失败: ${fieldErrors}`;
+            }
+          }
+        } catch {
+          // 无法解析错误响应，使用默认消息
+        }
+      } else if (error.message && error.message !== 'Failed to fetch') {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "提交失败",
-        description: "申报数据提交失败，请检查网络连接后重试",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
