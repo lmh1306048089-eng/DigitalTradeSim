@@ -1738,17 +1738,12 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       
       // 更新申报记录，保存海关响应数据
       const updateResponse = await apiRequest("PUT", `/api/export-declarations/${declarationResult.id}`, {
-        body: JSON.stringify({
-          status: "under_review",
-          generatedData: {
-            ...submissionData,
-            customsNumber,
-            submittedAt,
-            submissionType: "customs_system"
-          }
-        }),
-        headers: {
-          'Content-Type': 'application/json'
+        status: "under_review",
+        generatedData: {
+          ...submissionData,
+          customsNumber,
+          submittedAt,
+          submissionType: "customs_system"
         }
       });
 
@@ -1758,20 +1753,15 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
 
       // 创建提交历史记录
       const historyResponse = await apiRequest("POST", `/api/export-declarations/${declarationResult.id}/submission-history`, {
-        body: JSON.stringify({
-          submissionType: "declaration",
-          platform: "single_window",
-          status: "success",
-          requestData: submissionData,
-          responseData: {
-            customsNumber,
-            submittedAt,
-            status: "under_review",
-            message: "申报数据已成功推送至海关系统，等待海关审核"
-          }
-        }),
-        headers: {
-          'Content-Type': 'application/json'
+        submissionType: "declaration",
+        platform: "single_window",
+        status: "success",
+        requestData: submissionData,
+        responseData: {
+          customsNumber,
+          submittedAt,
+          status: "under_review",
+          message: "申报数据已成功推送至海关系统，等待海关审核"
         }
       });
 
