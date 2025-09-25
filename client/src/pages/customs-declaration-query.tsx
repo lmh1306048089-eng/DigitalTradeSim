@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   ArrowLeft, 
   Search, 
@@ -39,7 +39,12 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQueryProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [location] = useLocation();
   const { toast } = useToast();
+  
+  // 解析URL查询参数
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const highlightCustomsNumber = urlParams.get('highlight');
 
   // 获取用户的申报记录列表
   const { data: declarations, isLoading, isError, error, refetch } = useQuery<ExportDeclaration[]>({
@@ -353,10 +358,14 @@ export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQu
                   };
                   const StatusIcon = status.icon;
                   
+                  const isHighlighted = highlightCustomsNumber && getCustomsNumber(declaration) === highlightCustomsNumber;
+                  
                   return (
                     <Card 
                       key={declaration.id} 
-                      className="border-blue-200 hover:shadow-md transition-shadow"
+                      className={`border-blue-200 hover:shadow-md transition-shadow ${
+                        isHighlighted ? 'border-green-400 bg-green-50 ring-2 ring-green-200' : ''
+                      }`}
                       data-testid={`card-declaration-${declaration.id}`}
                     >
                       <CardContent className="p-6">

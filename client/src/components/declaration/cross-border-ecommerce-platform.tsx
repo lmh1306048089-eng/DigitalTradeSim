@@ -4262,12 +4262,12 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
                                                 </div>
                                                 <div className="mt-4 text-center">
                                                   <Button 
-                                                    onClick={() => window.open(`https://www.singlewindow.cn/query?declarationId=${submissionResult.customsNumber}`, '_blank')}
+                                                    onClick={() => setLocation(`/customs-declaration-query?highlight=${submissionResult.customsNumber}`)}
                                                     className="bg-blue-600 hover:bg-blue-700"
                                                     data-testid="button-view-result"
                                                   >
                                                     <FileCheck className="h-4 w-4 mr-2" />
-                                                    前往中国国际单一窗口查询
+                                                    查看申报结果
                                                   </Button>
                                                 </div>
                                               </div>
