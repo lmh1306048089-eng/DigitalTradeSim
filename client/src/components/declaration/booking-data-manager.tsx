@@ -69,8 +69,8 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
 
   // 自动预填测试数据
   useEffect(() => {
-    if (testData?.data?.bookingData) {
-      const bookingData = testData.data.bookingData;
+    if (testData && typeof testData === 'object' && 'bookingData' in testData) {
+      const bookingData = (testData as any).bookingData;
       form.reset({
         orderNumber: bookingData.orderNumber || "BOOK2025030001",
         customerName: bookingData.shipper?.name || "深圳市跨境通电子商务有限公司",
@@ -180,6 +180,7 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
 
       // 1. 创建订仓单记录
       const bookingOrderData = {
+        declarationId: declarationId,
         orderNumber: formData.orderNumber,
         status: "created",
         platform: "comprehensive_service",
