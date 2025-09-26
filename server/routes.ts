@@ -1711,12 +1711,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('🔍 服务器接收到的req.body:', req.body);
-      console.log('🔍 准备验证的数据:', { ...req.body, declarationId });
       
-      const orderData = insertBookingOrderSchema.parse({
-        ...req.body,
-        declarationId
-      });
+      // 直接使用客户端发送的数据，确保declarationId正确
+      const bodyData = { ...req.body };
+      bodyData.declarationId = declarationId; // 确保使用URL参数中的declarationId
+      
+      console.log('🔍 准备验证的数据:', bodyData);
+      
+      const orderData = insertBookingOrderSchema.parse(bodyData);
       
       const order = await storage.createBookingOrder(orderData, userId);
       res.status(201).json(order);
