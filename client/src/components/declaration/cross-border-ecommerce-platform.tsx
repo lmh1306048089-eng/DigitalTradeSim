@@ -2107,8 +2107,8 @@ export function CrossBorderEcommercePlatform({ onComplete, onCancel }: CrossBord
       queryClient.invalidateQueries({ queryKey: ['/api/export-declarations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/export-declarations', declarationResult.id] });
 
-      // 通知父组件流程完成
-      onComplete?.(mockCustomsResponse);
+      // 不立即通知父组件流程完成，让用户先看到申报结果
+      // onComplete?.(mockCustomsResponse);
 
       toast({
         title: "🎉 提交成功",
