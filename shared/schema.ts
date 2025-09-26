@@ -1255,6 +1255,138 @@ export type InsertBookingOrder = z.infer<typeof insertBookingOrderSchema>;
 export type ImportJob = typeof importJobs.$inferSelect;
 export type InsertImportJob = z.infer<typeof insertImportJobSchema>;
 
+// 清单模式申报特有的表结构
+
+// 物流单表
+export const logisticsOrders = pgTable("logistics_orders", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationId: varchar("declaration_id", { length: 36 }).notNull().references(() => exportDeclarations.id, { onDelete: "cascade" }),
+  waybillNumber: varchar("waybill_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("created"), // created, pushed, confirmed, failed
+  platform: varchar("platform", { length: 50 }).notNull().default("comprehensive_service"),
+  
+  // 物流单数据
+  logisticsData: jsonb("logistics_data").$type<{
+    shipper: any;
+    consignee: any;
+    transport: any;
+    route: any;
+  }>(),
+  
+  pushedAt: timestamp("pushed_at"),
+  confirmedAt: timestamp("confirmed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 清单数据表
+export const listDeclarations = pgTable("list_declarations", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  declarationId: varchar("declaration_id", { length: 36 }).notNull().references(() => exportDeclarations.id, { onDelete: "cascade" }),
+  listNumber: varchar("list_number", { length: 50 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull().default("created"), // created, pushed, under_review, approved, rejected
+  platform: varchar("platform", { length: 50 }).notNull().default("unified_export"),
+  
+  // 清单汇总数据
+  listData: jsonb("list_data").$type<{
+    summary: any;
+    items: any[];
+    totalValue: number;
+    totalWeight: number;
+  }>(),
+  
+  // 海关逻辑检验
+  logicValidated: boolean("logic_validated").default(false),
+  validationMessage: text("validation_message"),
+  
+  pushedAt: timestamp("pushed_at"),
+  validatedAt: timestamp("validated_at"),
+  approvedAt: timestamp("approved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 清单模式测试数据表
+export const listModeTestData = pgTable("list_mode_test_data", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  dataSetName: varchar("data_set_name", { length: 100 }).notNull().unique(),
+  description: text("description"),
+  
+  // 订仓单测试数据
+  bookingData: jsonb("booking_data").$type<{
+    orderNumber: string;
+    shipper: any;
+    consignee: any;
+    goods: any[];
+    transport: any;
+  }>(),
+  
+  // 物流单测试数据  
+  logisticsData: jsonb("logistics_data").$type<{
+    waybillNumber: string;
+    shipper: any;
+    consignee: any;
+    transport: any;
+    route: any;
+  }>(),
+  
+  // 清单数据测试数据
+  listData: jsonb("list_data").$type<{
+    listNumber: string;
+    summary: any;
+    items: any[];
+    totalValue: number;
+    totalWeight: number;
+  }>(),
+  
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 插入和更新schemas
+export const insertLogisticsOrderSchema = createInsertSchema(logisticsOrders).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertListDeclarationSchema = createInsertSchema(listDeclarations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertListModeTestDataSchema = createInsertSchema(listModeTestData).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const updateLogisticsOrderSchema = z.object({
+  waybillNumber: z.string().optional(),
+  status: z.enum(["created", "pushed", "confirmed", "failed"]).optional(),
+  logisticsData: z.any().optional(),
+  pushedAt: z.date().optional(),
+  confirmedAt: z.date().optional(),
+});
+
+export const updateListDeclarationSchema = z.object({
+  listNumber: z.string().optional(),
+  status: z.enum(["created", "pushed", "under_review", "approved", "rejected"]).optional(),
+  listData: z.any().optional(),
+  logicValidated: z.boolean().optional(),
+  validationMessage: z.string().optional(),
+  pushedAt: z.date().optional(),
+  validatedAt: z.date().optional(),
+  approvedAt: z.date().optional(),
+});
+
+export type LogisticsOrder = typeof logisticsOrders.$inferSelect;
+export type InsertLogisticsOrder = z.infer<typeof insertLogisticsOrderSchema>;
+export type UpdateLogisticsOrder = z.infer<typeof updateLogisticsOrderSchema>;
+
+export type ListDeclaration = typeof listDeclarations.$inferSelect;
+export type InsertListDeclaration = z.infer<typeof insertListDeclarationSchema>;
+export type UpdateListDeclaration = z.infer<typeof updateListDeclarationSchema>;
+
+export type ListModeTestData = typeof listModeTestData.$inferSelect;
+export type InsertListModeTestData = z.infer<typeof insertListModeTestDataSchema>;
+
 export type SubmissionHistory = typeof submissionHistory.$inferSelect;
 export type InsertSubmissionHistory = z.infer<typeof insertSubmissionHistorySchema>;
 export type UpdateExportDeclaration = z.infer<typeof updateExportDeclarationSchema>;
