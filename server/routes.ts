@@ -1788,7 +1788,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // 8A. 下载订舱单Excel模板
   app.get("/api/templates/booking-order", async (req, res) => {
     try {
-      const XLSX = require('xlsx');
       
       // 订舱单模板数据结构
       const headers = [
@@ -1871,7 +1870,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         if (fileExt === '.xlsx' || fileExt === '.xls') {
           // 处理Excel文件
-          const XLSX = require('xlsx');
           const workbook = XLSX.readFile(filePath);
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
@@ -1914,7 +1912,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         } else if (fileExt === '.csv') {
           // 处理CSV文件
-          const Papa = require('papaparse');
           const fileContent = fs.readFileSync(filePath, 'utf8');
           const result = Papa.parse(fileContent, { header: false, skipEmptyLines: true });
           
