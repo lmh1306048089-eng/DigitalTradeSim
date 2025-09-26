@@ -72,8 +72,8 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
 
   // 自动预填测试数据
   useEffect(() => {
-    if (testData?.data?.listData) {
-      const listData = testData.data.listData;
+    if (testData && (testData as any)?.data?.listData) {
+      const listData = (testData as any).data.listData;
       form.reset({
         listNumber: listData.listNumber || "LIST2025030001",
         totalValue: listData.totalValue || 12750,
@@ -128,12 +128,7 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
         logicValidated: false
       };
 
-      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/list-declarations`, {
-        body: JSON.stringify(listDeclarationData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/list-declarations`, listDeclarationData);
 
       if (!response.ok) {
         throw new Error('创建清单申报失败');
@@ -159,12 +154,7 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
         
         // 更新清单状态为已通过
         await apiRequest("PUT", `/api/export-declarations/${declarationId}`, {
-          body: JSON.stringify({
-            status: "approved"
-          }),
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          status: "approved"
         });
       } else {
         setValidationStatus('rejected');

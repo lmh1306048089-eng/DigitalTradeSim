@@ -68,8 +68,8 @@ export function LogisticsDataManager({ declarationId, onComplete }: LogisticsDat
 
   // 自动预填测试数据
   useEffect(() => {
-    if (testData?.data?.logisticsData) {
-      const logisticsData = testData.data.logisticsData;
+    if (testData && (testData as any)?.data?.logisticsData) {
+      const logisticsData = (testData as any).data.logisticsData;
       const currentDate = new Date();
       const departureDate = new Date(currentDate.getTime() + 24 * 60 * 60 * 1000); // 明天
       const arrivalDate = new Date(currentDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 一周后
