@@ -5,6 +5,8 @@ import path from "path";
 import fs from "fs";
 import { z } from "zod";
 import { randomUUID } from "crypto";
+import * as XLSX from "xlsx";
+import Papa from "papaparse";
 import { storage } from "./storage";
 import { 
   authenticateToken, 
@@ -1963,36 +1965,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 13. 模板下载端点
-  app.get("/api/export-templates/:templateType", authenticateToken, async (req: AuthRequest, res) => {
+  // 13. 生成并下载订舱单Excel模板
+  app.get("/api/templates/booking-order", authenticateToken, async (req: AuthRequest, res) => {
     try {
-      const { templateType } = req.params;
+      // 创建工作簿
+      const wb = XLSX.utils.book_new();
       
-      // 白名单模板类型
-      const allowedTemplates = ['booking-order', 'customs-declaration', 'goods-info'];
-      if (!allowedTemplates.includes(templateType)) {
+      // 定义订舱单模板数据
+      const templateData = [
+        ['订单号', '客户名称', '目的国家', '运单号', '产品描述', '重量(kg)', '价值(USD)'],
+        ['BOOK2025030001', '深圳市跨境通电子商务有限公司', '美国', 'ML2025030001', '无线蓝牙耳机', '125.5', '12750'],
+        ['', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', ''],
+        ['', '', '', '', '', '', '']
+      ];
+      
+      // 创建工作表
+      const ws = XLSX.utils.aoa_to_sheet(templateData);
+      
+      // 设置列宽
+      ws['!cols'] = [
+        { wch: 15 }, // 订单号
+        { wch: 25 }, // 客户名称  
+        { wch: 12 }, // 目的国家
+        { wch: 15 }, // 运单号
+        { wch: 20 }, // 产品描述
+        { wch: 12 }, // 重量
+        { wch: 12 }  // 价值
+      ];
+      
+      // 添加工作表到工作簿
+      XLSX.utils.book_append_sheet(wb, ws, "订舱单数据");
+      
+      // 生成Excel文件缓冲区
+      const excelBuffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+      
+      // 设置响应头
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="booking-order-template.xlsx"');
+      res.setHeader('Content-Length', excelBuffer.length);
+      
+      // 发送文件
+      res.send(excelBuffer);
+      
+    } catch (error: any) {
+      console.error("生成订舱单模板失败:", error);
+      res.status(500).json({ 
+        message: error.message || "生成模板失败" 
+      });
+    }
+  });
+
+  // 14. 文件上传解析端点
+  app.post("/api/import/booking-order/:declarationId", authenticateToken, upload.single('file'), async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "请选择要上传的文件" });
+      }
+
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
         return res.status(404).json({ 
-          message: "模板类型不存在" 
+          message: "申报记录不存在或无权访问" 
         });
       }
-      
-      // 模拟模板文件路径（实际部署时应该是真实的模板文件）
-      const templatePaths: Record<string, string> = {
-        'booking-order': '/templates/booking-order-template.xlsx',
-        'customs-declaration': '/templates/customs-declaration-template.xlsx',
-        'goods-info': '/templates/goods-info-template.xlsx'
-      };
-      
+
+      let parsedData: any[] = [];
+      const fileExtension = path.extname(req.file.originalname).toLowerCase();
+
+      if (fileExtension === '.xlsx' || fileExtension === '.xls') {
+        // 解析Excel文件
+        const workbook = XLSX.readFile(req.file.path);
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        // 跳过标题行，转换数据
+        if (jsonData.length > 1) {
+          const headers = jsonData[0] as string[];
+          for (let i = 1; i < jsonData.length; i++) {
+            const row = jsonData[i] as any[];
+            if (row.length > 0 && row[0]) { // 确保行不为空
+              const rowData: any = {};
+              headers.forEach((header, index) => {
+                rowData[header] = row[index] || '';
+              });
+              parsedData.push(rowData);
+            }
+          }
+        }
+      } else if (fileExtension === '.csv') {
+        // 解析CSV文件
+        const csvData = fs.readFileSync(req.file.path, 'utf-8');
+        const parseResult = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+        parsedData = parseResult.data;
+      } else {
+        // 清理上传的文件
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: "不支持的文件格式，请上传Excel(.xlsx/.xls)或CSV(.csv)文件" });
+      }
+
+      // 验证和转换数据
+      const validatedData = [];
+      const errors = [];
+
+      for (let i = 0; i < parsedData.length; i++) {
+        const row = parsedData[i];
+        const rowIndex = i + 2; // Excel行号(从1开始) + 标题行
+        
+        try {
+          // 映射字段名
+          const mappedData = {
+            orderNumber: row['订单号'] || '',
+            customerName: row['客户名称'] || '',
+            destinationCountry: row['目的国家'] || '',
+            waybillNumber: row['运单号'] || '',
+            productDetails: row['产品描述'] || '',
+            weight: String(row['重量(kg)'] || ''),
+            value: String(row['价值(USD)'] || '')
+          };
+
+          // 基础验证
+          if (!mappedData.orderNumber) {
+            errors.push(`第${rowIndex}行：订单号不能为空`);
+          }
+          if (!mappedData.customerName) {
+            errors.push(`第${rowIndex}行：客户名称不能为空`);
+          }
+          if (!mappedData.destinationCountry) {
+            errors.push(`第${rowIndex}行：目的国家不能为空`);
+          }
+          
+          validatedData.push(mappedData);
+        } catch (error) {
+          errors.push(`第${rowIndex}行：数据格式错误`);
+        }
+      }
+
+      // 清理上传的文件
+      fs.unlinkSync(req.file.path);
+
       res.json({
-        templateType,
-        downloadUrl: templatePaths[templateType],
-        filename: `${templateType}-template.xlsx`,
-        description: `${templateType}数据导入模板`
+        success: true,
+        data: validatedData,
+        errors: errors,
+        totalRows: parsedData.length,
+        validRows: validatedData.length,
+        message: errors.length > 0 ? "数据导入成功，但存在部分错误" : "数据导入成功"
       });
+
     } catch (error: any) {
-      console.error("获取模板失败:", error);
+      // 清理上传的文件
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      console.error("文件导入失败:", error);
       res.status(500).json({ 
-        message: error.message || "获取模板失败" 
+        message: error.message || "文件导入失败" 
       });
     }
   });
