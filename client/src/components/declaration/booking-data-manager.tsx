@@ -129,12 +129,7 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
         }
       };
 
-      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/booking-orders`, {
-        body: JSON.stringify(bookingOrderData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/booking-orders`, bookingOrderData);
 
       if (!response.ok) {
         throw new Error('创建订仓单失败');
@@ -147,14 +142,9 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
 
       // 3. 更新状态为已推送
       const updateResponse = await apiRequest("PUT", `/api/export-declarations/${declarationId}`, {
-        body: JSON.stringify({
-          status: "booking_pushed",
-          bookingOrderPushed: true,
-          importedData: [formData]
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+        status: "booking_pushed",
+        bookingOrderPushed: true,
+        importedData: [formData]
       });
 
       if (!updateResponse.ok) {

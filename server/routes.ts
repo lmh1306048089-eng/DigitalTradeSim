@@ -2218,20 +2218,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
             submissionType: "customs_audit",
             platform: "single_window",
             status: "success",
-            requestData: {
-              declarationId: declaration.id,
-              auditType: "automated_review"
-            },
-            responseData: {
-              result: newStatus,
-              auditTime: now.toISOString(),
-              auditScore: isApproved ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 60) + 20,
-              feedback: isApproved 
+            requestData: null,
+            responseData: [
+              newStatus,
+              now.toISOString(),
+              isApproved ? Math.floor(Math.random() * 20) + 80 : Math.floor(Math.random() * 60) + 20,
+              isApproved 
                 ? "申报数据完整，符合海关要求，准予放行" 
                 : "申报数据存在问题，需要补充相关材料后重新申报",
-              auditOfficer: `审核员${Math.floor(Math.random() * 999) + 1}`,
-              riskLevel: isApproved ? "低风险" : "高风险"
-            }
+              `审核员${Math.floor(Math.random() * 999) + 1}`,
+              isApproved ? "低风险" : "高风险"
+            ]
           };
           
           try {
