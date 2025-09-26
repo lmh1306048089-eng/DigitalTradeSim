@@ -63,30 +63,33 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
 
   // 自动预填测试数据
   useEffect(() => {
+    // 始终使用默认的fallback数据确保字段不为空
+    const defaultData = {
+      orderNumber: "BOOK2025030001",
+      customerName: "深圳市跨境通电子商务有限公司",
+      destinationCountry: "美国",
+      productDetails: "无线蓝牙耳机",
+      weight: "125.5",
+      value: "12750",
+      waybillNumber: "ML2025030001",
+    };
+
     if (testData) {
-      // 优先使用API返回的真实测试数据，如果没有则使用fallback数据
+      // 优先使用API返回的真实测试数据，但确保有fallback
       const orderData = testData as any;
       
       form.reset({
-        orderNumber: orderData.orderNumber || "BOOK2025030001",
-        customerName: orderData.shipper?.name || orderData.customerName || "深圳市跨境通电子商务有限公司",
-        destinationCountry: orderData.transport?.destination || orderData.destinationCountry || "美国",
-        productDetails: orderData.goods?.[0]?.name || orderData.productDetails || "无线蓝牙耳机",
-        weight: (orderData.goods?.[0]?.weight || orderData.weight || "125.5").toString(),
-        value: (orderData.goods?.[0]?.value || orderData.value || "12750").toString(),
-        waybillNumber: orderData.transport?.waybillNumber || orderData.waybillNumber || "ML2025030001",
+        orderNumber: orderData.orderNumber || defaultData.orderNumber,
+        customerName: orderData.shipper?.name || orderData.customerName || defaultData.customerName,
+        destinationCountry: orderData.transport?.destination || orderData.destinationCountry || defaultData.destinationCountry,
+        productDetails: orderData.goods?.[0]?.name || orderData.productDetails || defaultData.productDetails,
+        weight: (orderData.goods?.[0]?.weight || orderData.weight || defaultData.weight).toString(),
+        value: (orderData.goods?.[0]?.value || orderData.value || defaultData.value).toString(),
+        waybillNumber: orderData.transport?.waybillNumber || orderData.waybillNumber || defaultData.waybillNumber,
       });
     } else {
-      // 如果没有测试数据，使用默认的fallback数据
-      form.reset({
-        orderNumber: "BOOK2025030001",
-        customerName: "深圳市跨境通电子商务有限公司",
-        destinationCountry: "美国",
-        productDetails: "无线蓝牙耳机",
-        weight: "125.5",
-        value: "12750",
-        waybillNumber: "ML2025030001",
-      });
+      // 使用默认的fallback数据
+      form.reset(defaultData);
     }
   }, [testData, form]);
 
@@ -126,8 +129,6 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
         }
       };
 
-      console.log('🔍 发送到服务器的订仓单数据:', bookingOrderData);
-      
       const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/booking-orders`, {
         body: JSON.stringify(bookingOrderData),
         headers: {
