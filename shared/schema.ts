@@ -1174,8 +1174,8 @@ export const submissionHistory = pgTable("submission_history", {
   status: varchar("status", { length: 20 }).notNull(), // sent, processing, success, failed
   
   // 提交数据和响应
-  requestData: jsonb("request_data").$type<any>(),
-  responseData: jsonb("response_data").$type<any>(),
+  requestData: jsonb("request_data").$type<Record<string, any> | null>(),
+  responseData: jsonb("response_data").$type<Record<string, any> | null>(),
   errorMessage: text("error_message"),
   
   submittedAt: timestamp("submitted_at").defaultNow(),

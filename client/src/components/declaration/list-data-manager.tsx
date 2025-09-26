@@ -40,7 +40,7 @@ interface ListDataManagerProps {
 
 export function ListDataManager({ declarationId, onComplete }: ListDataManagerProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [validationStatus, setValidationStatus] = useState<'pending' | 'validating' | 'approved' | 'rejected'>('pending');
+  const [validationStatus, setValidationStatus] = useState<'pending' | 'validating' | 'submitted' | 'approved' | 'rejected'>('pending');
   const [validationMessage, setValidationMessage] = useState("");
   const { toast } = useToast();
 
@@ -145,41 +145,34 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
       setValidationMessage("海关系统正在进行逻辑检验...");
       await new Promise(resolve => setTimeout(resolve, 4000));
 
-      // 4. 模拟检验结果（这里假设通过）
-      const validationResult = Math.random() > 0.2; // 80%概率通过
+      // 4. 提交到海关审核队列
+      setValidationStatus('submitted');
+      setValidationMessage("清单数据已提交至海关系统，等待海关逻辑检验...");
       
-      if (validationResult) {
-        setValidationStatus('approved');
-        setValidationMessage("海关逻辑检验通过，清单申报审核完成");
-        
-        // 更新清单状态为已通过
-        await apiRequest("PUT", `/api/export-declarations/${declarationId}`, {
-          status: "approved"
-        });
-      } else {
-        setValidationStatus('rejected');
-        setValidationMessage("海关逻辑检验未通过，请检查申报数据后重新提交");
-        throw new Error('海关逻辑检验未通过');
-      }
+      // 更新申报状态为 under_review，交由后台调度器处理
+      await apiRequest("PUT", `/api/export-declarations/${declarationId}`, {
+        status: "under_review",
+        readyAt: new Date().toISOString() // 设置审核准备时间
+      });
 
-      return { listDeclaration, formData, validationResult };
+      return { listDeclaration, formData };
     },
     onSuccess: (data) => {
       setIsProcessing(false);
       
       toast({
-        title: "🎉 清单申报完成",
-        description: "清单数据已成功推送并通过海关逻辑检验",
+        title: "🏛️ 清单申报已提交",
+        description: "清单数据已成功推送至海关系统，等待逻辑检验结果",
         duration: 6000,
       });
 
-      // 通知完成
+      // 通知完成提交
       setTimeout(() => {
         onComplete({
           step: 'list',
           listDeclaration: data.listDeclaration,
           formData: data.formData,
-          validationResult: data.validationResult
+          status: 'under_review'
         });
       }, 2000);
     },
@@ -213,6 +206,13 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
           color: "text-yellow-600",
           bgColor: "bg-yellow-100 dark:bg-yellow-900",
           label: "检验中"
+        };
+      case 'submitted':
+        return {
+          icon: Clock,
+          color: "text-blue-600",
+          bgColor: "bg-blue-100 dark:bg-blue-900",
+          label: "已提交"
         };
       case 'approved':
         return {
@@ -258,11 +258,18 @@ export function ListDataManager({ declarationId, onComplete }: ListDataManagerPr
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">{validationMessage}</p>
+            <p className="text-sm text-muted-foreground mb-3">{validationMessage}</p>
             {validationStatus === 'validating' && (
               <div className="mt-4 flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
                 <span className="text-sm">检验过程通常需要3-5分钟，请耐心等待...</span>
+              </div>
+            )}
+            {validationStatus === 'submitted' && (
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
+                  💡 提示：您可以在"海关申报查询"页面实时查看审核进度和结果
+                </p>
               </div>
             )}
           </CardContent>
