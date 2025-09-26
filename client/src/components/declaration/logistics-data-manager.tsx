@@ -129,12 +129,7 @@ export function LogisticsDataManager({ declarationId, onComplete }: LogisticsDat
         }
       };
 
-      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/logistics-orders`, {
-        body: JSON.stringify(logisticsOrderData),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/logistics-orders`, logisticsOrderData);
 
       if (!response.ok) {
         throw new Error('创建物流单失败');
