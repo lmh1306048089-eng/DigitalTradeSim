@@ -1870,10 +1870,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         if (fileExt === '.xlsx' || fileExt === '.xls') {
           // 处理Excel文件
-          const workbook = XLSX.readFile(filePath);
+          console.log('开始解析Excel文件:', filePath);
+          
+          // 检查文件是否存在
+          if (!fs.existsSync(filePath)) {
+            throw new Error('上传的文件不存在');
+          }
+          
+          // 读取文件内容
+          const fileBuffer = fs.readFileSync(filePath);
+          console.log('文件读取成功，大小:', fileBuffer.length, 'bytes');
+          
+          // 使用buffer方式读取Excel
+          const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+          console.log('Excel工作簿解析成功，工作表数量:', workbook.SheetNames.length);
+          
+          if (workbook.SheetNames.length === 0) {
+            throw new Error('Excel文件中没有找到工作表');
+          }
+          
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
+          
+          if (!worksheet) {
+            throw new Error(`工作表 "${sheetName}" 不存在或为空`);
+          }
+          
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          console.log('Excel数据解析成功，行数:', jsonData.length);
           
           // 跳过标题行，处理数据行
           const rows = jsonData.slice(1) as any[][];
@@ -1912,8 +1936,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
         } else if (fileExt === '.csv') {
           // 处理CSV文件
+          console.log('开始解析CSV文件:', filePath);
+          
+          // 检查文件是否存在
+          if (!fs.existsSync(filePath)) {
+            throw new Error('上传的文件不存在');
+          }
+          
           const fileContent = fs.readFileSync(filePath, 'utf8');
-          const result = Papa.parse(fileContent, { header: false, skipEmptyLines: true });
+          console.log('CSV文件读取成功，内容长度:', fileContent.length, 'characters');
+          
+          if (!fileContent.trim()) {
+            throw new Error('CSV文件内容为空');
+          }
+          
+          const result = Papa.parse(fileContent, { 
+            header: false, 
+            skipEmptyLines: true,
+            dynamicTyping: false,  // 保持所有数据为字符串
+            transform: (value) => String(value).trim()  // 清理所有值
+          });
+          
+          console.log('CSV解析成功，行数:', result.data.length);
+          
+          if (result.errors && result.errors.length > 0) {
+            console.warn('CSV解析警告:', result.errors);
+          }
           
           // 跳过标题行，处理数据行
           const rows = result.data.slice(1) as any[][];
