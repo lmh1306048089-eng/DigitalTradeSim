@@ -1710,6 +1710,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log('🔍 服务器接收到的req.body:', req.body);
+      console.log('🔍 准备验证的数据:', { ...req.body, declarationId });
+      
       const orderData = insertBookingOrderSchema.parse({
         ...req.body,
         declarationId

@@ -126,6 +126,8 @@ export function BookingDataManager({ declarationId, onComplete }: BookingDataMan
         }
       };
 
+      console.log('🔍 发送到服务器的订仓单数据:', bookingOrderData);
+      
       const response = await apiRequest("POST", `/api/export-declarations/${declarationId}/booking-orders`, {
         body: JSON.stringify(bookingOrderData),
         headers: {
