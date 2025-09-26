@@ -96,8 +96,7 @@ function Router() {
             <CustomsDeclarationExportForm 
               onComplete={(data) => {
                 console.log("报关单模式出口申报完成:", data);
-                // 返回主页
-                window.location.href = "/";
+                // 让组件自己处理提交成功后的流程，不强制跳转
               }}
               onCancel={() => {
                 // 返回主页
