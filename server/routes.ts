@@ -1783,6 +1783,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============ 模板和导入功能 ============
+  
+  // 8A. 下载订舱单Excel模板
+  app.get("/api/templates/booking-order", async (req, res) => {
+    try {
+      const XLSX = require('xlsx');
+      
+      // 订舱单模板数据结构
+      const headers = [
+        '订单号',
+        '客户名称', 
+        '目的国家',
+        '运单号',
+        '产品描述',
+        '重量(kg)',
+        '价值(USD)'
+      ];
+      
+      // 创建示例数据行
+      const sampleData = [
+        ['ORD202401001', '张三贸易有限公司', '美国', 'AWB001234567', '电子产品-手机配件', '2.5', '150.00'],
+        ['ORD202401002', '李四进出口公司', '德国', 'AWB001234568', '服装-T恤衫', '1.8', '80.00']
+      ];
+      
+      // 创建工作簿和工作表
+      const workbook = XLSX.utils.book_new();
+      const worksheetData = [headers, ...sampleData];
+      const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+      
+      // 设置列宽
+      worksheet['!cols'] = [
+        { width: 15 }, // 订单号
+        { width: 20 }, // 客户名称
+        { width: 12 }, // 目的国家
+        { width: 15 }, // 运单号
+        { width: 25 }, // 产品描述
+        { width: 12 }, // 重量
+        { width: 12 }  // 价值
+      ];
+      
+      // 添加工作表到工作簿
+      XLSX.utils.book_append_sheet(workbook, worksheet, '订舱单数据');
+      
+      // 生成Excel缓冲区
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      
+      // 设置响应头
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename="booking-order-template.xlsx"');
+      res.setHeader('Content-Length', buffer.length);
+      
+      // 发送文件
+      res.send(buffer);
+      
+    } catch (error: any) {
+      console.error('生成订舱单模板失败:', error);
+      res.status(500).json({ message: error.message || "模板生成失败" });
+    }
+  });
+
+  // 8B. 导入订舱单数据
+  app.post("/api/import/booking-order/:declarationId", authenticateToken, upload.single("file"), async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "没有上传文件" });
+      }
+      
+      const filePath = req.file.path;
+      const fileName = req.file.originalname;
+      const fileExt = path.extname(fileName).toLowerCase();
+      
+      let data: any[] = [];
+      let errors: string[] = [];
+      
+      try {
+        if (fileExt === '.xlsx' || fileExt === '.xls') {
+          // 处理Excel文件
+          const XLSX = require('xlsx');
+          const workbook = XLSX.readFile(filePath);
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          // 跳过标题行，处理数据行
+          const rows = jsonData.slice(1) as any[][];
+          
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.length === 0 || !row[0]) continue; // 跳过空行
+            
+            try {
+              const rowData = {
+                declarationId,
+                orderNumber: String(row[0] || '').trim(),
+                customerName: String(row[1] || '').trim(),
+                destinationCountry: String(row[2] || '').trim(),
+                waybillNumber: String(row[3] || '').trim(),
+                productDetails: String(row[4] || '').trim(),
+                weight: String(row[5] || '').trim(),
+                value: String(row[6] || '').trim()
+              };
+              
+              // 基础验证
+              if (!rowData.orderNumber) {
+                errors.push(`第${i + 2}行: 订单号不能为空`);
+                continue;
+              }
+              if (!rowData.customerName) {
+                errors.push(`第${i + 2}行: 客户名称不能为空`);
+                continue;
+              }
+              
+              data.push(rowData);
+            } catch (error: any) {
+              errors.push(`第${i + 2}行: 数据格式错误 - ${error.message}`);
+            }
+          }
+          
+        } else if (fileExt === '.csv') {
+          // 处理CSV文件
+          const Papa = require('papaparse');
+          const fileContent = fs.readFileSync(filePath, 'utf8');
+          const result = Papa.parse(fileContent, { header: false, skipEmptyLines: true });
+          
+          // 跳过标题行，处理数据行
+          const rows = result.data.slice(1) as any[][];
+          
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.length === 0 || !row[0]) continue;
+            
+            try {
+              const rowData = {
+                declarationId,
+                orderNumber: String(row[0] || '').trim(),
+                customerName: String(row[1] || '').trim(),
+                destinationCountry: String(row[2] || '').trim(),
+                waybillNumber: String(row[3] || '').trim(),
+                productDetails: String(row[4] || '').trim(),
+                weight: String(row[5] || '').trim(),
+                value: String(row[6] || '').trim()
+              };
+              
+              // 基础验证
+              if (!rowData.orderNumber) {
+                errors.push(`第${i + 2}行: 订单号不能为空`);
+                continue;
+              }
+              if (!rowData.customerName) {
+                errors.push(`第${i + 2}行: 客户名称不能为空`);
+                continue;
+              }
+              
+              data.push(rowData);
+            } catch (error: any) {
+              errors.push(`第${i + 2}行: 数据格式错误 - ${error.message}`);
+            }
+          }
+          
+        } else {
+          return res.status(400).json({ message: "不支持的文件格式，请上传.xlsx、.xls或.csv文件" });
+        }
+        
+        // 清理临时文件
+        fs.unlinkSync(filePath);
+        
+        res.json({
+          message: errors.length > 0 
+            ? `导入完成，但存在${errors.length}个错误` 
+            : "导入成功",
+          totalRows: data.length + errors.length,
+          validRows: data.length,
+          errors,
+          data
+        });
+        
+      } catch (parseError: any) {
+        // 清理临时文件
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+        
+        console.error('文件解析失败:', parseError);
+        res.status(400).json({ 
+          message: "文件解析失败，请检查文件格式",
+          error: parseError.message
+        });
+      }
+      
+    } catch (error: any) {
+      console.error("导入订舱单数据失败:", error);
+      
+      // 清理临时文件
+      if (req.file && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "导入失败" 
+      });
+    }
+  });
+
   // 8. 数据导入任务管理 - 获取申报的导入任务列表
   app.get("/api/export-declarations/:declarationId/import-jobs", authenticateToken, async (req: AuthRequest, res) => {
     try {
