@@ -57,6 +57,9 @@ import {
   bookingOrders,
   importJobs,
   submissionHistory,
+  logisticsOrders,
+  listDeclarations,
+  listModeTestData,
   type ExportDeclaration,
   type InsertExportDeclaration,
   type BookingOrder,
@@ -65,6 +68,12 @@ import {
   type InsertImportJob,
   type SubmissionHistory,
   type InsertSubmissionHistory,
+  type LogisticsOrder,
+  type InsertLogisticsOrder,
+  type ListDeclaration,
+  type InsertListDeclaration,
+  type ListModeTestData,
+  type InsertListModeTestData,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -190,6 +199,23 @@ export interface IStorage {
   getSubmissionHistory(declarationId: string, userId: string): Promise<SubmissionHistory[]>;
   getSubmissionHistoryByType(declarationId: string, submissionType: string, userId: string): Promise<SubmissionHistory[]>;
   createSubmissionHistory(history: InsertSubmissionHistory, userId: string): Promise<SubmissionHistory>;
+  
+  // Logistics order operations（物流单管理）
+  getLogisticsOrders(declarationId: string, userId: string): Promise<LogisticsOrder[]>;
+  getLogisticsOrder(id: string, userId: string): Promise<LogisticsOrder | undefined>;
+  createLogisticsOrder(order: InsertLogisticsOrder, userId: string): Promise<LogisticsOrder>;
+  updateLogisticsOrder(id: string, updates: Partial<LogisticsOrder>, userId: string): Promise<LogisticsOrder>;
+  
+  // List declaration operations（清单申报管理）
+  getListDeclarations(declarationId: string, userId: string): Promise<ListDeclaration[]>;
+  getListDeclaration(id: string, userId: string): Promise<ListDeclaration | undefined>;
+  createListDeclaration(listDecl: InsertListDeclaration, userId: string): Promise<ListDeclaration>;
+  updateListDeclaration(id: string, updates: Partial<ListDeclaration>, userId: string): Promise<ListDeclaration>;
+  
+  // List mode test data operations（清单模式测试数据管理）
+  getListModeTestData(): Promise<ListModeTestData[]>;
+  getListModeTestDataByName(dataSetName: string): Promise<ListModeTestData | undefined>;
+  createListModeTestData(testData: InsertListModeTestData): Promise<ListModeTestData>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1103,6 +1129,135 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select().from(submissionHistory)
       .where(eq(submissionHistory.id, id));
     if (!result) throw new Error("Failed to create submission history");
+    return result;
+  }
+
+  // Logistics order operations（物流单管理）
+  async getLogisticsOrders(declarationId: string, userId: string): Promise<LogisticsOrder[]> {
+    // Ensure the logistics orders belong to the user's export declaration
+    const results = await db.select({ order: logisticsOrders })
+      .from(logisticsOrders)
+      .innerJoin(exportDeclarations, eq(logisticsOrders.declarationId, exportDeclarations.id))
+      .where(and(eq(logisticsOrders.declarationId, declarationId), eq(exportDeclarations.userId, userId)))
+      .orderBy(desc(logisticsOrders.createdAt));
+    return results.map(r => r.order);
+  }
+
+  async getLogisticsOrder(id: string, userId: string): Promise<LogisticsOrder | undefined> {
+    // Ensure the logistics order belongs to the user's export declaration
+    const [result] = await db.select({ order: logisticsOrders })
+      .from(logisticsOrders)
+      .innerJoin(exportDeclarations, eq(logisticsOrders.declarationId, exportDeclarations.id))
+      .where(and(eq(logisticsOrders.id, id), eq(exportDeclarations.userId, userId)));
+    return result?.order;
+  }
+
+  async createLogisticsOrder(order: InsertLogisticsOrder, userId: string): Promise<LogisticsOrder> {
+    // Verify the declaration belongs to the user
+    const declaration = await this.getExportDeclaration(order.declarationId, userId);
+    if (!declaration) throw new Error("Export declaration not found or access denied");
+    
+    const id = randomUUID();
+    await db.insert(logisticsOrders).values({
+      id,
+      ...order
+    });
+    const result = await this.getLogisticsOrder(id, userId);
+    if (!result) throw new Error("Failed to create logistics order");
+    return result;
+  }
+
+  async updateLogisticsOrder(id: string, updates: Partial<LogisticsOrder>, userId: string): Promise<LogisticsOrder> {
+    // First verify the logistics order belongs to the user
+    const existingOrder = await this.getLogisticsOrder(id, userId);
+    if (!existingOrder) throw new Error("Logistics order not found or access denied");
+    
+    // Remove sensitive fields that should not be updated
+    const { id: _, declarationId: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(logisticsOrders)
+      .set(safeUpdates)
+      .where(eq(logisticsOrders.id, id));
+    
+    const result = await this.getLogisticsOrder(id, userId);
+    if (!result) throw new Error("Logistics order not found");
+    return result;
+  }
+
+  // List declaration operations（清单申报管理）
+  async getListDeclarations(declarationId: string, userId: string): Promise<ListDeclaration[]> {
+    // Ensure the list declarations belong to the user's export declaration
+    const results = await db.select({ listDecl: listDeclarations })
+      .from(listDeclarations)
+      .innerJoin(exportDeclarations, eq(listDeclarations.declarationId, exportDeclarations.id))
+      .where(and(eq(listDeclarations.declarationId, declarationId), eq(exportDeclarations.userId, userId)))
+      .orderBy(desc(listDeclarations.createdAt));
+    return results.map(r => r.listDecl);
+  }
+
+  async getListDeclaration(id: string, userId: string): Promise<ListDeclaration | undefined> {
+    // Ensure the list declaration belongs to the user's export declaration
+    const [result] = await db.select({ listDecl: listDeclarations })
+      .from(listDeclarations)
+      .innerJoin(exportDeclarations, eq(listDeclarations.declarationId, exportDeclarations.id))
+      .where(and(eq(listDeclarations.id, id), eq(exportDeclarations.userId, userId)));
+    return result?.listDecl;
+  }
+
+  async createListDeclaration(listDecl: InsertListDeclaration, userId: string): Promise<ListDeclaration> {
+    // Verify the declaration belongs to the user
+    const declaration = await this.getExportDeclaration(listDecl.declarationId, userId);
+    if (!declaration) throw new Error("Export declaration not found or access denied");
+    
+    const id = randomUUID();
+    await db.insert(listDeclarations).values({
+      id,
+      ...listDecl
+    });
+    const result = await this.getListDeclaration(id, userId);
+    if (!result) throw new Error("Failed to create list declaration");
+    return result;
+  }
+
+  async updateListDeclaration(id: string, updates: Partial<ListDeclaration>, userId: string): Promise<ListDeclaration> {
+    // First verify the list declaration belongs to the user
+    const existingListDecl = await this.getListDeclaration(id, userId);
+    if (!existingListDecl) throw new Error("List declaration not found or access denied");
+    
+    // Remove sensitive fields that should not be updated
+    const { id: _, declarationId: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(listDeclarations)
+      .set(safeUpdates)
+      .where(eq(listDeclarations.id, id));
+    
+    const result = await this.getListDeclaration(id, userId);
+    if (!result) throw new Error("List declaration not found");
+    return result;
+  }
+
+  // List mode test data operations（清单模式测试数据管理）
+  async getListModeTestData(): Promise<ListModeTestData[]> {
+    return await db.select().from(listModeTestData)
+      .where(eq(listModeTestData.isActive, true))
+      .orderBy(asc(listModeTestData.dataSetName));
+  }
+
+  async getListModeTestDataByName(dataSetName: string): Promise<ListModeTestData | undefined> {
+    const [result] = await db.select().from(listModeTestData)
+      .where(and(eq(listModeTestData.dataSetName, dataSetName), eq(listModeTestData.isActive, true)));
+    return result;
+  }
+
+  async createListModeTestData(testData: InsertListModeTestData): Promise<ListModeTestData> {
+    const id = randomUUID();
+    await db.insert(listModeTestData).values({
+      id,
+      ...testData
+    });
+    const [result] = await db.select().from(listModeTestData)
+      .where(eq(listModeTestData.id, id));
+    if (!result) throw new Error("Failed to create list mode test data");
     return result;
   }
 }

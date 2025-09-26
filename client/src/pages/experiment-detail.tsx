@@ -15,6 +15,7 @@ import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { OverseasWarehouseForm } from "@/components/enterprise/overseas-warehouse-form";
 import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
 import { CrossBorderEcommercePlatform } from "@/components/declaration/cross-border-ecommerce-platform";
+import { ListModeDeclarationPlatform } from "@/components/declaration/list-mode-declaration-platform";
 import type { Experiment, StudentProgress } from "../types/index";
 
 export default function ExperimentDetailPage() {
@@ -608,62 +609,16 @@ export default function ExperimentDetailPage() {
     );
   }
 
-  // 如果正在显示清单模式申报表单，直接渲染表单
+  // 如果正在显示清单模式申报平台，直接渲染平台
   if (showListDeclarationForm && experiment?.name === "报关单模式出口申报") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950 dark:to-emerald-900">
-        <Header title="清单模式出口申报">
-          <Button 
-            variant="outline" 
-            onClick={() => setShowListDeclarationForm(false)}
-            data-testid="button-back-to-experiment"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回实验详情
-          </Button>
-        </Header>
-        <div className="container mx-auto py-6">
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl text-white font-bold">📋</span>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-2">清单模式出口申报</h2>
-              <p className="text-gray-600 dark:text-gray-400">适用于跨境电商零售出口的简化申报流程</p>
-            </div>
-            <div className="space-y-6">
-              <div className="p-6 rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-700/50">
-                <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-4">清单申报特点</h3>
-                <ul className="space-y-2 text-green-700 dark:text-green-300">
-                  <li className="flex items-center"><span className="mr-2">✓</span>适用于B2C跨境电商零售出口</li>
-                  <li className="flex items-center"><span className="mr-2">✓</span>简化的申报流程和数据要求</li>
-                  <li className="flex items-center"><span className="mr-2">✓</span>支持批量清单汇总申报</li>
-                  <li className="flex items-center"><span className="mr-2">✓</span>实时数据推送和状态查询</li>
-                </ul>
-              </div>
-              <div className="text-center">
-                <Button 
-                  size="lg" 
-                  onClick={() => {
-                    toast({
-                      title: "功能开发中",
-                      description: "清单模式申报功能正在开发中，敬请期待。",
-                    });
-                  }}
-                  className="bg-green-600 hover:bg-green-700 text-white font-semibold px-12 py-4 rounded-xl shadow-md hover:shadow-lg transition-all duration-200"
-                  data-testid="button-start-list-declaration"
-                >
-                  <FileText className="mr-3 h-5 w-5" />
-                  开始清单申报
-                </Button>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
-                  预计完成时间：15-20分钟
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ListModeDeclarationPlatform
+        onComplete={(data) => {
+          handleExperimentComplete(data);
+          setShowListDeclarationForm(false);
+        }}
+        onCancel={() => setShowListDeclarationForm(false)}
+      />
     );
   }
 

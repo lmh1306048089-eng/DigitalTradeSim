@@ -37,7 +37,10 @@ import {
   insertSubmissionHistorySchema,
   updateExportDeclarationSchema,
   updateBookingOrderSchema,
-  updateImportJobSchema
+  updateImportJobSchema,
+  insertLogisticsOrderSchema,
+  insertListDeclarationSchema,
+  insertListModeTestDataSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -1989,6 +1992,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("获取模板失败:", error);
       res.status(500).json({ 
         message: error.message || "获取模板失败" 
+      });
+    }
+  });
+
+  // ==========================================================================
+  // 清单模式申报 API 端点 (List Mode Declaration APIs)
+  // ==========================================================================
+  
+  // 物流单管理 - 获取申报的物流单列表
+  app.get("/api/export-declarations/:declarationId/logistics-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const logisticsOrders = await storage.getLogisticsOrders(declarationId, userId);
+      res.json(logisticsOrders);
+    } catch (error: any) {
+      console.error("获取物流单列表失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取物流单列表失败" 
+      });
+    }
+  });
+
+  // 创建物流单
+  app.post("/api/export-declarations/:declarationId/logistics-orders", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const orderData = insertLogisticsOrderSchema.parse({
+        ...req.body,
+        declarationId
+      });
+      
+      const logisticsOrder = await storage.createLogisticsOrder(orderData, userId);
+      res.status(201).json(logisticsOrder);
+    } catch (error: any) {
+      console.error("创建物流单失败:", error);
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建物流单失败" 
+      });
+    }
+  });
+  
+  // 清单申报管理 - 获取申报的清单列表
+  app.get("/api/export-declarations/:declarationId/list-declarations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const listDeclarations = await storage.getListDeclarations(declarationId, userId);
+      res.json(listDeclarations);
+    } catch (error: any) {
+      console.error("获取清单申报列表失败:", error);
+      res.status(500).json({ 
+        message: error.message || "获取清单申报列表失败" 
+      });
+    }
+  });
+
+  // 创建清单申报
+  app.post("/api/export-declarations/:declarationId/list-declarations", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { declarationId } = req.params;
+      
+      // 验证申报是否属于当前用户
+      const declaration = await storage.getExportDeclaration(declarationId, userId);
+      if (!declaration) {
+        return res.status(404).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      const listDeclData = insertListDeclarationSchema.parse({
+        ...req.body,
+        declarationId
+      });
+      
+      const listDeclaration = await storage.createListDeclaration(listDeclData, userId);
+      res.status(201).json(listDeclaration);
+    } catch (error: any) {
+      console.error("创建清单申报失败:", error);
+      
+      if (error.message.includes("not found or access denied")) {
+        return res.status(403).json({ 
+          message: "申报记录不存在或无权访问" 
+        });
+      }
+      
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          message: "数据验证失败",
+          errors: error.errors
+        });
+      }
+      
+      res.status(500).json({ 
+        message: error.message || "创建清单申报失败" 
+      });
+    }
+  });
+  
+  // 清单模式测试数据端点
+  app.get("/api/test-data/list-mode", authenticateToken, async (req, res) => {
+    try {
+      const testData = await storage.getListModeTestData();
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取清单模式测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
+      });
+    }
+  });
+
+  app.get("/api/test-data/list-mode/:dataSetName", authenticateToken, async (req, res) => {
+    try {
+      const { dataSetName } = req.params;
+      const testData = await storage.getListModeTestDataByName(dataSetName);
+      
+      if (!testData) {
+        return res.status(404).json({
+          success: false,
+          message: "清单模式测试数据集不存在"
+        });
+      }
+      
+      res.json({
+        success: true,
+        data: testData
+      });
+    } catch (error: any) {
+      console.error("获取清单模式测试数据失败:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || "获取测试数据失败" 
       });
     }
   });
