@@ -36,7 +36,7 @@ import { LogisticsDataManager } from "./logistics-data-manager";
 import { ListDataManager } from "./list-data-manager";
 
 interface ListModeDeclarationPlatformProps {
-  onComplete?: (data: any) => void;
+  onComplete?: (data: any, declarationId?: string) => void;
   onCancel?: () => void;
 }
 
@@ -134,19 +134,18 @@ export function ListModeDeclarationPlatform({ onComplete, onCancel }: ListModeDe
       // 检查是否完成所有步骤
       if (currentStep === 'list') {
         toast({
-          title: "🎉 清单模式申报完成",
-          description: "所有数据已成功推送至海关系统",
+          title: "🎉 清单申报推送成功",
+          description: "清单数据已成功推送至海关系统，正在等待审核结果",
           duration: 6000,
         });
         
         // 通知完成
         if (onComplete) {
           onComplete({
-            declarationId,
             mode: "manifest",
             completedSteps: ['booking', 'logistics', 'list'],
             finalData: stepData
-          });
+          }, declarationId);
         }
       } else {
         // 进入下一步

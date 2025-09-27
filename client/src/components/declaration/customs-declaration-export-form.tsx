@@ -110,7 +110,7 @@ type CustomsDeclarationExportData = {
 };
 
 interface CustomsDeclarationExportFormProps {
-  onComplete?: (data: CustomsDeclarationExportData) => void;
+  onComplete?: (data: CustomsDeclarationExportData, declarationId?: string) => void;
   onCancel?: () => void;
 }
 
@@ -283,15 +283,32 @@ export function CustomsDeclarationExportForm({ onComplete, onCancel }: CustomsDe
     try {
       const data = form.getValues();
       
-      // 暂时使用模拟提交，API端点待实现
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      toast({
-        title: "申报成功",
-        description: "您的出口申报已成功提交，等待海关审核。",
+      // 调用API创建申报记录
+      const response = await apiRequest("POST", "/api/export-declarations", {
+        body: JSON.stringify({
+          title: `报关单模式申报-${Date.now()}`,
+          declarationMode: "declaration",
+          formData: data,
+          status: "under_review"
+        }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
 
-      onComplete?.(data);
+      if (!response.ok) {
+        throw new Error('申报提交失败');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "申报推送成功",
+        description: "您的出口申报已成功推送至海关系统，正在等待审核结果。",
+      });
+
+      // 传递申报ID给父组件，用于后续跳转
+      onComplete?.(data, result.id);
     } catch (error) {
       toast({
         title: "提交失败",

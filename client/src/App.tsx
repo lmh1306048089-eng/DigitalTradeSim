@@ -95,9 +95,12 @@ function Router() {
           </Route>
           <Route path="/customs-declaration-export">
             <CustomsDeclarationExportForm 
-              onComplete={(data) => {
+              onComplete={(data, declarationId) => {
                 console.log("报关单模式出口申报完成:", data);
-                // 让组件自己处理提交成功后的流程，不强制跳转
+                // 申报成功后跳转到结果详情页面
+                if (declarationId) {
+                  window.location.href = `/declaration-result/${declarationId}`;
+                }
               }}
               onCancel={() => {
                 // 返回主页

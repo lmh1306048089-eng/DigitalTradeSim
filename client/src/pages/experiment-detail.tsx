@@ -613,9 +613,14 @@ export default function ExperimentDetailPage() {
   if (showListDeclarationForm && experiment?.name === "报关单模式出口申报") {
     return (
       <ListModeDeclarationPlatform
-        onComplete={(data) => {
+        onComplete={(data, declarationId) => {
+          console.log("清单模式出口申报完成:", data);
           handleExperimentComplete(data);
           setShowListDeclarationForm(false);
+          // 申报成功后跳转到结果详情页面
+          if (declarationId) {
+            window.location.href = `/declaration-result/${declarationId}`;
+          }
         }}
         onCancel={() => setShowListDeclarationForm(false)}
       />
