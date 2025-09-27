@@ -14,6 +14,7 @@ import AdminDashboard from "@/pages/admin-dashboard";
 import ExperimentDetailPage from "@/pages/experiment-detail";
 import NotFound from "@/pages/not-found";
 import CustomsDeclarationQuery from "@/pages/customs-declaration-query";
+import DeclarationResultDetail from "@/pages/declaration-result-detail";
 import { CustomsQualificationForm } from "@/components/customs/customs-qualification-form";
 import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-qualification-form";
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
@@ -106,6 +107,9 @@ function Router() {
           </Route>
           <Route path="/customs-declaration-query">
             <CustomsDeclarationQuery />
+          </Route>
+          <Route path="/declaration-result/:id">
+            <DeclarationResultDetail />
           </Route>
         </>
       )}

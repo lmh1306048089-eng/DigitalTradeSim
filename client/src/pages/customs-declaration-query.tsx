@@ -417,15 +417,17 @@ export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQu
                             </div>
                           </div>
                           <div className="flex items-center space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              data-testid={`button-view-${declaration.id}`}
-                              className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                            >
-                              <Eye className="h-4 w-4 mr-1" />
-                              查看详情
-                            </Button>
+                            <Link href={`/declaration-result/${declaration.id}`}>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                data-testid={`button-view-${declaration.id}`}
+                                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                              >
+                                <Eye className="h-4 w-4 mr-1" />
+                                查看详情
+                              </Button>
+                            </Link>
                           </div>
                         </div>
                         
