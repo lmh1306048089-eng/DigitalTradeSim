@@ -256,7 +256,7 @@ export default function CustomsDeclarationQuery({ onBack }: CustomsDeclarationQu
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => customsReviewMutation.mutate({ forceTrigger: false })}
+                  onClick={() => customsReviewMutation.mutate({ forceTrigger: true })}
                   disabled={customsReviewMutation.isPending || underReviewCount === 0}
                   data-testid="button-simulate-review"
                   className="border-orange-200 text-orange-700 hover:bg-orange-50 disabled:bg-gray-100 disabled:text-gray-400"
