@@ -1224,7 +1224,7 @@ export const updateExportDeclarationSchema = z.object({
   }).optional(),
   generatedData: z.any().optional(),
   goodsDeclaration: z.any().optional(),
-  readyAt: z.date().optional(),
+  readyAt: z.coerce.date().optional(),
 });
 
 export const updateBookingOrderSchema = z.object({
