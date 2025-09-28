@@ -651,6 +651,135 @@ export async function seedBasicData() {
         ],
         order: 6,
         isActive: true
+      },
+      {
+        id: 'warehouse-picking-task',
+        name: '仓库拣货',
+        description: '学习海外仓库设备操作，完成从订单处理到配送装车的完整拣货流程，掌握现代仓库管理流程和设备使用技能',
+        category: 'warehouse_operation',
+        steps: [
+          {
+            id: 'step_1',
+            title: '仓库设备学习与熟悉',
+            description: '学习和熟悉仓库核心设备的操作方法和使用规范',
+            type: 'instruction',
+            required: true,
+            content: '学习仓库核心设备：1. 托盘货架 - 用于货物分层存放的固定式货架系统；2. 移动式货架 - 可移动的储物货架，提高存储密度；3. 堆垛机 - 自动化存取货物的设备；4. 手持数据采集器 - 用于扫描条码和数据录入的移动设备；5. 手动托盘叉车 - 用于托盘货物搬运的人工操作设备；6. 条码仓库管理系统 - 基于条码识别的仓库管理信息系统。',
+            estimatedTime: 20
+          },
+          {
+            id: 'step_2',
+            title: '订单处理与拣货车准备',
+            description: '接收订单信息，分析拣货路径，准备拣货设备和工具',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'orderNumber', label: '订单编号', type: 'text', required: true },
+              { name: 'customerInfo', label: '客户信息', type: 'text', required: true },
+              { name: 'orderDate', label: '订单日期', type: 'date', required: true },
+              { name: 'deliveryAddress', label: '配送地址', type: 'textarea', required: true },
+              { name: 'pickingCartNumber', label: '拣货车编号', type: 'text', required: true },
+              { name: 'scannerDevice', label: '扫描设备编号', type: 'text', required: true },
+              { name: 'pickingRoute', label: '拣货路径规划', type: 'textarea', required: true },
+              { name: 'expectedPickingTime', label: '预计拣货时间（分钟）', type: 'number', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_3',
+            title: '拣货引导系统操作',
+            description: '使用条码仓库管理系统的拣货引导功能，按照系统指示进行高效拣货',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'systemLoginId', label: '系统登录工号', type: 'text', required: true },
+              { name: 'pickingTaskId', label: '拣货任务编号', type: 'text', required: true },
+              { name: 'warehouseZone', label: '仓库作业区域', type: 'select', required: true },
+              { name: 'pickingMethod', label: '拣货方式', type: 'radio', required: true },
+              { name: 'guidanceDisplay', label: '引导显示方式', type: 'select', required: true },
+              { name: 'scanConfirmation', label: '扫码确认模式', type: 'checkbox', required: true }
+            ],
+            estimatedTime: 25
+          },
+          {
+            id: 'step_4',
+            title: '货物质量检验',
+            description: '对拣选的货物进行质量检验，确保商品完好无损且符合订单要求',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'productBarcode', label: '商品条码', type: 'text', required: true },
+              { name: 'productName', label: '商品名称', type: 'text', required: true },
+              { name: 'quantityPicked', label: '拣货数量', type: 'number', required: true },
+              { name: 'qualityStatus', label: '质量状态', type: 'radio', required: true },
+              { name: 'expiryDateCheck', label: '保质期检查', type: 'date', required: true },
+              { name: 'packagingCondition', label: '包装状况', type: 'select', required: true },
+              { name: 'qualityNotes', label: '质检备注', type: 'textarea', required: false },
+              { name: 'inspectorId', label: '质检员工号', type: 'text', required: true }
+            ],
+            estimatedTime: 18
+          },
+          {
+            id: 'step_5',
+            title: '商品包装作业',
+            description: '根据订单要求和商品特性，选择合适的包装材料进行专业包装',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'packagingType', label: '包装类型', type: 'select', required: true },
+              { name: 'packagingMaterials', label: '包装材料', type: 'textarea', required: true },
+              { name: 'protectionLevel', label: '保护等级', type: 'select', required: true },
+              { name: 'packagingSize', label: '包装尺寸', type: 'text', required: true },
+              { name: 'packageWeight', label: '包装重量（kg）', type: 'number', required: true },
+              { name: 'shippingLabel', label: '物流标签', type: 'text', required: true },
+              { name: 'specialInstructions', label: '特殊处理说明', type: 'textarea', required: false },
+              { name: 'packagingStaff', label: '包装员工号', type: 'text', required: true }
+            ],
+            estimatedTime: 20
+          },
+          {
+            id: 'step_6',
+            title: '配送装车操作',
+            description: '将打包完成的订单按照配送路线进行分拣装车，确保装载安全高效',
+            type: 'form',
+            required: true,
+            formFields: [
+              { name: 'deliveryVehicleNumber', label: '配送车辆编号', type: 'text', required: true },
+              { name: 'driverInfo', label: '司机信息', type: 'text', required: true },
+              { name: 'loadingSequence', label: '装车顺序', type: 'number', required: true },
+              { name: 'loadingPosition', label: '装载位置', type: 'text', required: true },
+              { name: 'deliveryRoute', label: '配送路线', type: 'select', required: true },
+              { name: 'estimatedDeliveryTime', label: '预计送达时间', type: 'datetime-local', required: true },
+              { name: 'loadingNotes', label: '装车备注', type: 'textarea', required: false },
+              { name: 'loadingStaff', label: '装车员工号', type: 'text', required: true }
+            ],
+            estimatedTime: 15
+          },
+          {
+            id: 'step_7',
+            title: '拣货任务完成确认',
+            description: '完成所有拣货流程后，进行最终确认并更新系统状态',
+            type: 'submit',
+            required: true,
+            submitAction: 'warehouse_picking_completion',
+            submitConfig: {
+              confirmationRequired: true,
+              statusUpdate: 'completed',
+              systemNotification: true
+            },
+            estimatedTime: 8
+          }
+        ],
+        requirements: [
+          '具备基本的仓库作业安全知识',
+          '熟悉条码扫描设备的基本操作',
+          '了解货物分类和存储基础知识',
+          '具备基本的质量检验能力',
+          '掌握包装材料的使用方法',
+          '了解物流配送的基本流程'
+        ],
+        order: 7,
+        isActive: true
       }
     ];
 
