@@ -24,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -240,6 +241,7 @@ export function WarehousePickingExperiment({
   onExit 
 }: WarehousePickingExperimentProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   // State management
@@ -380,9 +382,19 @@ export function WarehousePickingExperiment({
 
   // Start experiment
   const handleStartExperiment = useCallback(async () => {
+    if (!user) {
+      toast({
+        title: "认证失败",
+        description: "请先登录后再开始实验",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!experiment) {
       // Create new experiment
       createExperimentMutation.mutate({
+        userId: user.id,
         orderId: orderData.id,
         orderData,
         status: 'in_progress',
@@ -400,7 +412,7 @@ export function WarehousePickingExperiment({
     
     setIsStarted(true);
     setStepStartTime(new Date());
-  }, [experiment, orderData]);
+  }, [user, experiment, orderData, createExperimentMutation, updateExperimentMutation, toast]);
 
   // Pause experiment
   const handlePauseExperiment = useCallback(() => {
