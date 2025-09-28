@@ -1392,3 +1392,177 @@ export type InsertSubmissionHistory = z.infer<typeof insertSubmissionHistorySche
 export type UpdateExportDeclaration = z.infer<typeof updateExportDeclarationSchema>;
 export type UpdateBookingOrder = z.infer<typeof updateBookingOrderSchema>;
 export type UpdateImportJob = z.infer<typeof updateImportJobSchema>;
+
+// Warehouse Picking Experiment Progress Tracking Tables
+
+// 仓储拣货实验会话表
+export const warehousePickingExperiments = pgTable("warehouse_picking_experiments", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).references(() => experiments.id, { onDelete: "cascade" }),
+  orderId: varchar("order_id", { length: 100 }).notNull(), // 订单ID
+  
+  // 实验状态管理
+  status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, in_progress, completed, failed
+  currentStep: integer("current_step").notNull().default(1), // 1-7 对应7个步骤
+  
+  // 时间跟踪
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  totalTimeSpent: integer("total_time_spent").default(0), // 总用时（秒）
+  
+  // 整体性能指标
+  overallScore: numeric("overall_score", { precision: 5, scale: 2 }).default("0"), // 总体得分
+  efficiency: numeric("efficiency", { precision: 5, scale: 2 }).default("0"), // 效率百分比
+  accuracy: numeric("accuracy", { precision: 5, scale: 2 }).default("0"), // 准确度百分比
+  
+  // 订单和商品信息
+  orderData: jsonb("order_data").$type<{
+    id: string;
+    items: any[];
+    customer: any;
+    shippingAddress: any;
+    priority: string;
+    totalValue: number;
+    totalItems: number;
+    estimatedWeight: number;
+  }>(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 仓储拣货步骤进度表
+export const warehousePickingSteps = pgTable("warehouse_picking_steps", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => warehousePickingExperiments.id, { onDelete: "cascade" }),
+  
+  // 步骤信息
+  stepNumber: integer("step_number").notNull(), // 1-7
+  stepName: varchar("step_name", { length: 100 }).notNull(), // equipment_learning, order_processing, etc.
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, in_progress, completed, skipped, failed
+  
+  // 时间跟踪
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent").default(0), // 该步骤用时（秒）
+  
+  // 步骤特定数据
+  stepData: jsonb("step_data").$type<any>(), // 每个步骤的特定数据
+  
+  // 性能指标
+  score: numeric("score", { precision: 5, scale: 2 }).default("0"), // 该步骤得分
+  efficiency: numeric("efficiency", { precision: 5, scale: 2 }).default("0"), // 该步骤效率
+  errors: integer("errors").default(0), // 错误次数
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  experimentStepIdx: index("warehouse_picking_steps_experiment_step_idx").on(table.experimentId, table.stepNumber),
+}));
+
+// 仓储拣货性能指标表
+export const warehousePickingMetrics = pgTable("warehouse_picking_metrics", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => warehousePickingExperiments.id, { onDelete: "cascade" }),
+  
+  // 基本指标
+  totalItems: integer("total_items").notNull(), // 总商品数量
+  itemsPicked: integer("items_picked").default(0), // 成功拣选数量
+  itemsRejected: integer("items_rejected").default(0), // 质检拒绝数量
+  itemsPackaged: integer("items_packaged").default(0), // 包装完成数量
+  itemsLoaded: integer("items_loaded").default(0), // 装载完成数量
+  
+  // 时间指标
+  equipmentLearningTime: integer("equipment_learning_time").default(0),
+  orderProcessingTime: integer("order_processing_time").default(0),
+  pickingTime: integer("picking_time").default(0),
+  qualityInspectionTime: integer("quality_inspection_time").default(0),
+  packagingTime: integer("packaging_time").default(0),
+  loadingTime: integer("loading_time").default(0),
+  
+  // 路径和移动指标
+  totalDistance: numeric("total_distance", { precision: 10, scale: 2 }).default("0"), // 总移动距离（米）
+  pickingRoute: jsonb("picking_route").$type<{
+    optimized: boolean;
+    totalSteps: number;
+    efficiency: number;
+  }>(),
+  
+  // 质量指标
+  scanAccuracy: numeric("scan_accuracy", { precision: 5, scale: 2 }).default("0"), // 扫描准确率
+  packagingQuality: numeric("packaging_quality", { precision: 5, scale: 2 }).default("0"), // 包装质量得分
+  
+  // 成本指标
+  materialCost: numeric("material_cost", { precision: 10, scale: 2 }).default("0"), // 包装材料成本
+  operationalCost: numeric("operational_cost", { precision: 10, scale: 2 }).default("0"), // 操作成本
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 插入schemas
+export const insertWarehousePickingExperimentSchema = createInsertSchema(warehousePickingExperiments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWarehousePickingStepSchema = createInsertSchema(warehousePickingSteps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWarehousePickingMetricsSchema = createInsertSchema(warehousePickingMetrics).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// 更新schemas
+export const updateWarehousePickingExperimentSchema = z.object({
+  status: z.enum(["not_started", "in_progress", "completed", "failed"]).optional(),
+  currentStep: z.number().min(1).max(7).optional(),
+  startedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+  totalTimeSpent: z.number().optional(),
+  overallScore: z.number().optional(),
+  efficiency: z.number().optional(),
+  accuracy: z.number().optional(),
+  orderData: z.any().optional(),
+});
+
+export const updateWarehousePickingStepSchema = z.object({
+  status: z.enum(["pending", "in_progress", "completed", "skipped", "failed"]).optional(),
+  startedAt: z.date().optional(),
+  completedAt: z.date().optional(),
+  timeSpent: z.number().optional(),
+  stepData: z.any().optional(),
+  score: z.number().optional(),
+  efficiency: z.number().optional(),
+  errors: z.number().optional(),
+});
+
+// Type exports
+export type WarehousePickingExperiment = typeof warehousePickingExperiments.$inferSelect;
+export type InsertWarehousePickingExperiment = z.infer<typeof insertWarehousePickingExperimentSchema>;
+export type UpdateWarehousePickingExperiment = z.infer<typeof updateWarehousePickingExperimentSchema>;
+
+export type WarehousePickingStep = typeof warehousePickingSteps.$inferSelect;
+export type InsertWarehousePickingStep = z.infer<typeof insertWarehousePickingStepSchema>;
+export type UpdateWarehousePickingStep = z.infer<typeof updateWarehousePickingStepSchema>;
+
+export type WarehousePickingMetrics = typeof warehousePickingMetrics.$inferSelect;
+export type InsertWarehousePickingMetrics = z.infer<typeof insertWarehousePickingMetricsSchema>;
+
+// Warehouse picking step names constant
+export const WAREHOUSE_PICKING_STEPS = {
+  EQUIPMENT_LEARNING: "equipment_learning",
+  ORDER_PROCESSING: "order_processing", 
+  PICKING_GUIDANCE: "picking_guidance",
+  QUALITY_INSPECTION: "quality_inspection",
+  PACKAGING: "packaging",
+  DELIVERY_LOADING: "delivery_loading",
+  COMPLETION: "completion"
+} as const;

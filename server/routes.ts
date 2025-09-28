@@ -42,7 +42,13 @@ import {
   updateImportJobSchema,
   insertLogisticsOrderSchema,
   insertListDeclarationSchema,
-  insertListModeTestDataSchema
+  insertListModeTestDataSchema,
+  insertWarehousePickingExperimentSchema,
+  insertWarehousePickingStepSchema,
+  insertWarehousePickingMetricsSchema,
+  updateWarehousePickingExperimentSchema,
+  updateWarehousePickingStepSchema,
+  WAREHOUSE_PICKING_STEPS
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -2704,6 +2710,320 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("查询单一窗口状态失败:", error);
       res.status(500).json({ 
         message: error.message || "查询状态失败" 
+      });
+    }
+  });
+
+  // ============ WAREHOUSE PICKING EXPERIMENT ENDPOINTS ============
+
+  // 1. Create warehouse picking experiment
+  app.post("/api/warehouse-picking/experiments", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertWarehousePickingExperimentSchema.parse(req.body);
+      
+      const experiment = await storage.createWarehousePickingExperiment({
+        ...validatedData,
+        userId
+      });
+
+      // Initialize the first step (equipment learning)
+      await storage.createWarehousePickingStep({
+        experimentId: experiment.id,
+        stepNumber: 1,
+        stepName: WAREHOUSE_PICKING_STEPS.EQUIPMENT_LEARNING,
+        status: "pending"
+      });
+
+      res.json({
+        message: "仓储拣货实验创建成功",
+        experiment
+      });
+    } catch (error: any) {
+      console.error("创建仓储拣货实验失败:", error);
+      res.status(400).json({
+        message: error.message || "创建实验失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 2. Get user's warehouse picking experiments
+  app.get("/api/warehouse-picking/experiments", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const experiments = await storage.getWarehousePickingExperiments(userId);
+      res.json(experiments);
+    } catch (error: any) {
+      console.error("获取仓储拣货实验失败:", error);
+      res.status(500).json({
+        message: error.message || "获取实验失败"
+      });
+    }
+  });
+
+  // 3. Get specific warehouse picking experiment
+  app.get("/api/warehouse-picking/experiments/:experimentId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      const experiment = await storage.getWarehousePickingExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const steps = await storage.getWarehousePickingSteps(experimentId);
+      const metrics = await storage.getWarehousePickingMetrics(experimentId);
+
+      res.json({
+        experiment,
+        steps,
+        metrics
+      });
+    } catch (error: any) {
+      console.error("获取仓储拣货实验详情失败:", error);
+      res.status(500).json({
+        message: error.message || "获取实验详情失败"
+      });
+    }
+  });
+
+  // 4. Update warehouse picking experiment
+  app.patch("/api/warehouse-picking/experiments/:experimentId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      const validatedData = updateWarehousePickingExperimentSchema.parse(req.body);
+      
+      const experiment = await storage.updateWarehousePickingExperiment(experimentId, validatedData, userId);
+      
+      res.json({
+        message: "实验进度更新成功",
+        experiment
+      });
+    } catch (error: any) {
+      console.error("更新仓储拣货实验失败:", error);
+      res.status(400).json({
+        message: error.message || "更新实验失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 5. Start or update warehouse picking step
+  app.post("/api/warehouse-picking/experiments/:experimentId/steps", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getWarehousePickingExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const validatedData = insertWarehousePickingStepSchema.parse(req.body);
+      
+      // Check if step already exists
+      const existingStep = await storage.getWarehousePickingStep(experimentId, validatedData.stepNumber);
+      
+      let step;
+      if (existingStep) {
+        // Update existing step
+        step = await storage.updateWarehousePickingStep(existingStep.id, {
+          status: validatedData.status,
+          startedAt: validatedData.startedAt,
+          completedAt: validatedData.completedAt,
+          timeSpent: validatedData.timeSpent,
+          stepData: validatedData.stepData,
+          score: validatedData.score,
+          efficiency: validatedData.efficiency,
+          errors: validatedData.errors
+        });
+      } else {
+        // Create new step
+        step = await storage.createWarehousePickingStep({
+          ...validatedData,
+          experimentId
+        });
+      }
+
+      res.json({
+        message: "步骤更新成功",
+        step
+      });
+    } catch (error: any) {
+      console.error("更新仓储拣货步骤失败:", error);
+      res.status(400).json({
+        message: error.message || "更新步骤失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 6. Complete warehouse picking step
+  app.patch("/api/warehouse-picking/experiments/:experimentId/steps/:stepNumber/complete", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId, stepNumber } = req.params;
+      const { stepData, score, efficiency, errors, timeSpent } = req.body;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getWarehousePickingExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      // Get the step
+      const existingStep = await storage.getWarehousePickingStep(experimentId, parseInt(stepNumber));
+      if (!existingStep) {
+        return res.status(404).json({ message: "步骤不存在" });
+      }
+
+      // Update step as completed
+      const step = await storage.updateWarehousePickingStep(existingStep.id, {
+        status: "completed",
+        completedAt: new Date(),
+        stepData,
+        score,
+        efficiency,
+        errors,
+        timeSpent
+      });
+
+      // Update experiment progress
+      const currentStepNum = parseInt(stepNumber);
+      const nextStep = currentStepNum < 7 ? currentStepNum + 1 : 7;
+      
+      await storage.updateWarehousePickingExperiment(experimentId, {
+        currentStep: nextStep,
+        status: nextStep > 7 ? "completed" : "in_progress",
+        completedAt: nextStep > 7 ? new Date() : undefined
+      }, userId);
+
+      // If moving to next step, create it
+      if (nextStep <= 7 && nextStep > currentStepNum) {
+        const stepNames = [
+          WAREHOUSE_PICKING_STEPS.EQUIPMENT_LEARNING,
+          WAREHOUSE_PICKING_STEPS.ORDER_PROCESSING,
+          WAREHOUSE_PICKING_STEPS.PICKING_GUIDANCE,
+          WAREHOUSE_PICKING_STEPS.QUALITY_INSPECTION,
+          WAREHOUSE_PICKING_STEPS.PACKAGING,
+          WAREHOUSE_PICKING_STEPS.DELIVERY_LOADING,
+          WAREHOUSE_PICKING_STEPS.COMPLETION
+        ];
+        
+        const nextStepExists = await storage.getWarehousePickingStep(experimentId, nextStep);
+        if (!nextStepExists && nextStep <= 7) {
+          await storage.createWarehousePickingStep({
+            experimentId,
+            stepNumber: nextStep,
+            stepName: stepNames[nextStep - 1],
+            status: "pending"
+          });
+        }
+      }
+
+      res.json({
+        message: "步骤完成成功",
+        step,
+        nextStep: nextStep <= 7 ? nextStep : null
+      });
+    } catch (error: any) {
+      console.error("完成仓储拣货步骤失败:", error);
+      res.status(400).json({
+        message: error.message || "完成步骤失败"
+      });
+    }
+  });
+
+  // 7. Update warehouse picking metrics
+  app.post("/api/warehouse-picking/experiments/:experimentId/metrics", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getWarehousePickingExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const validatedData = insertWarehousePickingMetricsSchema.parse(req.body);
+      
+      // Check if metrics already exist
+      const existingMetrics = await storage.getWarehousePickingMetrics(experimentId);
+      
+      let metrics;
+      if (existingMetrics) {
+        // Update existing metrics
+        metrics = await storage.updateWarehousePickingMetrics(experimentId, validatedData);
+      } else {
+        // Create new metrics
+        metrics = await storage.createWarehousePickingMetrics({
+          ...validatedData,
+          experimentId
+        });
+      }
+
+      res.json({
+        message: "指标更新成功",
+        metrics
+      });
+    } catch (error: any) {
+      console.error("更新仓储拣货指标失败:", error);
+      res.status(400).json({
+        message: error.message || "更新指标失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 8. Get warehouse picking performance analytics
+  app.get("/api/warehouse-picking/analytics/:experimentId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      const experiment = await storage.getWarehousePickingExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const steps = await storage.getWarehousePickingSteps(experimentId);
+      const metrics = await storage.getWarehousePickingMetrics(experimentId);
+
+      // Calculate analytics
+      const completedSteps = steps.filter(s => s.status === 'completed');
+      const totalTimeSpent = completedSteps.reduce((sum, step) => sum + (step.timeSpent || 0), 0);
+      const averageScore = completedSteps.length > 0 
+        ? completedSteps.reduce((sum, step) => sum + parseFloat(step.score || '0'), 0) / completedSteps.length 
+        : 0;
+      const overallEfficiency = completedSteps.length > 0 
+        ? completedSteps.reduce((sum, step) => sum + parseFloat(step.efficiency || '0'), 0) / completedSteps.length 
+        : 0;
+
+      const analytics = {
+        experiment,
+        steps,
+        metrics,
+        summary: {
+          totalSteps: 7,
+          completedSteps: completedSteps.length,
+          progress: (completedSteps.length / 7) * 100,
+          totalTimeSpent,
+          averageScore,
+          overallEfficiency,
+          status: experiment.status
+        }
+      };
+
+      res.json(analytics);
+    } catch (error: any) {
+      console.error("获取仓储拣货分析数据失败:", error);
+      res.status(500).json({
+        message: error.message || "获取分析数据失败"
       });
     }
   });

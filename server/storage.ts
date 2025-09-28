@@ -74,6 +74,17 @@ import {
   type InsertListDeclaration,
   type ListModeTestData,
   type InsertListModeTestData,
+  warehousePickingExperiments,
+  warehousePickingSteps,
+  warehousePickingMetrics,
+  type WarehousePickingExperiment,
+  type InsertWarehousePickingExperiment,
+  type UpdateWarehousePickingExperiment,
+  type WarehousePickingStep,
+  type InsertWarehousePickingStep,
+  type UpdateWarehousePickingStep,
+  type WarehousePickingMetrics,
+  type InsertWarehousePickingMetrics,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -216,6 +227,23 @@ export interface IStorage {
   getListModeTestData(): Promise<ListModeTestData[]>;
   getListModeTestDataByName(dataSetName: string): Promise<ListModeTestData | undefined>;
   createListModeTestData(testData: InsertListModeTestData): Promise<ListModeTestData>;
+
+  // Warehouse picking experiment operations
+  getWarehousePickingExperiments(userId: string): Promise<WarehousePickingExperiment[]>;
+  getWarehousePickingExperiment(id: string, userId: string): Promise<WarehousePickingExperiment | undefined>;
+  createWarehousePickingExperiment(experiment: InsertWarehousePickingExperiment): Promise<WarehousePickingExperiment>;
+  updateWarehousePickingExperiment(id: string, updates: UpdateWarehousePickingExperiment, userId: string): Promise<WarehousePickingExperiment>;
+  
+  // Warehouse picking step operations
+  getWarehousePickingSteps(experimentId: string): Promise<WarehousePickingStep[]>;
+  getWarehousePickingStep(experimentId: string, stepNumber: number): Promise<WarehousePickingStep | undefined>;
+  createWarehousePickingStep(step: InsertWarehousePickingStep): Promise<WarehousePickingStep>;
+  updateWarehousePickingStep(id: string, updates: UpdateWarehousePickingStep): Promise<WarehousePickingStep>;
+  
+  // Warehouse picking metrics operations
+  getWarehousePickingMetrics(experimentId: string): Promise<WarehousePickingMetrics | undefined>;
+  createWarehousePickingMetrics(metrics: InsertWarehousePickingMetrics): Promise<WarehousePickingMetrics>;
+  updateWarehousePickingMetrics(experimentId: string, updates: Partial<WarehousePickingMetrics>): Promise<WarehousePickingMetrics>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1258,6 +1286,116 @@ export class DatabaseStorage implements IStorage {
     const [result] = await db.select().from(listModeTestData)
       .where(eq(listModeTestData.id, id));
     if (!result) throw new Error("Failed to create list mode test data");
+    return result;
+  }
+
+  // Warehouse picking experiment operations
+  async getWarehousePickingExperiments(userId: string): Promise<WarehousePickingExperiment[]> {
+    return await db.select().from(warehousePickingExperiments)
+      .where(eq(warehousePickingExperiments.userId, userId))
+      .orderBy(desc(warehousePickingExperiments.createdAt));
+  }
+
+  async getWarehousePickingExperiment(id: string, userId: string): Promise<WarehousePickingExperiment | undefined> {
+    const [result] = await db.select().from(warehousePickingExperiments)
+      .where(and(eq(warehousePickingExperiments.id, id), eq(warehousePickingExperiments.userId, userId)));
+    return result;
+  }
+
+  async createWarehousePickingExperiment(experiment: InsertWarehousePickingExperiment): Promise<WarehousePickingExperiment> {
+    const id = randomUUID();
+    await db.insert(warehousePickingExperiments).values({
+      id,
+      ...experiment
+    });
+    const [result] = await db.select().from(warehousePickingExperiments)
+      .where(eq(warehousePickingExperiments.id, id));
+    if (!result) throw new Error("Failed to create warehouse picking experiment");
+    return result;
+  }
+
+  async updateWarehousePickingExperiment(id: string, updates: UpdateWarehousePickingExperiment, userId: string): Promise<WarehousePickingExperiment> {
+    // First verify the experiment belongs to the user
+    const existingExperiment = await this.getWarehousePickingExperiment(id, userId);
+    if (!existingExperiment) throw new Error("Warehouse picking experiment not found or access denied");
+    
+    await db.update(warehousePickingExperiments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(warehousePickingExperiments.id, id));
+    
+    const result = await this.getWarehousePickingExperiment(id, userId);
+    if (!result) throw new Error("Failed to update warehouse picking experiment");
+    return result;
+  }
+
+  // Warehouse picking step operations  
+  async getWarehousePickingSteps(experimentId: string): Promise<WarehousePickingStep[]> {
+    return await db.select().from(warehousePickingSteps)
+      .where(eq(warehousePickingSteps.experimentId, experimentId))
+      .orderBy(asc(warehousePickingSteps.stepNumber));
+  }
+
+  async getWarehousePickingStep(experimentId: string, stepNumber: number): Promise<WarehousePickingStep | undefined> {
+    const [result] = await db.select().from(warehousePickingSteps)
+      .where(and(eq(warehousePickingSteps.experimentId, experimentId), eq(warehousePickingSteps.stepNumber, stepNumber)));
+    return result;
+  }
+
+  async createWarehousePickingStep(step: InsertWarehousePickingStep): Promise<WarehousePickingStep> {
+    const id = randomUUID();
+    await db.insert(warehousePickingSteps).values({
+      id,
+      ...step
+    });
+    const [result] = await db.select().from(warehousePickingSteps)
+      .where(eq(warehousePickingSteps.id, id));
+    if (!result) throw new Error("Failed to create warehouse picking step");
+    return result;
+  }
+
+  async updateWarehousePickingStep(id: string, updates: UpdateWarehousePickingStep): Promise<WarehousePickingStep> {
+    await db.update(warehousePickingSteps)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(warehousePickingSteps.id, id));
+    
+    const [result] = await db.select().from(warehousePickingSteps)
+      .where(eq(warehousePickingSteps.id, id));
+    if (!result) throw new Error("Failed to update warehouse picking step");
+    return result;
+  }
+
+  // Warehouse picking metrics operations
+  async getWarehousePickingMetrics(experimentId: string): Promise<WarehousePickingMetrics | undefined> {
+    const [result] = await db.select().from(warehousePickingMetrics)
+      .where(eq(warehousePickingMetrics.experimentId, experimentId));
+    return result;
+  }
+
+  async createWarehousePickingMetrics(metrics: InsertWarehousePickingMetrics): Promise<WarehousePickingMetrics> {
+    const id = randomUUID();
+    await db.insert(warehousePickingMetrics).values({
+      id,
+      ...metrics
+    });
+    const [result] = await db.select().from(warehousePickingMetrics)
+      .where(eq(warehousePickingMetrics.id, id));
+    if (!result) throw new Error("Failed to create warehouse picking metrics");
+    return result;
+  }
+
+  async updateWarehousePickingMetrics(experimentId: string, updates: Partial<WarehousePickingMetrics>): Promise<WarehousePickingMetrics> {
+    const existing = await this.getWarehousePickingMetrics(experimentId);
+    if (!existing) throw new Error("Warehouse picking metrics not found");
+    
+    // Remove sensitive fields that should not be updated
+    const { id: _, experimentId: __, createdAt: ___, ...safeUpdates } = updates;
+    
+    await db.update(warehousePickingMetrics)
+      .set({ ...safeUpdates, updatedAt: new Date() })
+      .where(eq(warehousePickingMetrics.experimentId, experimentId));
+    
+    const result = await this.getWarehousePickingMetrics(experimentId);
+    if (!result) throw new Error("Failed to update warehouse picking metrics");
     return result;
   }
 }
