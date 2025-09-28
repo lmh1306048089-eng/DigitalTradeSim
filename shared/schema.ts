@@ -1515,6 +1515,9 @@ export const insertWarehousePickingStepSchema = createInsertSchema(warehousePick
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
 });
 
 export const insertWarehousePickingMetricsSchema = createInsertSchema(warehousePickingMetrics).omit({
