@@ -85,6 +85,18 @@ import {
   type UpdateWarehousePickingStep,
   type WarehousePickingMetrics,
   type InsertWarehousePickingMetrics,
+  packageDeliveryExperiments,
+  packageDeliverySteps,
+  deliveryNotifications,
+  type PackageDeliveryExperiment,
+  type InsertPackageDeliveryExperiment,
+  type UpdatePackageDeliveryExperiment,
+  type PackageDeliveryStep,
+  type InsertPackageDeliveryStep,
+  type UpdatePackageDeliveryStep,
+  type DeliveryNotification,
+  type InsertDeliveryNotification,
+  type UpdateDeliveryNotification,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc, inArray } from "drizzle-orm";
@@ -1397,6 +1409,148 @@ export class DatabaseStorage implements IStorage {
     const result = await this.getWarehousePickingMetrics(experimentId);
     if (!result) throw new Error("Failed to update warehouse picking metrics");
     return result;
+  }
+
+  // ============ PACKAGE DELIVERY EXPERIMENT OPERATIONS ============
+  
+  // Package delivery experiment operations
+  async getPackageDeliveryExperiments(userId: string): Promise<PackageDeliveryExperiment[]> {
+    return await db.select().from(packageDeliveryExperiments)
+      .where(eq(packageDeliveryExperiments.userId, userId))
+      .orderBy(desc(packageDeliveryExperiments.createdAt));
+  }
+  
+  async getPackageDeliveryExperiment(id: string, userId: string): Promise<PackageDeliveryExperiment | undefined> {
+    const [result] = await db.select().from(packageDeliveryExperiments)
+      .where(and(eq(packageDeliveryExperiments.id, id), eq(packageDeliveryExperiments.userId, userId)));
+    return result;
+  }
+
+  async getPackageDeliveryExperimentByTrackingNumber(trackingNumber: string, userId: string): Promise<PackageDeliveryExperiment | undefined> {
+    const [result] = await db.select().from(packageDeliveryExperiments)
+      .where(and(eq(packageDeliveryExperiments.trackingNumber, trackingNumber), eq(packageDeliveryExperiments.userId, userId)));
+    return result;
+  }
+
+  async createPackageDeliveryExperiment(experiment: InsertPackageDeliveryExperiment): Promise<PackageDeliveryExperiment> {
+    const id = randomUUID();
+    await db.insert(packageDeliveryExperiments).values({
+      id,
+      ...experiment
+    });
+    const [result] = await db.select().from(packageDeliveryExperiments)
+      .where(eq(packageDeliveryExperiments.id, id));
+    if (!result) throw new Error("Failed to create package delivery experiment");
+    return result;
+  }
+
+  async updatePackageDeliveryExperiment(id: string, updates: UpdatePackageDeliveryExperiment, userId: string): Promise<PackageDeliveryExperiment> {
+    // First verify the experiment belongs to the user
+    const existingExperiment = await this.getPackageDeliveryExperiment(id, userId);
+    if (!existingExperiment) throw new Error("Package delivery experiment not found or access denied");
+    
+    await db.update(packageDeliveryExperiments)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(packageDeliveryExperiments.id, id));
+    
+    const result = await this.getPackageDeliveryExperiment(id, userId);
+    if (!result) throw new Error("Failed to update package delivery experiment");
+    return result;
+  }
+
+  async deletePackageDeliveryExperiment(id: string, userId: string): Promise<void> {
+    const existingExperiment = await this.getPackageDeliveryExperiment(id, userId);
+    if (!existingExperiment) throw new Error("Package delivery experiment not found or access denied");
+    
+    await db.delete(packageDeliveryExperiments)
+      .where(eq(packageDeliveryExperiments.id, id));
+  }
+
+  // Package delivery step operations  
+  async getPackageDeliverySteps(experimentId: string): Promise<PackageDeliveryStep[]> {
+    return await db.select().from(packageDeliverySteps)
+      .where(eq(packageDeliverySteps.experimentId, experimentId))
+      .orderBy(asc(packageDeliverySteps.stepNumber));
+  }
+
+  async getPackageDeliveryStep(experimentId: string, stepNumber: number): Promise<PackageDeliveryStep | undefined> {
+    const [result] = await db.select().from(packageDeliverySteps)
+      .where(and(eq(packageDeliverySteps.experimentId, experimentId), eq(packageDeliverySteps.stepNumber, stepNumber)));
+    return result;
+  }
+
+  async getPackageDeliveryStepById(id: string): Promise<PackageDeliveryStep | undefined> {
+    const [result] = await db.select().from(packageDeliverySteps)
+      .where(eq(packageDeliverySteps.id, id));
+    return result;
+  }
+
+  async createPackageDeliveryStep(step: InsertPackageDeliveryStep): Promise<PackageDeliveryStep> {
+    const id = randomUUID();
+    await db.insert(packageDeliverySteps).values({
+      id,
+      ...step
+    });
+    const [result] = await db.select().from(packageDeliverySteps)
+      .where(eq(packageDeliverySteps.id, id));
+    if (!result) throw new Error("Failed to create package delivery step");
+    return result;
+  }
+
+  async updatePackageDeliveryStep(id: string, updates: UpdatePackageDeliveryStep): Promise<PackageDeliveryStep> {
+    await db.update(packageDeliverySteps)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(packageDeliverySteps.id, id));
+    
+    const [result] = await db.select().from(packageDeliverySteps)
+      .where(eq(packageDeliverySteps.id, id));
+    if (!result) throw new Error("Failed to update package delivery step");
+    return result;
+  }
+
+  // Delivery notification operations
+  async getDeliveryNotifications(experimentId: string): Promise<DeliveryNotification[]> {
+    return await db.select().from(deliveryNotifications)
+      .where(eq(deliveryNotifications.experimentId, experimentId))
+      .orderBy(desc(deliveryNotifications.createdAt));
+  }
+
+  async getDeliveryNotification(id: string): Promise<DeliveryNotification | undefined> {
+    const [result] = await db.select().from(deliveryNotifications)
+      .where(eq(deliveryNotifications.id, id));
+    return result;
+  }
+
+  async createDeliveryNotification(notification: InsertDeliveryNotification): Promise<DeliveryNotification> {
+    const id = randomUUID();
+    await db.insert(deliveryNotifications).values({
+      id,
+      ...notification
+    });
+    const [result] = await db.select().from(deliveryNotifications)
+      .where(eq(deliveryNotifications.id, id));
+    if (!result) throw new Error("Failed to create delivery notification");
+    return result;
+  }
+
+  async updateDeliveryNotification(id: string, updates: UpdateDeliveryNotification): Promise<DeliveryNotification> {
+    await db.update(deliveryNotifications)
+      .set(updates)
+      .where(eq(deliveryNotifications.id, id));
+    
+    const [result] = await db.select().from(deliveryNotifications)
+      .where(eq(deliveryNotifications.id, id));
+    if (!result) throw new Error("Failed to update delivery notification");
+    return result;
+  }
+
+  async getUnreadDeliveryNotifications(experimentId: string): Promise<DeliveryNotification[]> {
+    return await db.select().from(deliveryNotifications)
+      .where(and(
+        eq(deliveryNotifications.experimentId, experimentId),
+        eq(deliveryNotifications.status, "delivered")
+      ))
+      .orderBy(desc(deliveryNotifications.createdAt));
   }
 }
 

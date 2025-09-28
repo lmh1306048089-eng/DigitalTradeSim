@@ -1572,3 +1572,233 @@ export const WAREHOUSE_PICKING_STEPS = {
   DELIVERY_LOADING: "delivery_loading",
   COMPLETION: "completion"
 } as const;
+
+// ============ PACKAGE DELIVERY & SIGNING EXPERIMENT TABLES ============
+
+// 包裹配送签收实验主表
+export const packageDeliveryExperiments = pgTable("package_delivery_experiments", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }).notNull().references(() => users.id, { onDelete: "cascade" }),
+  experimentId: varchar("experiment_id", { length: 36 }).references(() => experiments.id, { onDelete: "cascade" }),
+  
+  // 包裹信息
+  trackingNumber: varchar("tracking_number", { length: 100 }).notNull(), // 快递单号
+  packageId: varchar("package_id", { length: 100 }).notNull(), // 包裹ID
+  
+  // 实验状态管理
+  status: varchar("status", { length: 20 }).notNull().default("not_started"), // not_started, delivery_notice_sent, buyer_notified, door_opened, package_verified, signed, completed, failed
+  currentStep: integer("current_step").notNull().default(1), // 1-6 对应签收流程步骤
+  
+  // 时间跟踪
+  startedAt: timestamp("started_at"),
+  deliveryNoticeAt: timestamp("delivery_notice_at"), // 送达通知时间
+  buyerNotifiedAt: timestamp("buyer_notified_at"), // 买家收到通知时间
+  doorOpenedAt: timestamp("door_opened_at"), // 开门时间
+  packageVerifiedAt: timestamp("package_verified_at"), // 包裹验证时间
+  signedAt: timestamp("signed_at"), // 签收时间
+  completedAt: timestamp("completed_at"),
+  totalTimeSpent: integer("total_time_spent").default(0), // 总用时（秒）
+  
+  // 性能指标
+  overallScore: numeric("overall_score", { precision: 5, scale: 2 }).default("0"), // 总体得分
+  responseTime: numeric("response_time", { precision: 8, scale: 2 }).default("0"), // 响应时间（秒）
+  verificationAccuracy: numeric("verification_accuracy", { precision: 5, scale: 2 }).default("0"), // 验证准确率
+  signingEfficiency: numeric("signing_efficiency", { precision: 5, scale: 2 }).default("0"), // 签收效率
+  
+  // 包裹详细信息
+  packageData: jsonb("package_data").$type<{
+    sender: {
+      name: string;
+      address: string;
+      phone: string;
+    };
+    recipient: {
+      name: string;
+      address: string;
+      phone: string;
+    };
+    items: {
+      name: string;
+      quantity: number;
+      value: number;
+      weight: number;
+    }[];
+    totalValue: number;
+    totalWeight: number;
+    dimensions: {
+      length: number;
+      width: number;
+      height: number;
+    };
+    specialInstructions?: string;
+  }>(),
+  
+  // 签收结果
+  signingResult: jsonb("signing_result").$type<{
+    signatureData?: string; // 电子签名数据
+    verificationChecks: {
+      packageIntegrity: boolean;
+      itemCount: boolean;
+      recipientIdentity: boolean;
+    };
+    issues?: string[]; // 签收过程中发现的问题
+    notes?: string; // 签收备注
+  }>(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 包裹配送步骤详细记录表
+export const packageDeliverySteps = pgTable("package_delivery_steps", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => packageDeliveryExperiments.id, { onDelete: "cascade" }),
+  
+  // 步骤信息
+  stepNumber: integer("step_number").notNull(), // 1-6
+  stepName: varchar("step_name", { length: 50 }).notNull(), // delivery_notice, buyer_notification, door_opening, package_verification, signing, completion
+  
+  // 步骤状态
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, in_progress, completed, skipped, failed
+  
+  // 时间记录
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent").default(0), // 该步骤用时（秒）
+  
+  // 步骤数据
+  stepData: jsonb("step_data").$type<any>(), // 每个步骤的具体数据
+  
+  // 评分指标
+  score: numeric("score", { precision: 5, scale: 2 }).default("0"), // 该步骤得分
+  accuracy: numeric("accuracy", { precision: 5, scale: 2 }).default("0"), // 准确率
+  efficiency: numeric("efficiency", { precision: 5, scale: 2 }).default("0"), // 效率
+  errors: integer("errors").default(0), // 错误次数
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// 配送通知记录表
+export const deliveryNotifications = pgTable("delivery_notifications", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  experimentId: varchar("experiment_id", { length: 36 }).notNull().references(() => packageDeliveryExperiments.id, { onDelete: "cascade" }),
+  
+  // 通知信息
+  notificationType: varchar("notification_type", { length: 30 }).notNull(), // doorbell, sms, app_push, phone_call
+  notificationContent: text("notification_content").notNull(), // 通知内容
+  
+  // 通知状态
+  status: varchar("status", { length: 20 }).notNull().default("pending"), // pending, sent, delivered, read, responded
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  respondedAt: timestamp("responded_at"),
+  
+  // 响应数据
+  responseData: jsonb("response_data").$type<{
+    response: string;
+    responseTime: number;
+    action: string;
+  }>(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// 插入schemas for package delivery
+export const insertPackageDeliveryExperimentSchema = createInsertSchema(packageDeliveryExperiments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  startedAt: z.coerce.date().optional(),
+  deliveryNoticeAt: z.coerce.date().optional(),
+  buyerNotifiedAt: z.coerce.date().optional(),
+  doorOpenedAt: z.coerce.date().optional(),
+  packageVerifiedAt: z.coerce.date().optional(),
+  signedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
+});
+
+export const insertPackageDeliveryStepSchema = createInsertSchema(packageDeliverySteps).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
+});
+
+export const insertDeliveryNotificationSchema = createInsertSchema(deliveryNotifications).omit({
+  id: true,
+  createdAt: true,
+}).extend({
+  sentAt: z.coerce.date().optional(),
+  deliveredAt: z.coerce.date().optional(),
+  readAt: z.coerce.date().optional(),
+  respondedAt: z.coerce.date().optional(),
+});
+
+// 更新schemas for package delivery
+export const updatePackageDeliveryExperimentSchema = z.object({
+  status: z.enum(["not_started", "delivery_notice_sent", "buyer_notified", "door_opened", "package_verified", "signed", "completed", "failed"]).optional(),
+  currentStep: z.number().min(1).max(6).optional(),
+  startedAt: z.coerce.date().optional(),
+  deliveryNoticeAt: z.coerce.date().optional(),
+  buyerNotifiedAt: z.coerce.date().optional(),
+  doorOpenedAt: z.coerce.date().optional(),
+  packageVerifiedAt: z.coerce.date().optional(),
+  signedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
+  totalTimeSpent: z.number().optional(),
+  overallScore: z.number().optional(),
+  responseTime: z.number().optional(),
+  verificationAccuracy: z.number().optional(),
+  signingEfficiency: z.number().optional(),
+  packageData: z.any().optional(),
+  signingResult: z.any().optional(),
+});
+
+export const updatePackageDeliveryStepSchema = z.object({
+  status: z.enum(["pending", "in_progress", "completed", "skipped", "failed"]).optional(),
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
+  timeSpent: z.number().optional(),
+  stepData: z.any().optional(),
+  score: z.number().optional(),
+  accuracy: z.number().optional(),
+  efficiency: z.number().optional(),
+  errors: z.number().optional(),
+});
+
+export const updateDeliveryNotificationSchema = z.object({
+  status: z.enum(["pending", "sent", "delivered", "read", "responded"]).optional(),
+  sentAt: z.coerce.date().optional(),
+  deliveredAt: z.coerce.date().optional(),
+  readAt: z.coerce.date().optional(),
+  respondedAt: z.coerce.date().optional(),
+  responseData: z.any().optional(),
+});
+
+// Type exports for package delivery
+export type PackageDeliveryExperiment = typeof packageDeliveryExperiments.$inferSelect;
+export type InsertPackageDeliveryExperiment = z.infer<typeof insertPackageDeliveryExperimentSchema>;
+export type UpdatePackageDeliveryExperiment = z.infer<typeof updatePackageDeliveryExperimentSchema>;
+
+export type PackageDeliveryStep = typeof packageDeliverySteps.$inferSelect;
+export type InsertPackageDeliveryStep = z.infer<typeof insertPackageDeliveryStepSchema>;
+export type UpdatePackageDeliveryStep = z.infer<typeof updatePackageDeliveryStepSchema>;
+
+export type DeliveryNotification = typeof deliveryNotifications.$inferSelect;
+export type InsertDeliveryNotification = z.infer<typeof insertDeliveryNotificationSchema>;
+export type UpdateDeliveryNotification = z.infer<typeof updateDeliveryNotificationSchema>;
+
+// Package delivery step names constant
+export const PACKAGE_DELIVERY_STEPS = {
+  DELIVERY_NOTICE: "delivery_notice",     // 配送通知
+  BUYER_NOTIFICATION: "buyer_notification", // 买家通知
+  DOOR_OPENING: "door_opening",           // 开门确认
+  PACKAGE_VERIFICATION: "package_verification", // 包裹验证
+  SIGNING: "signing",                     // 签收确认
+  COMPLETION: "completion"                // 完成
+} as const;
