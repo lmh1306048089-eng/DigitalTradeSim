@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Monitor, FolderOpen, Printer, PlayCircle, FileText, Building2 } from "lucide-react";
+import { ArrowRight, Monitor, FolderOpen, Printer, PlayCircle, FileText, Building2, Package } from "lucide-react";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -83,6 +83,10 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
       case "退税申报":
         // TODO: 导航到退税相关页面
         break;
+      case "买家签收":
+        setLocation("/package-delivery");
+        onOpenChange(false);
+        break;
       default:
         break;
     }
@@ -97,6 +101,8 @@ export function SceneModal({ open, onOpenChange, scene }: SceneModalProps) {
         return <Building2 className="h-4 w-4" />;
       case "退税申报":
         return <FileText className="h-4 w-4" />;
+      case "买家签收":
+        return <Package className="h-4 w-4" />;
       default:
         return <FileText className="h-4 w-4" />;
     }

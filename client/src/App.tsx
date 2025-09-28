@@ -21,6 +21,7 @@ import { IcCardApplicationForm } from "@/components/customs/ic-card-application-
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
 import { WarehousePickingExperiment } from "@/components/warehouse/warehouse-picking-experiment";
+import { PackageDeliveryExperiment } from "@/components/warehouse/package-delivery-experiment";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -119,6 +120,18 @@ function Router() {
             <WarehousePickingExperiment 
               onExit={() => {
                 // 退出实验，返回主页
+                window.location.href = "/";
+              }}
+            />
+          </Route>
+          <Route path="/package-delivery">
+            <PackageDeliveryExperiment 
+              onExit={() => {
+                // 退出实验，返回主页
+                window.location.href = "/";
+              }}
+              onComplete={() => {
+                // 完成实验，返回主页
                 window.location.href = "/";
               }}
             />
