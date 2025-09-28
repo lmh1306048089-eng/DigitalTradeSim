@@ -48,7 +48,13 @@ import {
   insertWarehousePickingMetricsSchema,
   updateWarehousePickingExperimentSchema,
   updateWarehousePickingStepSchema,
-  WAREHOUSE_PICKING_STEPS
+  WAREHOUSE_PICKING_STEPS,
+  insertPackageDeliveryExperimentSchema,
+  insertPackageDeliveryStepSchema,
+  insertDeliveryNotificationSchema,
+  updatePackageDeliveryExperimentSchema,
+  updatePackageDeliveryStepSchema,
+  updateDeliveryNotificationSchema
 } from "@shared/schema";
 import { BUSINESS_ROLE_CONFIGS, SCENE_CONFIGS } from "@shared/business-roles";
 import { seedBasicData } from "./seed-data";
@@ -3024,6 +3030,300 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("获取仓储拣货分析数据失败:", error);
       res.status(500).json({
         message: error.message || "获取分析数据失败"
+      });
+    }
+  });
+
+  // ============ PACKAGE DELIVERY EXPERIMENT ENDPOINTS ============
+
+  // 1. Create package delivery experiment
+  app.post("/api/package-delivery/experiments", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const validatedData = insertPackageDeliveryExperimentSchema.parse(req.body);
+      
+      const experiment = await storage.createPackageDeliveryExperiment({
+        ...validatedData,
+        userId
+      });
+
+      // Create initial delivery notification
+      await storage.createDeliveryNotification({
+        experimentId: experiment.id,
+        notificationType: "pickup",
+        notificationContent: `您的包裹 ${experiment.trackingNumber} 已由快递员取件，正在配送中`,
+        status: "delivered"
+      });
+
+      res.status(201).json({
+        message: "包裹配送实验创建成功",
+        experiment
+      });
+    } catch (error: any) {
+      console.error("创建包裹配送实验失败:", error);
+      res.status(400).json({
+        message: error.message || "创建实验失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 2. Get user's package delivery experiments
+  app.get("/api/package-delivery/experiments", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const experiments = await storage.getPackageDeliveryExperiments(userId);
+      res.json(experiments);
+    } catch (error: any) {
+      console.error("获取包裹配送实验失败:", error);
+      res.status(500).json({
+        message: error.message || "获取实验失败"
+      });
+    }
+  });
+
+  // 3. Get specific package delivery experiment with details
+  app.get("/api/package-delivery/experiments/:experimentId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      const experiment = await storage.getPackageDeliveryExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const steps = await storage.getPackageDeliverySteps(experimentId);
+      const notifications = await storage.getDeliveryNotifications(experimentId);
+
+      res.json({
+        experiment,
+        steps,
+        notifications
+      });
+    } catch (error: any) {
+      console.error("获取包裹配送实验详情失败:", error);
+      res.status(500).json({
+        message: error.message || "获取实验详情失败"
+      });
+    }
+  });
+
+  // 4. Get package delivery experiment by tracking number
+  app.get("/api/package-delivery/track/:trackingNumber", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { trackingNumber } = req.params;
+      
+      const experiment = await storage.getPackageDeliveryExperimentByTrackingNumber(trackingNumber, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "未找到该追踪号对应的包裹" });
+      }
+
+      const steps = await storage.getPackageDeliverySteps(experiment.id);
+      const notifications = await storage.getDeliveryNotifications(experiment.id);
+
+      res.json({
+        experiment,
+        steps,
+        notifications
+      });
+    } catch (error: any) {
+      console.error("根据追踪号查询包裹失败:", error);
+      res.status(500).json({
+        message: error.message || "查询包裹失败"
+      });
+    }
+  });
+
+  // 5. Update package delivery experiment
+  app.patch("/api/package-delivery/experiments/:experimentId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      const validatedData = updatePackageDeliveryExperimentSchema.parse(req.body);
+      
+      const experiment = await storage.updatePackageDeliveryExperiment(experimentId, validatedData, userId);
+      
+      res.json({
+        message: "包裹配送实验更新成功",
+        experiment
+      });
+    } catch (error: any) {
+      console.error("更新包裹配送实验失败:", error);
+      res.status(400).json({
+        message: error.message || "更新实验失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 6. Create or update delivery step
+  app.post("/api/package-delivery/experiments/:experimentId/steps", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getPackageDeliveryExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const validatedData = insertPackageDeliveryStepSchema.parse(req.body);
+      const step = await storage.createPackageDeliveryStep({
+        ...validatedData,
+        experimentId
+      });
+
+      res.status(201).json({
+        message: "配送步骤创建成功",
+        step
+      });
+    } catch (error: any) {
+      console.error("创建配送步骤失败:", error);
+      res.status(400).json({
+        message: error.message || "创建步骤失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 7. Update delivery step
+  app.patch("/api/package-delivery/steps/:stepId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { stepId } = req.params;
+      const validatedData = updatePackageDeliveryStepSchema.parse(req.body);
+      
+      const step = await storage.updatePackageDeliveryStep(stepId, validatedData);
+      
+      res.json({
+        message: "配送步骤更新成功",
+        step
+      });
+    } catch (error: any) {
+      console.error("更新配送步骤失败:", error);
+      res.status(400).json({
+        message: error.message || "更新步骤失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 8. Create delivery notification
+  app.post("/api/package-delivery/experiments/:experimentId/notifications", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getPackageDeliveryExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const validatedData = insertDeliveryNotificationSchema.parse(req.body);
+      const notification = await storage.createDeliveryNotification({
+        ...validatedData,
+        experimentId
+      });
+
+      res.status(201).json({
+        message: "配送通知创建成功",
+        notification
+      });
+    } catch (error: any) {
+      console.error("创建配送通知失败:", error);
+      res.status(400).json({
+        message: error.message || "创建通知失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 9. Update delivery notification
+  app.patch("/api/package-delivery/notifications/:notificationId", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const { notificationId } = req.params;
+      const validatedData = updateDeliveryNotificationSchema.parse(req.body);
+      
+      const notification = await storage.updateDeliveryNotification(notificationId, validatedData);
+      
+      res.json({
+        message: "配送通知更新成功",
+        notification
+      });
+    } catch (error: any) {
+      console.error("更新配送通知失败:", error);
+      res.status(400).json({
+        message: error.message || "更新通知失败",
+        errors: error.errors || null
+      });
+    }
+  });
+
+  // 10. Get unread notifications for experiment
+  app.get("/api/package-delivery/experiments/:experimentId/notifications/unread", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getPackageDeliveryExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      const notifications = await storage.getUnreadDeliveryNotifications(experimentId);
+      res.json(notifications);
+    } catch (error: any) {
+      console.error("获取未读通知失败:", error);
+      res.status(500).json({
+        message: error.message || "获取通知失败"
+      });
+    }
+  });
+
+  // 11. Simulate package arrival and delivery attempt
+  app.post("/api/package-delivery/experiments/:experimentId/simulate-delivery", authenticateToken, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.id;
+      const { experimentId } = req.params;
+      const { location = "买家家门口", deliveryAttempt = 1 } = req.body;
+      
+      // Verify experiment belongs to user
+      const experiment = await storage.getPackageDeliveryExperiment(experimentId, userId);
+      if (!experiment) {
+        return res.status(404).json({ message: "实验记录不存在" });
+      }
+
+      // Create arrival notification
+      const arrivalNotification = await storage.createDeliveryNotification({
+        experimentId,
+        notificationType: "arrival",
+        notificationContent: `您的包裹 ${experiment.trackingNumber} 已送达至${location}，快递员正在等待您签收`,
+        status: "delivered"
+      });
+
+      // Create delivery step
+      const deliveryStep = await storage.createPackageDeliveryStep({
+        experimentId,
+        stepNumber: deliveryAttempt,
+        stepName: `第${deliveryAttempt}次投递尝试`,
+        status: "pending",
+        startedAt: new Date()
+      });
+
+      res.json({
+        message: "包裹投递模拟创建成功",
+        notification: arrivalNotification,
+        step: deliveryStep
+      });
+    } catch (error: any) {
+      console.error("模拟包裹投递失败:", error);
+      res.status(400).json({
+        message: error.message || "模拟投递失败",
+        errors: error.errors || null
       });
     }
   });
