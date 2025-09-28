@@ -8,7 +8,8 @@ import {
   MapPin,
   Upload,
   ArrowRight,
-  FileText
+  FileText,
+  Package
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Header } from "@/components/layout/header";
@@ -454,15 +455,15 @@ export default function SimplifiedStudentDashboard() {
         case SCENES.BUYER_HOME:
           return [
             {
-              id: 'delivery-confirmation',
-              title: '买家签收确认',
-              description: '完成最后一公里配送和买家签收确认流程',
-              icon: <Home className="h-6 w-6" />,
-              status: 'developing',
+              id: 'package-delivery-experiment',
+              title: '包裹签收',
+              description: '体验完整的包裹配送签收流程，包括接收通知、身份验证、包裹检查、签名确认和服务评价',
+              icon: <Package className="h-6 w-6" />,
+              status: 'available',
               requiredRole: '物流企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'logistics_operator') {
-                  alert("买家签收确认实验正在开发中...");
+                  setLocation("/package-delivery");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
                 }
