@@ -269,7 +269,10 @@ export function WarehousePickingExperiment({
 
   // Create experiment mutation
   const createExperimentMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/warehouse-picking/experiments', 'POST', data),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/warehouse-picking/experiments', data);
+      return response.json();
+    },
     onSuccess: (data) => {
       setExperiment(data.experiment);
       queryClient.invalidateQueries({ queryKey: ['/api/warehouse-picking/experiments'] });
@@ -289,8 +292,10 @@ export function WarehousePickingExperiment({
 
   // Update experiment mutation
   const updateExperimentMutation = useMutation({
-    mutationFn: ({ id, ...data }: any) => 
-      apiRequest(`/api/warehouse-picking/experiments/${id}`, 'PATCH', data),
+    mutationFn: async ({ id, ...data }: any) => {
+      const response = await apiRequest('PATCH', `/api/warehouse-picking/experiments/${id}`, data);
+      return response.json();
+    },
     onSuccess: (data) => {
       setExperiment(data.experiment);
       queryClient.invalidateQueries({ queryKey: ['/api/warehouse-picking/experiments'] });
@@ -299,8 +304,10 @@ export function WarehousePickingExperiment({
 
   // Complete step mutation
   const completeStepMutation = useMutation({
-    mutationFn: ({ experimentId, stepNumber, ...data }: any) =>
-      apiRequest(`/api/warehouse-picking/experiments/${experimentId}/steps/${stepNumber}/complete`, 'PATCH', data),
+    mutationFn: async ({ experimentId, stepNumber, ...data }: any) => {
+      const response = await apiRequest('PATCH', `/api/warehouse-picking/experiments/${experimentId}/steps/${stepNumber}/complete`, data);
+      return response.json();
+    },
     onSuccess: (data) => {
       const { step, nextStep } = data;
       
@@ -334,8 +341,10 @@ export function WarehousePickingExperiment({
 
   // Update metrics mutation
   const updateMetricsMutation = useMutation({
-    mutationFn: ({ experimentId, ...data }: any) =>
-      apiRequest(`/api/warehouse-picking/experiments/${experimentId}/metrics`, 'POST', data),
+    mutationFn: async ({ experimentId, ...data }: any) => {
+      const response = await apiRequest('POST', `/api/warehouse-picking/experiments/${experimentId}/metrics`, data);
+      return response.json();
+    },
     onSuccess: (data) => {
       setMetrics(data.metrics);
     }
@@ -343,18 +352,24 @@ export function WarehousePickingExperiment({
 
   // Initialize experiment
   useEffect(() => {
-    if (existingExperiment?.experiment) {
-      setExperiment(existingExperiment.experiment);
-      setSteps(existingExperiment.steps || []);
-      setMetrics(existingExperiment.metrics);
-      setCurrentStepIndex(Math.max(0, (existingExperiment.experiment.currentStep || 1) - 1));
-      setIsStarted(existingExperiment.experiment.status !== 'not_started');
+    if (existingExperiment) {
+      const experimentData = existingExperiment as WarehousePickingExperiment;
+      setExperiment(experimentData);
+      setCurrentStepIndex(Math.max(0, (experimentData.currentStep || 1) - 1));
+      setIsStarted(experimentData.status !== 'not_started');
       
-      if (existingExperiment.experiment.orderData) {
-        setOrderData(existingExperiment.experiment.orderData);
+      if (experimentData.orderData) {
+        setOrderData(experimentData.orderData as any);
       }
+      
+      // Initialize steps from existing data or create new ones
+      const initialSteps: ExperimentStep[] = EXPERIMENT_STEPS.map(step => ({
+        ...step,
+        status: step.stepNumber <= (experimentData.currentStep || 1) ? 'completed' : 'pending'
+      }));
+      setSteps(initialSteps);
     } else {
-      // Initialize steps
+      // Initialize steps for new experiment
       const initialSteps: ExperimentStep[] = EXPERIMENT_STEPS.map(step => ({
         ...step,
         status: step.stepNumber === 1 ? 'pending' : 'pending'
