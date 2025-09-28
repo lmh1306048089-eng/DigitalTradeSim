@@ -3040,12 +3040,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/package-delivery/experiments", authenticateToken, async (req: AuthRequest, res) => {
     try {
       const userId = req.user!.id;
-      const validatedData = insertPackageDeliveryExperimentSchema.parse(req.body);
       
-      const experiment = await storage.createPackageDeliveryExperiment({
-        ...validatedData,
+      // Merge userId into request data before validation
+      const dataWithUserId = {
+        ...req.body,
         userId
-      });
+      };
+      
+      const validatedData = insertPackageDeliveryExperimentSchema.parse(dataWithUserId);
+      
+      const experiment = await storage.createPackageDeliveryExperiment(validatedData);
 
       // Create initial delivery notification
       await storage.createDeliveryNotification({
