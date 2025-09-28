@@ -1506,6 +1506,9 @@ export const insertWarehousePickingExperimentSchema = createInsertSchema(warehou
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
 });
 
 export const insertWarehousePickingStepSchema = createInsertSchema(warehousePickingSteps).omit({
@@ -1524,8 +1527,8 @@ export const insertWarehousePickingMetricsSchema = createInsertSchema(warehouseP
 export const updateWarehousePickingExperimentSchema = z.object({
   status: z.enum(["not_started", "in_progress", "completed", "failed"]).optional(),
   currentStep: z.number().min(1).max(7).optional(),
-  startedAt: z.date().optional(),
-  completedAt: z.date().optional(),
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
   totalTimeSpent: z.number().optional(),
   overallScore: z.number().optional(),
   efficiency: z.number().optional(),
@@ -1535,8 +1538,8 @@ export const updateWarehousePickingExperimentSchema = z.object({
 
 export const updateWarehousePickingStepSchema = z.object({
   status: z.enum(["pending", "in_progress", "completed", "skipped", "failed"]).optional(),
-  startedAt: z.date().optional(),
-  completedAt: z.date().optional(),
+  startedAt: z.coerce.date().optional(),
+  completedAt: z.coerce.date().optional(),
   timeSpent: z.number().optional(),
   stepData: z.any().optional(),
   score: z.number().optional(),

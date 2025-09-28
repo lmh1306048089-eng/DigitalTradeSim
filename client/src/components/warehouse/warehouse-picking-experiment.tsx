@@ -398,7 +398,7 @@ export function WarehousePickingExperiment({
         orderId: orderData.id,
         orderData,
         status: 'in_progress',
-        startedAt: new Date(),
+        startedAt: new Date().toISOString(),
         currentStep: 1
       });
     } else {
@@ -406,7 +406,7 @@ export function WarehousePickingExperiment({
       updateExperimentMutation.mutate({
         id: experiment.id,
         status: 'in_progress',
-        startedAt: experiment.startedAt || new Date()
+        startedAt: experiment.startedAt || new Date().toISOString()
       });
     }
     
