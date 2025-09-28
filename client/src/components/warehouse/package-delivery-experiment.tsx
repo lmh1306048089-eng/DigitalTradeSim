@@ -191,16 +191,20 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
   // Fetch experiment data
   const { data: experimentData, isLoading, refetch } = useQuery({
     queryKey: ['package-delivery-experiment', experimentId],
-    queryFn: () => experimentId ? apiRequest(`/api/package-delivery/experiments/${experimentId}`) : null,
+    queryFn: async () => {
+      if (!experimentId) return null;
+      const response = await apiRequest('GET', `/api/package-delivery/experiments/${experimentId}`);
+      return response.json();
+    },
     enabled: !!experimentId
   });
 
   // Create new experiment mutation
   const createExperimentMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/package-delivery/experiments', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', '/api/package-delivery/experiments', data);
+      return response.json();
+    },
     onSuccess: (response: any) => {
       setExperiment(response.experiment);
       setExperimentStartTime(new Date());
@@ -239,11 +243,10 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
 
   // Update experiment mutation
   const updateExperimentMutation = useMutation({
-    mutationFn: ({ experimentId, ...data }: any) => 
-      apiRequest(`/api/package-delivery/experiments/${experimentId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data)
-      }),
+    mutationFn: async ({ experimentId, ...data }: any) => {
+      const response = await apiRequest('PATCH', `/api/package-delivery/experiments/${experimentId}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['package-delivery-experiment'] });
       refetch();
@@ -252,11 +255,10 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
 
   // Complete step mutation
   const completeStepMutation = useMutation({
-    mutationFn: (stepData: any) => 
-      apiRequest(`/api/package-delivery/experiments/${experiment?.id}/steps`, {
-        method: 'POST',
-        body: JSON.stringify(stepData)
-      }),
+    mutationFn: async (stepData: any) => {
+      const response = await apiRequest('POST', `/api/package-delivery/experiments/${experiment?.id}/steps`, stepData);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['package-delivery-experiment'] });
       refetch();
@@ -280,7 +282,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
     const newExperimentData = {
       trackingNumber: `SF${Date.now()}`,
       senderName: "天猫旗舰店",
-      recipientName: user.profile?.realName || user.username,
+      recipientName: user.username,
       recipientPhone: "138****8888",
       recipientAddress: "上海市浦东新区张江高科技园区创业路1000号",
       packageDescription: "服装鞋包 - 运动鞋",
@@ -443,7 +445,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
       deliveryRating: (ratingData.courierRating + ratingData.speedRating + ratingData.conditionRating) / 3,
       stepResults,
       strengths: generateStrengths(averageScore, averageEfficiency),
-      improvements: generateImprovements(totalMistakes, totalTimeSpent),
+      improvements: generateImprovements(calculateActualMistakes(), totalTimeSpent),
       nextRecommendations: generateNextRecommendations(performanceLevel),
       performanceLevel,
       ranking: {
