@@ -281,6 +281,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
 
     const newExperimentData = {
       trackingNumber: `SF${Date.now()}`,
+      packageId: `PKG${Date.now()}`,
       senderName: "天猫旗舰店",
       recipientName: user.username,
       recipientPhone: "138****8888",
