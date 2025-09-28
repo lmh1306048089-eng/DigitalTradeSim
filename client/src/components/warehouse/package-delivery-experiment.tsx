@@ -4,6 +4,7 @@ import {
   CheckCircle, 
   Circle, 
   ArrowRight,
+  ArrowLeft,
   Clock,
   Bell,
   User,
@@ -980,134 +981,264 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6" data-testid="package-delivery-experiment">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold">包裹签收体验</h1>
-            <p className="text-muted-foreground">
-              体验完整的包裹配送签收流程，学习快递接收的规范操作
-            </p>
-          </div>
-          {onExit && (
-            <Button variant="outline" onClick={onExit} data-testid="button-exit">
-              退出实验
-            </Button>
-          )}
-        </div>
-
-        {experiment && (
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center justify-between mb-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50" data-testid="package-delivery-experiment">
+      {/* Hero Header */}
+      <div className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between mb-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Package className="h-6 w-6 text-white" />
+                </div>
                 <div>
-                  <h3 className="font-semibold">实验信息</h3>
-                  <p className="text-sm text-muted-foreground">
-                    运单号: {experiment.trackingNumber}
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                    包裹签收体验
+                  </h1>
+                  <p className="text-lg text-gray-600 font-medium">
+                    智能物流 · 数字化签收流程
                   </p>
                 </div>
-                <Badge variant={experiment.status === 'delivered' ? 'default' : 'secondary'}>
+              </div>
+              <p className="text-gray-500 max-w-2xl leading-relaxed">
+                体验完整的包裹配送签收流程，掌握现代物流接收的标准化操作流程，提升服务质量和用户体验
+              </p>
+            </div>
+            {onExit && (
+              <Button 
+                variant="outline" 
+                onClick={onExit} 
+                className="border-gray-200 hover:border-gray-300 shadow-sm"
+                data-testid="button-exit"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                退出实验
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="space-y-8">
+
+        {experiment && (
+          <Card className="bg-white/80 backdrop-blur-sm border-gray-200 shadow-lg">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-gray-900">实验信息</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span className="flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      运单号: {experiment.trackingNumber}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      {experiment.createdAt && new Date(experiment.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+                <Badge 
+                  variant={experiment.status === 'delivered' ? 'default' : 'secondary'}
+                  className="text-sm px-3 py-1"
+                >
                   {experiment.status === 'delivered' ? '已完成' : 
                    experiment.status === 'out_for_delivery' ? '配送中' : '待配送'}
                 </Badge>
               </div>
               
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>进度</span>
-                  <span>{Math.round(progress)}%</span>
+              {/* Enhanced Progress bar */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">完成进度</span>
+                  <span className="text-sm font-bold text-blue-600">{Math.round(progress)}%</span>
                 </div>
-                <Progress value={progress} className="h-2" />
+                <Progress value={progress} className="h-3 bg-gray-100" />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>已完成 {currentStep - 1} 步</span>
+                  <span>共 {DELIVERY_STEPS.length} 步</span>
+                </div>
               </div>
             </CardContent>
           </Card>
         )}
-      </div>
 
-      {/* Experiment Steps */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {DELIVERY_STEPS.map((step) => {
-          const Icon = step.icon;
-          const isCompleted = currentStep > step.stepNumber;
-          const isCurrent = currentStep === step.stepNumber;
-          const isNext = currentStep + 1 === step.stepNumber;
+        {/* Experiment Steps */}
+        <div>
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">签收流程步骤</h2>
+            <p className="text-gray-600">跟随以下步骤完成包裹签收体验，每个步骤都有详细的操作指引</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {DELIVERY_STEPS.map((step) => {
+              const Icon = step.icon;
+              const isCompleted = currentStep > step.stepNumber;
+              const isCurrent = currentStep === step.stepNumber;
+              const isNext = currentStep + 1 === step.stepNumber;
 
-          return (
-            <Card 
-              key={step.stepNumber}
-              className={cn(
-                "relative transition-all duration-200",
-                isCurrent && "ring-2 ring-primary shadow-lg",
-                isCompleted && "bg-green-50 border-green-200"
-              )}
-              data-testid={`card-step-${step.stepNumber}`}
-            >
-              <CardContent className="pt-4">
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center",
-                    isCompleted ? "bg-green-500 text-white" :
-                    isCurrent ? "bg-primary text-primary-foreground" :
-                    "bg-muted text-muted-foreground"
-                  )}>
-                    {isCompleted ? (
-                      <CheckCircle className="h-5 w-5" />
-                    ) : (
-                      <Icon className="h-5 w-5" />
+              return (
+                <Card 
+                  key={step.stepNumber}
+                  className={cn(
+                    "relative group transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+                    "bg-white/90 backdrop-blur-sm border-2",
+                    isCompleted && "bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 shadow-green-100",
+                    isCurrent && "bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-400 shadow-blue-200 ring-2 ring-blue-200",
+                    !isCompleted && !isCurrent && "border-gray-200 hover:border-gray-300"
+                  )}
+                  data-testid={`card-step-${step.stepNumber}`}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start gap-4">
+                      <div className={cn(
+                        "flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center",
+                        "transition-all duration-300 shadow-lg",
+                        isCompleted 
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-green-200" :
+                        isCurrent 
+                          ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-blue-200" :
+                          "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-500 group-hover:from-gray-200 group-hover:to-gray-300"
+                      )}>
+                        {isCompleted ? (
+                          <CheckCircle className="h-7 w-7" />
+                        ) : isCurrent ? (
+                          <div className="relative">
+                            <Icon className="h-7 w-7" />
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-pulse"></div>
+                          </div>
+                        ) : (
+                          <Icon className="h-7 w-7" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className={cn(
+                            "text-xs font-bold px-2 py-1 rounded-full",
+                            isCompleted ? "bg-green-100 text-green-700" :
+                            isCurrent ? "bg-blue-100 text-blue-700" :
+                            "bg-gray-100 text-gray-600"
+                          )}>
+                            步骤 {step.stepNumber}
+                          </span>
+                          {isCurrent && (
+                            <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium animate-pulse">
+                              进行中
+                            </span>
+                          )}
+                        </div>
+                        <h4 className={cn(
+                          "font-bold text-base leading-tight",
+                          isCompleted ? "text-green-900" :
+                          isCurrent ? "text-blue-900" :
+                          "text-gray-900"
+                        )}>
+                          {step.title}
+                        </h4>
+                        <p className={cn(
+                          "text-sm leading-relaxed",
+                          isCompleted ? "text-green-700" :
+                          isCurrent ? "text-blue-700" :
+                          "text-gray-600"
+                        )}>
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Step completion indicator */}
+                    {isCompleted && (
+                      <div className="mt-4 pt-4 border-t border-green-200">
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="font-medium">已完成</span>
+                        </div>
+                      </div>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm leading-tight mb-1">
-                      {step.title}
-                    </h4>
-                    <p className="text-xs text-muted-foreground">
-                      {step.description}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+                    
+                    {isCurrent && (
+                      <div className="mt-4 pt-4 border-t border-blue-200">
+                        <div className="flex items-center gap-2 text-sm text-blue-600">
+                          <Clock className="h-4 w-4 animate-pulse" />
+                          <span className="font-medium">当前步骤</span>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4">
-        {!experiment ? (
-          <Button 
-            onClick={handleStartExperiment}
-            disabled={createExperimentMutation.isPending}
-            className="flex-1"
-            data-testid="button-start-experiment"
-          >
-            {createExperimentMutation.isPending ? (
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Play className="h-4 w-4 mr-2" />
-            )}
-            开始包裹签收体验
-          </Button>
-        ) : experiment.status !== 'delivered' ? (
-          <Button 
-            onClick={() => {
-              setDialogType('step');
-              setIsDialogOpen(true);
-            }}
-            className="flex-1"
-            data-testid="button-continue-experiment"
-          >
-            继续当前步骤
-          </Button>
-        ) : (
-          <div className="flex-1 text-center">
-            <p className="text-green-600 font-medium">🎉 签收体验已完成！</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              您已成功完成包裹配送签收的全部流程
+        {/* Enhanced Action Buttons */}
+        <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl p-8">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              {!experiment ? '开始您的包裹签收体验' : '继续实验流程'}
+            </h3>
+            <p className="text-gray-600">
+              {!experiment 
+                ? '点击下方按钮开始完整的包裹签收流程体验' 
+                : experiment.status === 'delivered' 
+                  ? '恭喜！您已完成所有签收步骤' 
+                  : '继续当前步骤，完成您的签收体验'
+              }
             </p>
           </div>
-        )}
+
+          <div className="flex justify-center">
+            {!experiment ? (
+              <Button 
+                onClick={handleStartExperiment}
+                disabled={createExperimentMutation.isPending}
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                data-testid="button-start-experiment"
+              >
+                {createExperimentMutation.isPending ? (
+                  <RefreshCw className="h-6 w-6 mr-3 animate-spin" />
+                ) : (
+                  <Play className="h-6 w-6 mr-3" />
+                )}
+                开始包裹签收体验
+              </Button>
+            ) : experiment.status !== 'delivered' ? (
+              <Button 
+                onClick={() => {
+                  setDialogType('step');
+                  setIsDialogOpen(true);
+                }}
+                size="lg"
+                className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-8 py-4 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                data-testid="button-continue-experiment"
+              >
+                <ArrowRight className="h-6 w-6 mr-3" />
+                继续当前步骤
+              </Button>
+            ) : (
+              <div className="text-center py-6">
+                <div className="mb-4">
+                  <div className="w-20 h-20 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                    <CheckCircle className="h-10 w-10 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-green-700 mb-2">🎉 签收体验已完成！</h3>
+                  <p className="text-gray-600 text-lg">
+                    您已成功完成包裹配送签收的全部流程
+                  </p>
+                </div>
+                <div className="bg-green-50 border border-green-200 rounded-xl p-4 inline-block">
+                  <p className="text-sm text-green-700 font-medium">
+                    所有步骤均已完成，感谢您的参与！
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        </div>
       </div>
 
       {/* Step Dialog */}
