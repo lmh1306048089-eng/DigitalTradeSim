@@ -754,7 +754,16 @@ export function WarehousePickingExperiment({
           <Button
             variant="outline"
             size="sm" 
-            onClick={() => setShowExitDialog(true)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Exit button clicked'); // Debug log
+              toast({
+                title: "按钮点击",
+                description: "退出按钮被点击了",
+              });
+              setShowExitDialog(true);
+            }}
             data-testid="button-exit-experiment"
           >
             <Square className="w-4 h-4 mr-1" />
