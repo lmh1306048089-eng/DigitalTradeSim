@@ -116,7 +116,12 @@ function Router() {
             <DeclarationResultDetail />
           </Route>
           <Route path="/warehouse-picking">
-            <WarehousePickingExperiment />
+            <WarehousePickingExperiment 
+              onExit={() => {
+                // 退出实验，返回主页
+                window.location.href = "/";
+              }}
+            />
           </Route>
         </>
       )}
