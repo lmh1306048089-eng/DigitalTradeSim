@@ -438,13 +438,13 @@ export default function SimplifiedStudentDashboard() {
             {
               id: 'warehouse-picking',
               title: '海外仓拣货打包',
-              description: '在海外仓库进行商品拣选和打包操作',
+              description: '在海外仓库进行商品拣选和打包操作，包括设备认知、订单处理、拣货指引、质检复核、打包装车等完整流程',
               icon: <Plane className="h-6 w-6" />,
-              status: 'developing',
+              status: 'available',
               requiredRole: '物流企业操作员',
               onClick: () => {
                 if (currentRole?.roleCode === 'logistics_operator') {
-                  alert("海外仓拣货打包实验正在开发中...");
+                  setLocation("/warehouse-picking");
                 } else {
                   alert(`当前角色"${currentRole?.roleName || '未选择'}"无权限执行此操作。请切换到"物流企业操作员"角色后重试。`);
                 }

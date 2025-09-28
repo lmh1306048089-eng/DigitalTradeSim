@@ -20,6 +20,7 @@ import { EnterpriseQualificationForm } from "@/components/enterprise/enterprise-
 import { IcCardApplicationForm } from "@/components/customs/ic-card-application-form";
 import { TransportIdForm } from "@/components/enterprise/transport-id-form";
 import { CustomsDeclarationExportForm } from "@/components/declaration/customs-declaration-export-form";
+import { WarehousePickingExperiment } from "@/components/warehouse/warehouse-picking-experiment";
 
 function Router() {
   const [user, setUser] = useState<User | null>(null);
@@ -113,6 +114,9 @@ function Router() {
           </Route>
           <Route path="/declaration-result/:id">
             <DeclarationResultDetail />
+          </Route>
+          <Route path="/warehouse-picking">
+            <WarehousePickingExperiment />
           </Route>
         </>
       )}
