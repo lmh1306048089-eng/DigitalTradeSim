@@ -84,14 +84,14 @@ interface PackageDeliveryExperiment {
   packageCondition: string;
 }
 
-// Step configuration for delivery process
+// Step configuration for international delivery process
 const DELIVERY_STEPS = [
   {
     stepNumber: 1,
     stepName: "notification_received",
     type: "notification",
-    title: "收到包裹通知",
-    description: "您收到了包裹配送通知，快递员即将送达",
+    title: "International Delivery Notification",
+    description: "Receive notification that your cross-border package is out for delivery",
     icon: Bell,
     color: "bg-blue-500"
   },
@@ -99,8 +99,8 @@ const DELIVERY_STEPS = [
     stepNumber: 2,
     stepName: "courier_arrival",
     type: "interaction",
-    title: "快递员到达",
-    description: "快递员已到达您的地址，正在呼叫",
+    title: "Delivery Driver Arrival",
+    description: "International courier has arrived at your address and is calling",
     icon: Truck,
     color: "bg-orange-500"
   },
@@ -108,8 +108,8 @@ const DELIVERY_STEPS = [
     stepNumber: 3,
     stepName: "identity_verification",
     type: "verification",
-    title: "身份确认",
-    description: "确认您的身份信息并验证包裹信息",
+    title: "Identity Verification",
+    description: "Verify your identity and confirm package details for international delivery",
     icon: User,
     color: "bg-purple-500"
   },
@@ -117,8 +117,8 @@ const DELIVERY_STEPS = [
     stepNumber: 4,
     stepName: "package_inspection",
     type: "inspection",
-    title: "包裹检查",
-    description: "检查包裹外观是否完好无损",
+    title: "Package Inspection",
+    description: "Inspect international package for any damage during cross-border transit",
     icon: Package,
     color: "bg-green-500"
   },
@@ -126,8 +126,8 @@ const DELIVERY_STEPS = [
     stepNumber: 5,
     stepName: "signing_confirmation",
     type: "signing",
-    title: "签收确认",
-    description: "确认收到包裹并进行电子签名",
+    title: "Digital Signature",
+    description: "Confirm receipt with digital signature for international delivery",
     icon: PenTool,
     color: "bg-red-500"
   },
@@ -135,8 +135,8 @@ const DELIVERY_STEPS = [
     stepNumber: 6,
     stepName: "satisfaction_rating",
     type: "evaluation",
-    title: "服务评价",
-    description: "对配送服务进行评价和反馈",
+    title: "Service Evaluation",
+    description: "Rate your cross-border delivery experience and provide feedback",
     icon: Star,
     color: "bg-yellow-500"
   }
@@ -602,337 +602,545 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
     return ((currentStep - 1) / DELIVERY_STEPS.length) * 100;
   }, [currentStep]);
 
-  // Render step content
+  // Render step content for international delivery scenarios
   const renderStepContent = () => {
     if (!currentStepConfig) return null;
 
     switch (currentStepConfig.stepName) {
       case 'notification_received':
         return (
-          <div className="space-y-4" data-testid="notification-step">
-            <div className="text-center">
-              <Bell className="h-16 w-16 mx-auto text-blue-500 mb-4" />
-              <h3 className="text-lg font-semibold">包裹配送通知</h3>
-              <p className="text-muted-foreground mt-2">
-                您有一个包裹即将送达，快递员正在前往您的地址
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="notification-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <Bell className="h-20 w-20 mx-auto text-blue-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">International Delivery Notification</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Your cross-border package from China is out for delivery
+                </p>
+              </div>
+              
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <Package className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <p className="font-bold text-lg">{experiment?.packageDescription || "Electronic Gadgets from Shenzhen"}</p>
+                        <p className="text-blue-600 font-medium">Tracking: {experiment?.trackingNumber || "DHL1234567890"}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Truck className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <p className="font-medium">DHL Express International</p>
+                        <p className="text-sm text-gray-600">Estimated delivery: Today, 2:00 PM - 6:00 PM</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Home className="h-6 w-6 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Delivery Address</p>
+                        <p className="text-sm text-gray-600">{experiment?.recipientAddress || "123 Maple Street, Toronto, ON M5V 3A8, Canada"}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-3 mb-3">
-                  <Package className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">{experiment?.packageDescription}</p>
-                    <p className="text-sm text-muted-foreground">运单号: {experiment?.trackingNumber}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Home className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">收货地址</p>
-                    <p className="text-sm text-muted-foreground">{experiment?.recipientAddress}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <div className="flex gap-2">
-              <Button 
-                onClick={() => handleCompleteStep(1, { responseTime: 15, notificationRead: true })}
-                className="flex-1"
-                data-testid="button-acknowledge-notification"
-              >
-                <CheckCircle className="h-4 w-4 mr-2" />
-                已收到通知
-              </Button>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+                <h4 className="font-bold text-lg text-green-800 mb-3">🌍 Cross-Border Delivery Process</h4>
+                <ul className="space-y-2 text-sm text-green-700">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Package cleared customs in Canada
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Currently on delivery vehicle
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Driver will call upon arrival
+                  </li>
+                </ul>
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  onClick={() => handleCompleteStep(1, { responseTime: 15, notificationRead: true })}
+                  size="lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-lg"
+                  data-testid="button-acknowledge-notification"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Acknowledge Notification
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">Confirm you received the delivery notification</p>
+              </div>
             </div>
           </div>
         );
 
       case 'courier_arrival':
         return (
-          <div className="space-y-4" data-testid="arrival-step">
-            <div className="text-center">
-              <Truck className="h-16 w-16 mx-auto text-orange-500 mb-4" />
-              <h3 className="text-lg font-semibold">快递员到达</h3>
-              <p className="text-muted-foreground mt-2">
-                快递员已到达您的地址门口，正在呼叫
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="arrival-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <Truck className="h-20 w-20 mx-auto text-orange-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">DHL Driver Has Arrived</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  The international delivery driver is at your door
+                </p>
+              </div>
+
+              <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-4">
+                    <PhoneCall className="h-8 w-8 text-orange-600 mt-1" />
+                    <div className="space-y-3">
+                      <p className="font-bold text-lg">Driver is calling:</p>
+                      <div className="bg-white rounded-lg p-4 shadow-sm border">
+                        <p className="text-gray-800 font-medium">
+                          "Hello, this is Mike from DHL Express. I have your international package from China. 
+                          Are you available to receive it now?"
+                        </p>
+                      </div>
+                      <div className="text-sm text-orange-700">
+                        <p><strong>Driver:</strong> Mike Johnson</p>
+                        <p><strong>Vehicle:</strong> DHL Van #CDN-7842</p>
+                        <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <Card className="bg-orange-50 border-orange-200">
-              <CardContent className="pt-4">
-                <div className="flex items-center gap-3">
-                  <PhoneCall className="h-5 w-5 text-orange-600" />
-                  <div>
-                    <p className="font-medium">快递员通话</p>
-                    <p className="text-sm text-muted-foreground">
-                      "您好，我是顺丰快递员，您的包裹已送达，请开门签收"
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6">
+                <h4 className="font-bold text-lg text-blue-800 mb-3">📋 What to Expect</h4>
+                <ul className="space-y-2 text-sm text-blue-700">
+                  <li>• Driver will verify your identity</li>
+                  <li>• You'll inspect the package condition</li>
+                  <li>• Digital signature will be required</li>
+                  <li>• Custom duties may apply (if any)</li>
+                </ul>
+              </div>
 
-            <div className="flex gap-2">
-              <Button 
-                variant="outline"
-                onClick={() => handleCompleteStep(2, { responseType: 'request_wait', politeResponse: true })}
-                className="flex-1"
-                data-testid="button-request-wait"
-              >
-                请稍等，马上来
-              </Button>
-              <Button 
-                onClick={() => handleCompleteStep(2, { responseType: 'open_door', politeResponse: true })}
-                className="flex-1"
-                data-testid="button-open-door"
-              >
-                <DoorOpen className="h-4 w-4 mr-2" />
-                立即开门
-              </Button>
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Choose your response:</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <Button 
+                    variant="outline"
+                    onClick={() => handleCompleteStep(2, { responseType: 'request_wait', politeResponse: true })}
+                    className="justify-start p-4 h-auto"
+                    data-testid="button-request-wait"
+                  >
+                    <Clock className="h-5 w-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">"Please wait a moment"</div>
+                      <div className="text-sm text-gray-600">I need a minute to get ready</div>
+                    </div>
+                  </Button>
+                  <Button 
+                    onClick={() => handleCompleteStep(2, { responseType: 'open_door', politeResponse: true })}
+                    className="justify-start p-4 h-auto bg-gradient-to-r from-green-600 to-emerald-600"
+                    data-testid="button-open-door"
+                  >
+                    <DoorOpen className="h-5 w-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">"I'm coming right now"</div>
+                      <div className="text-sm text-green-100">Ready to receive the package</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         );
 
       case 'identity_verification':
         return (
-          <div className="space-y-4" data-testid="verification-step">
-            <div className="text-center">
-              <User className="h-16 w-16 mx-auto text-purple-500 mb-4" />
-              <h3 className="text-lg font-semibold">身份确认</h3>
-              <p className="text-muted-foreground mt-2">
-                请确认您的身份信息，快递员将核实包裹信息
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="verification-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <User className="h-20 w-20 mx-auto text-purple-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">Identity Verification</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Driver needs to verify your identity for international delivery
+                </p>
+              </div>
+
+              <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border">
+                      <p className="font-medium text-gray-800 mb-2">Driver says:</p>
+                      <p className="text-gray-700">
+                        "I need to verify your identity to ensure secure delivery of this international package. 
+                        Can you please confirm your details?"
+                      </p>
+                    </div>
+                    <div className="text-sm text-purple-700">
+                      <p><strong>Required for International Delivery:</strong></p>
+                      <p>• Full name matching shipping label</p>
+                      <p>• Contact phone number</p>
+                      <p>• Photo ID may be requested</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="recipient-name">收件人姓名</Label>
-                <Input 
-                  id="recipient-name"
-                  value={verificationData.name}
-                  onChange={(e) => setVerificationData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="请输入您的姓名"
-                  data-testid="input-recipient-name"
-                />
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-bold text-lg text-gray-900">Please confirm your details:</h4>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="recipient-name" className="text-base font-medium">Full Name (as on shipping label)</Label>
+                    <Input 
+                      id="recipient-name"
+                      value={verificationData.name}
+                      onChange={(e) => setVerificationData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter your full name"
+                      className="mt-2 text-lg p-3"
+                      data-testid="input-recipient-name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="recipient-phone" className="text-base font-medium">Phone Number</Label>
+                    <Input 
+                      id="recipient-phone"
+                      value={verificationData.phone}
+                      onChange={(e) => setVerificationData(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="+1 (555) 123-4567"
+                      className="mt-2 text-lg p-3"
+                      data-testid="input-recipient-phone"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="recipient-phone">联系电话</Label>
-                <Input 
-                  id="recipient-phone"
-                  value={verificationData.phone}
-                  onChange={(e) => setVerificationData(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="请输入您的电话号码"
-                  data-testid="input-recipient-phone"
-                />
+
+              <div className="text-center">
+                <Button 
+                  onClick={() => handleCompleteStep(3, { 
+                    verificationData, 
+                    accurateInfo: verificationData.name && verificationData.phone 
+                  })}
+                  disabled={!verificationData.name || !verificationData.phone}
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 px-8 py-3 text-lg"
+                  data-testid="button-confirm-identity"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Verify Identity
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">Confirm your details match the shipping information</p>
               </div>
             </div>
-
-            <Button 
-              onClick={() => handleCompleteStep(3, { 
-                verificationData, 
-                accurateInfo: verificationData.name && verificationData.phone 
-              })}
-              disabled={!verificationData.name || !verificationData.phone}
-              className="w-full"
-              data-testid="button-confirm-identity"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              确认身份信息
-            </Button>
           </div>
         );
 
       case 'package_inspection':
         return (
-          <div className="space-y-4" data-testid="inspection-step">
-            <div className="text-center">
-              <Package className="h-16 w-16 mx-auto text-green-500 mb-4" />
-              <h3 className="text-lg font-semibold">包裹检查</h3>
-              <p className="text-muted-foreground mt-2">
-                请检查包裹外观是否完好，有无破损或异常
-              </p>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="inspection-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <Package className="h-20 w-20 mx-auto text-green-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">Package Inspection</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Check your international package for any damage during transit
+                </p>
+              </div>
 
-            <Card className="bg-green-50 border-green-200">
-              <CardContent className="pt-4">
-                <div className="space-y-3">
-                  <div>
-                    <Label>包裹外观状态</Label>
-                    <div className="flex gap-2 mt-2">
-                      <Button
-                        variant={inspectionData.condition === 'good' ? 'default' : 'outline'}
-                        onClick={() => setInspectionData(prev => ({ ...prev, condition: 'good' }))}
-                        className="flex-1"
-                        data-testid="button-condition-good"
-                      >
-                        完好无损
-                      </Button>
-                      <Button
-                        variant={inspectionData.condition === 'damaged' ? 'default' : 'outline'}
-                        onClick={() => setInspectionData(prev => ({ ...prev, condition: 'damaged', damageReported: true }))}
-                        className="flex-1"
-                        data-testid="button-condition-damaged"
-                      >
-                        有损坏
-                      </Button>
+              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border">
+                      <p className="font-medium text-gray-800 mb-2">Driver explains:</p>
+                      <p className="text-gray-700">
+                        "Please inspect the package condition before signing. Cross-border packages travel long distances, 
+                        so it's important to check for any damage. If you notice any issues, we'll note it immediately."
+                      </p>
+                    </div>
+                    <div className="text-sm text-green-700">
+                      <p><strong>What to check:</strong></p>
+                      <p>• External packaging integrity</p>
+                      <p>• Signs of water damage or crushing</p>
+                      <p>• Sealed tape and labels</p>
+                      <p>• Shape and weight seems correct</p>
                     </div>
                   </div>
-                  
-                  {inspectionData.condition === 'damaged' && (
-                    <div>
-                      <Label htmlFor="damage-notes">损坏说明</Label>
-                      <Textarea 
-                        id="damage-notes"
-                        value={inspectionData.notes}
-                        onChange={(e) => setInspectionData(prev => ({ ...prev, notes: e.target.value }))}
-                        placeholder="请描述包裹损坏情况..."
-                        data-testid="textarea-damage-notes"
-                      />
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Button 
-              onClick={() => handleCompleteStep(4, { 
-                inspectionData, 
-                thoroughInspection: true 
-              })}
-              className="w-full"
-              data-testid="button-complete-inspection"
-            >
-              <CheckCircle className="h-4 w-4 mr-2" />
-              确认包裹状态
-            </Button>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-bold text-lg text-gray-900">Package Condition Assessment:</h4>
+                <div className="grid grid-cols-1 gap-3">
+                  <Button
+                    variant={inspectionData.condition === 'good' ? 'default' : 'outline'}
+                    onClick={() => setInspectionData(prev => ({ ...prev, condition: 'good' }))}
+                    className={cn(
+                      "justify-start p-4 h-auto",
+                      inspectionData.condition === 'good' && "bg-gradient-to-r from-green-600 to-emerald-600"
+                    )}
+                    data-testid="button-condition-good"
+                  >
+                    <CheckCircle className="h-5 w-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Package looks perfect</div>
+                      <div className="text-sm opacity-80">No visible damage, ready to accept</div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant={inspectionData.condition === 'damaged' ? 'default' : 'outline'}
+                    onClick={() => setInspectionData(prev => ({ ...prev, condition: 'damaged', damageReported: true }))}
+                    className={cn(
+                      "justify-start p-4 h-auto",
+                      inspectionData.condition === 'damaged' && "bg-gradient-to-r from-red-600 to-orange-600"
+                    )}
+                    data-testid="button-condition-damaged"
+                  >
+                    <AlertTriangle className="h-5 w-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Package shows damage</div>
+                      <div className="text-sm opacity-80">Visible damage that needs to be documented</div>
+                    </div>
+                  </Button>
+                </div>
+                
+                {inspectionData.condition === 'damaged' && (
+                  <div className="mt-4">
+                    <Label htmlFor="damage-notes" className="text-base font-medium">Describe the damage:</Label>
+                    <Textarea 
+                      id="damage-notes"
+                      value={inspectionData.notes}
+                      onChange={(e) => setInspectionData(prev => ({ ...prev, notes: e.target.value }))}
+                      placeholder="Describe any visible damage (e.g., 'Box corner is crushed', 'Tape is torn on top side')..."
+                      className="mt-2 min-h-20"
+                      data-testid="textarea-damage-notes"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  onClick={() => handleCompleteStep(4, { 
+                    inspectionData, 
+                    thoroughInspection: true 
+                  })}
+                  size="lg"
+                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-3 text-lg"
+                  data-testid="button-complete-inspection"
+                >
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Complete Inspection
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">Confirm package condition assessment</p>
+              </div>
+            </div>
           </div>
         );
 
       case 'signing_confirmation':
         return (
-          <div className="space-y-4" data-testid="signing-step">
-            <div className="text-center">
-              <PenTool className="h-16 w-16 mx-auto text-red-500 mb-4" />
-              <h3 className="text-lg font-semibold">签收确认</h3>
-              <p className="text-muted-foreground mt-2">
-                请确认收到包裹并提供您的签名
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="signing-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <PenTool className="h-20 w-20 mx-auto text-red-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">Digital Signature Required</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Complete your international delivery with digital signature
+                </p>
+              </div>
+
+              <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border">
+                      <p className="font-medium text-gray-800 mb-2">Final step:</p>
+                      <p className="text-gray-700">
+                        "Great! Now I need your digital signature to confirm delivery. This serves as proof that you've 
+                        received your international package in good condition."
+                      </p>
+                    </div>
+                    <div className="text-sm text-red-700">
+                      <p><strong>Digital signature confirms:</strong></p>
+                      <p>• Package received by correct person</p>
+                      <p>• Condition was checked and noted</p>
+                      <p>• International delivery completed</p>
+                      <p>• Legal proof of receipt</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <Card className="bg-red-50 border-red-200">
-              <CardContent className="pt-4">
-                <div className="space-y-3">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <h4 className="font-bold text-lg text-gray-900">Complete your digital signature:</h4>
+                <div className="space-y-4">
                   <div>
-                    <Label htmlFor="signature">电子签名</Label>
+                    <Label htmlFor="signature" className="text-base font-medium">Digital Signature</Label>
                     <Input 
                       id="signature"
                       value={signatureData.signature}
                       onChange={(e) => setSignatureData(prev => ({ ...prev, signature: e.target.value }))}
-                      placeholder="请输入您的姓名作为电子签名"
+                      placeholder="Type your full name as digital signature"
+                      className="mt-2 text-lg p-3"
                       data-testid="input-signature"
                     />
+                    <p className="text-sm text-gray-500 mt-1">This serves as your legal signature for the delivery</p>
                   </div>
                   <div>
-                    <Label htmlFor="signed-by">签收人</Label>
+                    <Label htmlFor="signed-by" className="text-base font-medium">Received By</Label>
                     <Input 
                       id="signed-by"
                       value={signatureData.signedBy}
                       onChange={(e) => setSignatureData(prev => ({ ...prev, signedBy: e.target.value }))}
-                      placeholder="本人/代收人姓名"
+                      placeholder="Recipient / Authorized person"
+                      className="mt-2 text-lg p-3"
                       data-testid="input-signed-by"
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Button 
-              onClick={() => handleCompleteStep(5, { 
-                signatureData: { ...signatureData, signatureTime: new Date() }, 
-                signatureProvided: !!signatureData.signature && !!signatureData.signedBy 
-              })}
-              disabled={!signatureData.signature || !signatureData.signedBy}
-              className="w-full"
-              data-testid="button-confirm-signature"
-            >
-              <PenTool className="h-4 w-4 mr-2" />
-              确认签收
-            </Button>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h5 className="font-medium text-gray-800 mb-2">Delivery Summary:</h5>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p>• Package: {experiment?.packageDescription || "Electronic Gadgets from Shenzhen"}</p>
+                  <p>• Condition: {inspectionData.condition === 'good' ? 'Perfect condition' : 'Damage noted'}</p>
+                  <p>• Time: {new Date().toLocaleString()}</p>
+                  <p>• Carrier: DHL Express International</p>
+                </div>
+              </div>
+
+              <div className="text-center">
+                <Button 
+                  onClick={() => handleCompleteStep(5, { 
+                    signatureData: { ...signatureData, signatureTime: new Date() }, 
+                    signatureProvided: !!signatureData.signature && !!signatureData.signedBy 
+                  })}
+                  disabled={!signatureData.signature || !signatureData.signedBy}
+                  size="lg"
+                  className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 px-8 py-3 text-lg"
+                  data-testid="button-confirm-signature"
+                >
+                  <PenTool className="h-5 w-5 mr-2" />
+                  Confirm Delivery
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">Digitally sign to complete the international delivery</p>
+              </div>
+            </div>
           </div>
         );
 
       case 'satisfaction_rating':
         return (
-          <div className="space-y-4" data-testid="rating-step">
-            <div className="text-center">
-              <Star className="h-16 w-16 mx-auto text-yellow-500 mb-4" />
-              <h3 className="text-lg font-semibold">服务评价</h3>
-              <p className="text-muted-foreground mt-2">
-                请对本次配送服务进行评价，您的反馈对我们很重要
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="rating-step">
+            <div className="space-y-6">
+              <div className="text-center">
+                <Star className="h-20 w-20 mx-auto text-yellow-500 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900">Rate Your Experience</h3>
+                <p className="text-gray-600 mt-2 text-lg">
+                  Help us improve our cross-border delivery service
+                </p>
+              </div>
+
+              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+                <CardContent className="pt-6">
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-lg p-4 border">
+                      <p className="font-medium text-gray-800 mb-2">Driver asks:</p>
+                      <p className="text-gray-700">
+                        "Thank you for choosing DHL Express for your international delivery! 
+                        Your feedback helps us provide better service for cross-border shipments. 
+                        How was your experience today?"
+                      </p>
+                    </div>
+                    <div className="text-sm text-yellow-700">
+                      <p><strong>Your rating helps us improve:</strong></p>
+                      <p>• International delivery processes</p>
+                      <p>• Driver training and service quality</p>
+                      <p>• Cross-border shipping experience</p>
+                      <p>• Customer satisfaction globally</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            <Card className="bg-yellow-50 border-yellow-200">
-              <CardContent className="pt-4">
-                <div className="space-y-4">
-                  {[
-                    { key: 'overallRating', label: '整体满意度' },
-                    { key: 'courierRating', label: '快递员服务态度' },
-                    { key: 'speedRating', label: '配送速度' },
-                    { key: 'conditionRating', label: '包裹完整性' }
-                  ].map(({ key, label }) => (
-                    <div key={key}>
-                      <Label>{label}</Label>
-                      <div className="flex gap-1 mt-2">
-                        {[1, 2, 3, 4, 5].map((rating) => (
-                          <Button
-                            key={rating}
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setRatingData(prev => ({ ...prev, [key]: rating }))}
-                            className="p-1"
-                            data-testid={`button-rating-${key}-${rating}`}
-                          >
-                            <Star 
-                              className={cn(
-                                "h-5 w-5",
-                                rating <= (ratingData as any)[key] ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                              )} 
-                            />
-                          </Button>
-                        ))}
-                      </div>
+            <div className="space-y-6">
+              <div className="space-y-6">
+                <h4 className="font-bold text-lg text-gray-900">Please rate your experience:</h4>
+                {[
+                  { key: 'overallRating', label: 'Overall Satisfaction', icon: '🌟' },
+                  { key: 'courierRating', label: 'Driver Professional Service', icon: '👨‍💼' },
+                  { key: 'speedRating', label: 'International Delivery Speed', icon: '⚡' },
+                  { key: 'conditionRating', label: 'Package Protection', icon: '📦' }
+                ].map(({ key, label, icon }) => (
+                  <div key={key} className="space-y-2">
+                    <Label className="text-base font-medium flex items-center gap-2">
+                      <span>{icon}</span>
+                      {label}
+                    </Label>
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <Button
+                          key={rating}
+                          variant="ghost"
+                          size="lg"
+                          onClick={() => setRatingData(prev => ({ ...prev, [key]: rating }))}
+                          className="p-2 hover:bg-yellow-100"
+                          data-testid={`button-rating-${key}-${rating}`}
+                        >
+                          <Star 
+                            className={cn(
+                              "h-8 w-8 transition-colors",
+                              rating <= (ratingData as any)[key] ? "fill-yellow-400 text-yellow-400" : "text-gray-300 hover:text-yellow-300"
+                            )} 
+                          />
+                        </Button>
+                      ))}
                     </div>
-                  ))}
-                  
-                  <div>
-                    <Label htmlFor="feedback">其他反馈（可选）</Label>
-                    <Textarea 
-                      id="feedback"
-                      value={ratingData.feedback}
-                      onChange={(e) => setRatingData(prev => ({ ...prev, feedback: e.target.value }))}
-                      placeholder="请分享您的配送体验..."
-                      data-testid="textarea-feedback"
-                    />
                   </div>
+                ))}
+                
+                <div className="space-y-2">
+                  <Label htmlFor="feedback" className="text-base font-medium">Additional Feedback (Optional)</Label>
+                  <Textarea 
+                    id="feedback"
+                    value={ratingData.feedback}
+                    onChange={(e) => setRatingData(prev => ({ ...prev, feedback: e.target.value }))}
+                    placeholder="Share your thoughts about this cross-border delivery experience..."
+                    className="min-h-24"
+                    data-testid="textarea-feedback"
+                  />
                 </div>
-              </CardContent>
-            </Card>
+              </div>
 
-            <Button 
-              onClick={() => handleCompleteStep(6, { 
-                ratingData, 
-                feedbackProvided: true 
-              })}
-              className="w-full"
-              data-testid="button-submit-rating"
-            >
-              <Star className="h-4 w-4 mr-2" />
-              提交评价
-            </Button>
+              <div className="text-center">
+                <Button 
+                  onClick={() => handleCompleteStep(6, { 
+                    ratingData, 
+                    feedbackProvided: true 
+                  })}
+                  size="lg"
+                  className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 px-8 py-3 text-lg"
+                  data-testid="button-submit-rating"
+                >
+                  <Star className="h-5 w-5 mr-2" />
+                  Submit Feedback
+                </Button>
+                <p className="text-sm text-gray-500 mt-2">Complete your international delivery experience</p>
+              </div>
+            </div>
           </div>
         );
 
@@ -1241,56 +1449,113 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
         </div>
       </div>
 
-      {/* Step Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-md" data-testid="dialog-step">
-          <DialogHeader>
-            <DialogTitle>
-              {dialogType === 'complete' ? '签收完成' : currentStepConfig?.title}
-            </DialogTitle>
-            <DialogDescription>
-              {dialogType === 'complete' 
-                ? '恭喜您完成包裹签收体验！' 
-                : `步骤 ${currentStep}/${DELIVERY_STEPS.length}`
-              }
-            </DialogDescription>
-          </DialogHeader>
-          
-          {dialogType === 'step' && renderStepContent()}
-          
-          {dialogType === 'complete' && (
-            <div className="text-center py-6">
-              <CheckCircle className="h-16 w-16 mx-auto text-green-500 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">签收成功！</h3>
-              <p className="text-muted-foreground mb-4">
-                您已成功完成包裹配送签收流程，体验了从通知接收到服务评价的完整过程。
-              </p>
-              <div className="flex gap-2">
+      {/* Professional Step Interface - Full Width */}
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto" data-testid="step-interface">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">
+                    {dialogType === 'complete' ? 'Delivery Complete' : currentStepConfig?.title}
+                  </h2>
+                  <p className="text-blue-100">
+                    {dialogType === 'complete' 
+                      ? 'Congratulations! You have completed the international package delivery experience.' 
+                      : `Step ${currentStep} of ${DELIVERY_STEPS.length} - International Cross-Border Delivery`
+                    }
+                  </p>
+                </div>
                 <Button 
-                  variant="outline" 
+                  variant="ghost" 
                   onClick={() => setIsDialogOpen(false)}
-                  className="flex-1"
-                  data-testid="button-close-dialog"
+                  className="text-white hover:bg-white/20 h-10 w-10 p-0"
+                  data-testid="button-close-interface"
                 >
-                  关闭
+                  ✕
                 </Button>
-                {onComplete && (
-                  <Button 
-                    onClick={() => {
-                      setIsDialogOpen(false);
-                      onComplete();
-                    }}
-                    className="flex-1"
-                    data-testid="button-complete-experiment"
-                  >
-                    完成体验
-                  </Button>
-                )}
               </div>
+              
+              {/* Progress indicator */}
+              {dialogType !== 'complete' && (
+                <div className="mt-4">
+                  <div className="flex justify-between text-sm text-blue-100 mb-2">
+                    <span>Progress</span>
+                    <span>{Math.round((currentStep - 1) / DELIVERY_STEPS.length * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-blue-500/30 rounded-full h-2">
+                    <div 
+                      className="bg-white rounded-full h-2 transition-all duration-500"
+                      style={{ width: `${(currentStep - 1) / DELIVERY_STEPS.length * 100}%` }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+            
+            {/* Content Area */}
+            <div className="p-8">
+              {dialogType === 'step' && renderStepContent()}
+              
+              {dialogType === 'complete' && (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="h-12 w-12 text-white" />
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Delivery Successfully Completed!</h3>
+                  <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                    You have successfully completed the international cross-border package delivery experience, 
+                    from initial notification to final service evaluation. This comprehensive workflow simulates 
+                    real-world overseas delivery scenarios.
+                  </p>
+                  
+                  {/* Success metrics */}
+                  <div className="grid grid-cols-3 gap-6 mb-8 max-w-xl mx-auto">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{DELIVERY_STEPS.length}</div>
+                      <div className="text-sm text-gray-500">Steps Completed</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">100%</div>
+                      <div className="text-sm text-gray-500">Success Rate</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">⭐⭐⭐⭐⭐</div>
+                      <div className="text-sm text-gray-500">Experience</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 justify-center">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsDialogOpen(false)}
+                      size="lg"
+                      className="px-8"
+                      data-testid="button-close-interface"
+                    >
+                      Close
+                    </Button>
+                    {onComplete && (
+                      <Button 
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                          onComplete();
+                        }}
+                        size="lg"
+                        className="px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                        data-testid="button-complete-experiment"
+                      >
+                        Complete Training
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
