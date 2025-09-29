@@ -142,10 +142,11 @@ export function ExperimentResultsDisplay({
   const levelInfo = PERFORMANCE_LEVELS[result.performanceLevel];
   const LevelIcon = levelInfo.icon;
 
-  // Format time
+  // Format time with proper rounding
   const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const roundedSeconds = Math.round(seconds);
+    const mins = Math.floor(roundedSeconds / 60);
+    const secs = roundedSeconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
