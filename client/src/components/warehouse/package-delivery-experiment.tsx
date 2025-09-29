@@ -649,9 +649,9 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
             </div>
 
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
-                <h4 className="font-bold text-lg text-green-800 mb-3">🌍 Cross-Border Delivery Process</h4>
-                <ul className="space-y-2 text-sm text-green-700">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6">
+                <h4 className="font-bold text-lg text-blue-800 mb-3">🌍 Cross-Border Delivery Process</h4>
+                <ul className="space-y-2 text-sm text-blue-700">
                   <li className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     Package cleared customs in Canada
@@ -688,17 +688,17 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="arrival-step">
             <div className="space-y-6">
               <div className="text-center">
-                <Truck className="h-20 w-20 mx-auto text-orange-500 mb-4" />
+                <Truck className="h-20 w-20 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">DHL Driver Has Arrived</h3>
                 <p className="text-gray-600 mt-2 text-lg">
                   The international delivery driver is at your door
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-4">
-                    <PhoneCall className="h-8 w-8 text-orange-600 mt-1" />
+                    <PhoneCall className="h-8 w-8 text-blue-600 mt-1" />
                     <div className="space-y-3">
                       <p className="font-bold text-lg">Driver is calling:</p>
                       <div className="bg-white rounded-lg p-4 shadow-sm border">
@@ -707,7 +707,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                           Are you available to receive it now?"
                         </p>
                       </div>
-                      <div className="text-sm text-orange-700">
+                      <div className="text-sm text-blue-700">
                         <p><strong>Driver:</strong> Mike Johnson</p>
                         <p><strong>Vehicle:</strong> DHL Van #CDN-7842</p>
                         <p><strong>Time:</strong> {new Date().toLocaleTimeString()}</p>
@@ -746,7 +746,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                   </Button>
                   <Button 
                     onClick={() => handleCompleteStep(2, { responseType: 'open_door', politeResponse: true })}
-                    className="justify-start p-4 h-auto bg-gradient-to-r from-green-600 to-emerald-600"
+                    className="justify-start p-4 h-auto bg-gradient-to-r from-blue-600 to-indigo-600"
                     data-testid="button-open-door"
                   >
                     <DoorOpen className="h-5 w-5 mr-3" />
@@ -766,14 +766,14 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="verification-step">
             <div className="space-y-6">
               <div className="text-center">
-                <User className="h-20 w-20 mx-auto text-purple-500 mb-4" />
+                <User className="h-20 w-20 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">Identity Verification</h3>
                 <p className="text-gray-600 mt-2 text-lg">
                   Driver needs to verify your identity for international delivery
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg p-4 border">
@@ -783,7 +783,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                         Can you please confirm your details?"
                       </p>
                     </div>
-                    <div className="text-sm text-purple-700">
+                    <div className="text-sm text-blue-700">
                       <p><strong>Required for International Delivery:</strong></p>
                       <p>• Full name matching shipping label</p>
                       <p>• Contact phone number</p>
@@ -831,7 +831,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                   })}
                   disabled={!verificationData.name || !verificationData.phone}
                   size="lg"
-                  className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 px-8 py-3 text-lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-lg"
                   data-testid="button-confirm-identity"
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />
@@ -848,14 +848,14 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="inspection-step">
             <div className="space-y-6">
               <div className="text-center">
-                <Package className="h-20 w-20 mx-auto text-green-500 mb-4" />
+                <Package className="h-20 w-20 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">Package Inspection</h3>
                 <p className="text-gray-600 mt-2 text-lg">
                   Check your international package for any damage during transit
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg p-4 border">
@@ -865,7 +865,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                         so it's important to check for any damage. If you notice any issues, we'll note it immediately."
                       </p>
                     </div>
-                    <div className="text-sm text-green-700">
+                    <div className="text-sm text-blue-700">
                       <p><strong>What to check:</strong></p>
                       <p>• External packaging integrity</p>
                       <p>• Signs of water damage or crushing</p>
@@ -886,7 +886,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                     onClick={() => setInspectionData(prev => ({ ...prev, condition: 'good' }))}
                     className={cn(
                       "justify-start p-4 h-auto",
-                      inspectionData.condition === 'good' && "bg-gradient-to-r from-green-600 to-emerald-600"
+                      inspectionData.condition === 'good' && "bg-gradient-to-r from-blue-600 to-indigo-600"
                     )}
                     data-testid="button-condition-good"
                   >
@@ -901,7 +901,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                     onClick={() => setInspectionData(prev => ({ ...prev, condition: 'damaged', damageReported: true }))}
                     className={cn(
                       "justify-start p-4 h-auto",
-                      inspectionData.condition === 'damaged' && "bg-gradient-to-r from-red-600 to-orange-600"
+                      inspectionData.condition === 'damaged' && "bg-gradient-to-r from-gray-600 to-slate-600"
                     )}
                     data-testid="button-condition-damaged"
                   >
@@ -935,7 +935,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                     thoroughInspection: true 
                   })}
                   size="lg"
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 px-8 py-3 text-lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-lg"
                   data-testid="button-complete-inspection"
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />
@@ -952,14 +952,14 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="signing-step">
             <div className="space-y-6">
               <div className="text-center">
-                <PenTool className="h-20 w-20 mx-auto text-red-500 mb-4" />
+                <PenTool className="h-20 w-20 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">Digital Signature Required</h3>
                 <p className="text-gray-600 mt-2 text-lg">
                   Complete your international delivery with digital signature
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg p-4 border">
@@ -969,7 +969,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                         received your international package in good condition."
                       </p>
                     </div>
-                    <div className="text-sm text-red-700">
+                    <div className="text-sm text-blue-700">
                       <p><strong>Digital signature confirms:</strong></p>
                       <p>• Package received by correct person</p>
                       <p>• Condition was checked and noted</p>
@@ -1029,7 +1029,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                   })}
                   disabled={!signatureData.signature || !signatureData.signedBy}
                   size="lg"
-                  className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 px-8 py-3 text-lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-lg"
                   data-testid="button-confirm-signature"
                 >
                   <PenTool className="h-5 w-5 mr-2" />
@@ -1046,14 +1046,14 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="rating-step">
             <div className="space-y-6">
               <div className="text-center">
-                <Star className="h-20 w-20 mx-auto text-yellow-500 mb-4" />
+                <Star className="h-20 w-20 mx-auto text-blue-500 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900">Rate Your Experience</h3>
                 <p className="text-gray-600 mt-2 text-lg">
                   Help us improve our cross-border delivery service
                 </p>
               </div>
 
-              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
+              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
                     <div className="bg-white rounded-lg p-4 border">
@@ -1064,7 +1064,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                         How was your experience today?"
                       </p>
                     </div>
-                    <div className="text-sm text-yellow-700">
+                    <div className="text-sm text-blue-700">
                       <p><strong>Your rating helps us improve:</strong></p>
                       <p>• International delivery processes</p>
                       <p>• Driver training and service quality</p>
@@ -1097,13 +1097,13 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                           variant="ghost"
                           size="lg"
                           onClick={() => setRatingData(prev => ({ ...prev, [key]: rating }))}
-                          className="p-2 hover:bg-yellow-100"
+                          className="p-2 hover:bg-blue-100"
                           data-testid={`button-rating-${key}-${rating}`}
                         >
                           <Star 
                             className={cn(
                               "h-8 w-8 transition-colors",
-                              rating <= (ratingData as any)[key] ? "fill-yellow-400 text-yellow-400" : "text-gray-300 hover:text-yellow-300"
+                              rating <= (ratingData as any)[key] ? "fill-blue-400 text-blue-400" : "text-gray-300 hover:text-blue-300"
                             )} 
                           />
                         </Button>
@@ -1132,7 +1132,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                     feedbackProvided: true 
                   })}
                   size="lg"
-                  className="bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 px-8 py-3 text-lg"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-8 py-3 text-lg"
                   data-testid="button-submit-rating"
                 >
                   <Star className="h-5 w-5 mr-2" />
