@@ -90,8 +90,8 @@ const DELIVERY_STEPS = [
     stepNumber: 1,
     stepName: "notification_received",
     type: "notification",
-    title: "International Delivery Notification",
-    description: "Receive notification that your cross-border package is out for delivery",
+    title: "国际包裹配送通知",
+    description: "接收跨境包裹即将配送的通知信息",
     icon: Bell,
     color: "bg-blue-500"
   },
@@ -99,8 +99,8 @@ const DELIVERY_STEPS = [
     stepNumber: 2,
     stepName: "courier_arrival",
     type: "interaction",
-    title: "Delivery Driver Arrival",
-    description: "International courier has arrived at your address and is calling",
+    title: "快递员到达现场",
+    description: "国际快递员已到达您的地址并正在联系您",
     icon: Truck,
     color: "bg-orange-500"
   },
@@ -108,8 +108,8 @@ const DELIVERY_STEPS = [
     stepNumber: 3,
     stepName: "identity_verification",
     type: "verification",
-    title: "Identity Verification",
-    description: "Verify your identity and confirm package details for international delivery",
+    title: "身份验证",
+    description: "验证身份信息并确认国际包裹配送详情",
     icon: User,
     color: "bg-purple-500"
   },
@@ -117,8 +117,8 @@ const DELIVERY_STEPS = [
     stepNumber: 4,
     stepName: "package_inspection",
     type: "inspection",
-    title: "Package Inspection",
-    description: "Inspect international package for any damage during cross-border transit",
+    title: "包裹检查",
+    description: "检查国际包裹在跨境运输过程中是否有损坏",
     icon: Package,
     color: "bg-green-500"
   },
@@ -126,8 +126,8 @@ const DELIVERY_STEPS = [
     stepNumber: 5,
     stepName: "signing_confirmation",
     type: "signing",
-    title: "Digital Signature",
-    description: "Confirm receipt with digital signature for international delivery",
+    title: "数字签名",
+    description: "通过数字签名确认国际包裹配送收货",
     icon: PenTool,
     color: "bg-red-500"
   },
@@ -135,8 +135,8 @@ const DELIVERY_STEPS = [
     stepNumber: 6,
     stepName: "satisfaction_rating",
     type: "evaluation",
-    title: "Service Evaluation",
-    description: "Rate your cross-border delivery experience and provide feedback",
+    title: "服务评价",
+    description: "评价跨境配送体验并提供反馈意见",
     icon: Star,
     color: "bg-yellow-500"
   }
@@ -1458,12 +1458,12 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-2xl font-bold mb-2">
-                    {dialogType === 'complete' ? 'Delivery Complete' : currentStepConfig?.title}
+                    {dialogType === 'complete' ? '配送完成' : currentStepConfig?.title}
                   </h2>
                   <p className="text-blue-100">
                     {dialogType === 'complete' 
-                      ? 'Congratulations! You have completed the international package delivery experience.' 
-                      : `Step ${currentStep} of ${DELIVERY_STEPS.length} - International Cross-Border Delivery`
+                      ? '恭喜！您已完成国际包裹配送体验。' 
+                      : `第 ${currentStep} 步，共 ${DELIVERY_STEPS.length} 步 - 跨境电商包裹配送`
                     }
                   </p>
                 </div>
@@ -1481,7 +1481,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
               {dialogType !== 'complete' && (
                 <div className="mt-4">
                   <div className="flex justify-between text-sm text-blue-100 mb-2">
-                    <span>Progress</span>
+                    <span>进度</span>
                     <span>{Math.round((currentStep - 1) / DELIVERY_STEPS.length * 100)}%</span>
                   </div>
                   <div className="w-full bg-blue-500/30 rounded-full h-2">
@@ -1503,26 +1503,25 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                   <div className="w-24 h-24 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                     <CheckCircle className="h-12 w-12 text-white" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900 mb-4">Delivery Successfully Completed!</h3>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-4">配送成功完成！</h3>
                   <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-                    You have successfully completed the international cross-border package delivery experience, 
-                    from initial notification to final service evaluation. This comprehensive workflow simulates 
-                    real-world overseas delivery scenarios.
+                    您已成功完成国际跨境包裹配送体验，从初始通知到最终服务评价。
+                    这个完整的工作流程模拟了真实的海外配送场景。
                   </p>
                   
                   {/* Success metrics */}
                   <div className="grid grid-cols-3 gap-6 mb-8 max-w-xl mx-auto">
                     <div className="text-center">
                       <div className="text-2xl font-bold text-blue-600">{DELIVERY_STEPS.length}</div>
-                      <div className="text-sm text-gray-500">Steps Completed</div>
+                      <div className="text-sm text-gray-500">已完成步骤</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-green-600">100%</div>
-                      <div className="text-sm text-gray-500">Success Rate</div>
+                      <div className="text-sm text-gray-500">成功率</div>
                     </div>
                     <div className="text-center">
                       <div className="text-2xl font-bold text-purple-600">⭐⭐⭐⭐⭐</div>
-                      <div className="text-sm text-gray-500">Experience</div>
+                      <div className="text-sm text-gray-500">体验评价</div>
                     </div>
                   </div>
                   
@@ -1534,7 +1533,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                       className="px-8"
                       data-testid="button-close-interface"
                     >
-                      Close
+                      关闭
                     </Button>
                     {onComplete && (
                       <Button 
@@ -1546,7 +1545,7 @@ export function PackageDeliveryExperiment({ experimentId, onComplete, onExit }: 
                         className="px-8 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                         data-testid="button-complete-experiment"
                       >
-                        Complete Training
+                        完成训练
                       </Button>
                     )}
                   </div>
